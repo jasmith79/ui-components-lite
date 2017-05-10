@@ -1,8 +1,8 @@
-# UI-COMPONENTS-LITE
+## UI-COMPONENTS-LITE
 
-## A set of very lightweight UI components in JavaScript and CSS.
+### A set of very lightweight UI components in JavaScript and CSS.
 
-### Usage
+#### Usage
 
 Pass the desired component names to the makefile like so:
 
