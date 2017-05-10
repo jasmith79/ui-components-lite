@@ -1,6 +1,6 @@
 {
   "name": "ui-components-lite",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -16,5 +16,9 @@
   },
   "dependencies": {
     "es6-promise": "4.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jasmith79/ui-components-lite.git"
   }
 }
