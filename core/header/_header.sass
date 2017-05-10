@@ -17,15 +17,19 @@ $primary-dark-color: #079af1 !default
 $header-color: #fff !default
 $header-background-color: false !default
 $sidebar-width: false !default
+$responsive-width: 1280px !default
 
 @mixin default-header-styles
   height: 70px
+  width: 100%
+  top: 0
+  left: 0
   .ui-component-content-wrapper
     width: 80%
     text-align: center
 
   [ui-role="title"]
-    font-size: 25px
+    font-size: 22px
 
 .ui-component-header
   @include default-header-styles
@@ -38,14 +42,25 @@ $sidebar-width: false !default
   @if $sidebar-width
     width: calc(100% - #{$sidebar-width})
     left: $sidebar-width
+    position: relative
   @else
+    position: absolute
     width: 100%
     left: 0
 
   color: $header-color
-  position: relative
   top: 0
   z-index: 3000
+
+  @media (min-width: 0px) and (max-width: 600px)
+    @include default-header-styles
+    position: absolute
+    left: 0
+
+  @media (min-width: 601px) and (max-width: $responsive-width)
+    width: 100%
+    position: absolute
+    left: 0
 
   &.ui-component-header-medium
     height: 156px
@@ -53,14 +68,8 @@ $sidebar-width: false !default
     [ui-role="title"]
       font-size: 50px
 
-    @media (min-width: 0px) and (max-width: 600px)
-      @include default-header-styles
-
   &.ui-component-header-tall
     height: 192px
 
     [ui-role="title"]
       font-size: 65px
-
-    @media (min-width: 0px) and (max-width: 600px)
-      @include default-header-styles

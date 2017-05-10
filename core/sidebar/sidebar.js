@@ -19,9 +19,9 @@ const SidebarMixin = {
     if (this.getAttribute('modal') != null && !this._backdrop) {
       this._backdrop = Backdrop();
       this._backdrop._parentUIComponent = this;
+      this._backdrop.classList.add('ui-component-sidebar-backdrop');
       this._backdrop.style.zIndex = 5000;
-      if (this.getAttribute('dismiss') != null)
-        this._backdrop.addEventListener('click', evt => this.close());
+      this._backdrop.addEventListener('click', evt => this.close());
       document.body.appendChild(this._backdrop);
     }
 

@@ -1,7 +1,7 @@
 {
   "name": "ui-components-lite",
-  "version": "0.0.2",
-  "description": "",
+  "version": "0.0.3",
+  "description": "A very lightweight set of UI components.",
   "main": "index.js",
   "scripts": {
     "test": "jasmine"

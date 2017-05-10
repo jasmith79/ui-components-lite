@@ -7,7 +7,7 @@
  * JavaScript file for ui-component header.
  */
 
-import { CoreElementMixin, debounce } from 'core';
+import { CoreElementMixin, debounce, show } from 'core';
 
 const HeaderMixin = {
   // If you dynamically modify the element attributes or contents, be sure to call this afterwards.
@@ -18,9 +18,13 @@ const HeaderMixin = {
     if (this.getAttribute('tall') != null) this.classList.add('ui-component-header-tall');
     let tabs = this.querySelector('.ui-component-tabs');
     if (tabs) this.removeChild(tabs);
-    this.wrapContent().centerContent({text: true});
+    this.wrapContent();
     if (tabs) this.appendChild(tabs);
-    return this;
+    let title = this.querySelector('[ui-role="title"]');
+    if (title) {
+      show(title);
+    }
+    return this.centerContent({text: true});
   }
 };
 
