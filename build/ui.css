@@ -163,20 +163,3 @@ body {
   top: calc(50vh - 130px);
   left: calc(50vw - 125px);
   overflow: hidden; }
-
-/*
- * _gmap.sass
- * @author Jared Smith <jasmith79@gmail.com>
- * @copyright 2017
- * @license MIT
- *
- * Has the css for ui-component google map
- *
- * @depends utils/_mixins.sass
- */
-.ui-component-google-map {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  border-collapse: collapse; }
