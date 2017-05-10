@@ -1,0 +1,28 @@
+/*
+ * _hamburger.sass
+ * @author Jared Smith <jasmith79@gmail.com>
+ * @copyright 2017
+ * @license MIT
+ *
+ * Has the css for ui-component hamburger button. Because sass doesn't de-dupe imports,
+ * the required dependencies need to be resolved manually in the build process.
+ *
+ * @depends utils/_mixins.sass
+ */
+
+$hamburger-line-color: #000 !default
+
+.ui-component-hamburger
+  max-height: 100px
+  max-width: 100px
+  .ui-component-content-wrapper
+    min-height: 40px
+    height: 60%
+
+.hamburger-line
+  height: 20%
+  margin-bottom: 17%
+  width: 100%
+  background-color: $hamburger-line-color
+  border-radius: 20%
+  min-height: 2px

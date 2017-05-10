@@ -1,0 +1,66 @@
+/*
+ * _header.sass
+ * @author Jared Smith <jasmith79@gmail.com>
+ * @copyright 2017
+ * @license MIT
+ *
+ * Has the css for ui-component header. Because sass doesn't de-dupe imports,
+ * the required dependencies need to be resolved manually in the build process.
+ * If using with ui-component-sidebar, make sure to load the sidebar styles first for
+ * proper width.
+ *
+ * @depends utils/_mixins.sass
+ * @depends utils/_utility_classes.sass
+ */
+
+$primary-dark-color: #079af1 !default
+$header-color: #fff !default
+$header-background-color: false !default
+$sidebar-width: false !default
+
+@mixin default-header-styles
+  height: 70px
+  .ui-component-content-wrapper
+    width: 80%
+    text-align: center
+
+  [ui-role="title"]
+    font-size: 25px
+
+.ui-component-header
+  @include default-header-styles
+  @include floating-y
+  @if $header-background-color
+    background-color: $header-background-color
+  @else
+    background-color: $primary-dark-color
+
+  @if $sidebar-width
+    width: calc(100% - #{$sidebar-width})
+    left: $sidebar-width
+  @else
+    width: 100%
+    left: 0
+
+  color: $header-color
+  position: relative
+  top: 0
+  z-index: 3000
+
+  &.ui-component-header-medium
+    height: 156px
+
+    [ui-role="title"]
+      font-size: 50px
+
+    @media (min-width: 0px) and (max-width: 600px)
+      @include default-header-styles
+
+  &.ui-component-header-tall
+    height: 192px
+
+    [ui-role="title"]
+      font-size: 65px
+
+    @media (min-width: 0px) and (max-width: 600px)
+      @include default-header-styles

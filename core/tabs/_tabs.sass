@@ -1,0 +1,27 @@
+/*
+ * _tabs.sass
+ * @author Jared Smith <jasmith79@gmail.com>
+ * @copyright 2017
+ * @license MIT
+ *
+ * Has the css for ui-component tabs
+ *
+ * @depends utils/_mixins.sass
+ * @depends utils/_utility_classes.sass
+ * @depends core/tab/_tab.sass
+ */
+
+$tabs-background-color: inherit !default
+
+.ui-component-tabs-bottom-bordered
+  border-bottom: solid 1px #fff
+
+.ui-component-tabs
+  background-color: $tabs-background-color
+  padding-bottom: 0
+
+  .ui-component-tab
+    position: relative
+
+.ui-component-tabs-bottom
+  position: relative

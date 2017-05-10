@@ -1,0 +1,182 @@
+.is-hidden {
+  display: none !important; }
+
+.transparent {
+  background: transparent !important; }
+
+.ui-component-content-wrapper {
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+  position: relative; }
+  .ui-component-content-wrapper.ui-component-text-centered {
+    text-align: center; }
+
+.fixed {
+  position: fixed; }
+
+/*
+ * _core.sass
+ * @author Jared Smith <jasmith79@gmail.com>
+ * @copyright 2017
+ * @license MIT
+ *
+ * Has the core css styles for the core ui-components
+ *
+ * @depends utils/_mixins.sass
+ */
+html, body {
+  height: 100%;
+  width: 100%;
+  font-size: 18px;
+  padding: 0;
+  margin: 0;
+  overflow: hidden; }
+
+body {
+  position: relative; }
+
+/*
+ * _ripple.sass
+ * @author Jared Smith <jasmith79@gmail.com>
+ * @copyright 2017
+ * @license MIT
+ *
+ * My riff on CSS ripple here
+ * https://github.com/mladenplavsic/css-ripple-effect
+ * also MIT licensed
+ *
+ * @depends utils/_mixins.sass
+ */
+.ui-component-ripple {
+  overflow: hidden;
+  position: relative; }
+
+.ui-component-ripple:after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-image: radial-gradient(circle, #FFF 10%, transparent 10%);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  opacity: 0;
+  -webkit-transform: scale(10, 10);
+  -moz-transform: scale(10, 10);
+  -ms-transform: scale(10, 10);
+  -o-transform: scale(10, 10);
+  transform: scale(10, 10);
+  -webkit-transition: transform .5s, opacity 1s;
+  -moz-transition: transform .5s, opacity 1s;
+  -ms-transition: transform .5s, opacity 1s;
+  -o-transition: transform .5s, opacity 1s;
+  transition: transform .5s, opacity 1s; }
+
+.ui-component-ripple:active:after {
+  opacity: .7;
+  -webkit-transform: scale(0, 0);
+  -moz-transform: scale(0, 0);
+  -ms-transform: scale(0, 0);
+  -o-transform: scale(0, 0);
+  transform: scale(0, 0);
+  -webkit-transition: 0s;
+  -moz-transition: 0s;
+  -ms-transition: 0s;
+  -o-transition: 0s;
+  transition: 0s; }
+
+/*
+ * _button.sass
+ * @author Jared Smith <jasmith79@gmail.com>
+ * @copyright 2017
+ * @license MIT
+ *
+ * Has the css for ui-component-button. Because sass doesn't de-dupe imports, the required
+ * dependencies need to be resolved manually in the build process.
+ *
+ * @depends utils/_mixins.sass
+ * @depends animation/_ripple.sass
+ */
+.ui-component-button {
+  background-color: #079af1;
+  color: #fff;
+  width: 100px;
+  height: 50px;
+  display: inline-block; }
+
+.ui-component-button-rounded {
+  border-radius: 8%; }
+
+.ui-component-button-floating {
+  box-shadow: 0px 2px 10px -4px #000; }
+
+/*
+ * _modal.sass
+ * @author Jared Smith <jasmith79@gmail.com>
+ * @copyright 2017
+ * @license MIT
+ *
+ * Has the css for ui-component modal dialog. Because sass doesn't de-dupe imports,
+ * the required dependencies need to be resolved manually in the build process.
+ *
+ * @depends utils/_mixins.sass
+ * @depends utils/_utility_classes.sass
+ */
+.ui-component-modal-backdrop {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  z-index: 10000;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  opacity: 0.8;
+  background-color: #000; }
+
+.ui-component-modal-dialog {
+  position: absolute;
+  padding: 20px;
+  overflow-y: scroll;
+  background-color: #fff;
+  z-index: 10001; }
+
+.ui-component-modal-dialog-large {
+  width: 80%;
+  height: 80%;
+  top: 8%;
+  left: 9%;
+  overflow: scroll; }
+
+.ui-component-modal-dialog-medium {
+  width: 50%;
+  height: 50%;
+  top: 20%;
+  left: 25%;
+  overflow: hidden; }
+
+.ui-component-modal-dialog-small {
+  width: 250px;
+  height: 185px;
+  top: calc(50vh - 130px);
+  left: calc(50vw - 125px);
+  overflow: hidden; }
+
+/*
+ * _gmap.sass
+ * @author Jared Smith <jasmith79@gmail.com>
+ * @copyright 2017
+ * @license MIT
+ *
+ * Has the css for ui-component google map
+ *
+ * @depends utils/_mixins.sass
+ */
+.ui-component-google-map {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border-collapse: collapse; }

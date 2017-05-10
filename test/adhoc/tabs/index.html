@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="content-type" content="text/html">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Tabs test</title>
+    <style>
+      body, html {
+        font-size: 18px;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+
+      body {
+        position: relative;
+      }
+
+      .ui-component-tab {
+        color: white;
+        width: 100px;
+        height: 50px;
+      }
+
+      [for="foobar"] {
+        background-color: cadetblue;
+      }
+
+      [for="bazbu"] {
+        background-color: aquamarine;
+      }
+
+      .header {
+        height: 20%;
+        width: 100%;
+        background-color: #CCC;
+      }
+    </style>
+    <link rel="stylesheet" href="../../../build/ui.css">
+  </head>
+  <body>
+    <div class="header">
+      <div class="ui-component-tabs" bottom>
+        <div class="ui-component-tab ui-component-tab-half-round" for="foobar">Foobar</div>
+        <div class="ui-component-tab ui-component-tab-half-round" for="bazbu">Bazbu</div>
+      </div>
+    </div>
+    <div class="foobar"></div>
+    <div id="bazbu"></div>
+    <script src="../../../build/ui.js"></script>
+    <script>
+      
+    </script>
+  </body>
+</html>

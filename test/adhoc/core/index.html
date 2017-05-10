@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="content-type" content="text/html">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>UI Core Components Test</title>
+    <style>
+      .ui-component-hamburger {
+        width: 64px;
+        position: absolute;
+        top: 50px;
+        left: 50px;
+      }
+
+      .ui-component-fab {
+        position: absolute;
+        left: 90%;
+        top: 80%;
+        z-index: 3000
+      }
+
+      .ui-component-tab {
+        color: white;
+        width: 100px;
+        height: 50px;
+      }
+
+      .button-holder {
+        position: relative;
+        top: 62%;
+        left: 20%;
+      }
+
+    </style>
+    <link rel="stylesheet" href="../../../build/ui.css">
+  </head>
+  <body>
+    <div id="modal-dialog" class="ui-component-modal-dialog" small>
+      <span>Do you wish to continue?</span>
+      <div class="button-holder">
+        <div class="ui-component-button" ui-role="dialog-confirm" rounded>Coolz</div>
+        <div class="ui-component-button" ui-role="dialog-dismiss" rounded>Close</div>
+      </div>
+    </div>
+    <div class="ui-component-hamburger" aria-labelledby="menu button" ui-role="menu-button"></div>
+    <div id="side-bar" class="ui-component-sidebar">
+      Menu
+    </div>
+    <div id="header" class="ui-component-header" fixed medium>
+      <div ui-role="title">Title</div>
+      <div class="ui-component-tabs" bottom>
+        <div class="ui-component-tab" for="page-one" selected>First</div>
+        <div class="ui-component-tab" for="page-two">Second</div>
+      </div>
+    </div>
+    <div class="ui-component-pages">
+      <div class="ui-component-page  is-hidden" id="page-one" template>
+        <div class="ui-component-page-title" centered selected>Login</div>
+        <p>
+          <label for="user">User:</label>
+          <input type="text" value="{{user}}"><br><br>
+          <label for="pass">Pass:</label>
+          <input type="password" value="{{pass}}"><br>
+        </p>
+        <button id="login">Login</button>
+      </div>
+      <div class="ui-component-page" id="page-two">
+        <p>
+          Hi! I'm the text on page 2
+        </p>
+      </div>
+      <div class="ui-component-page  is-hidden" id="page-three" template>
+        <div class="ui-component-page-title">Greetings</div>
+        <p>
+          Hi {{name}}! I'm the text on page 3
+        </p>
+      </div>
+    </div>
+    <div class="ui-component-fab">+</div>
+    <script src="../../../build/ui.js"></script>
+    <script>
+      // The data binding is deliberately simple, if you want cross-element binding as seen here
+      // wire it up with JavaScript, I'm not currently providing a declarative short-hand.
+      var userpass = document.querySelector('#page-one').bind({ user: '', pass: ''});
+      document.querySelector('#login').addEventListener('click', evt => {
+        console.log(userpass.user, userpass.pass);
+        document.querySelector('#page-three').setTemplateValue('name', userpass.user);
+      });
+
+      document.querySelector('.ui-component-fab').addEventListener('click', evt => {
+        // Here we use a timeout to give the ripple effect time to complete before obscuring the
+        // button.
+        setTimeout(function() {
+          document.querySelector('.ui-component-modal-dialog').open();
+        }, 400);
+      });
+
+      document.querySelector('.ui-component-modal-dialog').addEventListener('dialog-close', evt => {
+        console.log('closed');
+      });
+
+      document.querySelector('.ui-component-modal-dialog').addEventListener('dialog-dismiss', evt => {
+        console.log('dismissed');
+      });
+
+      document.querySelector('.ui-component-modal-dialog').addEventListener('dialog-confirm', evt => {
+        console.log('confirmed');
+        document.querySelector('.ui-component-pages').select(2);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,65 @@
+/*
+ * _sidebar.sass
+ * @author Jared Smith <jasmith79@gmail.com>
+ * @copyright 2017
+ * @license MIT
+ *
+ * Has the css for ui-component side-bar. Because sass doesn't de-dupe imports,
+ * the required dependencies need to be resolved manually in the build process.
+ *
+ * @depends utils/_mixins.sass
+ * @depends utils/_utility_classes.sass
+ * @depends core/modal/_modal.sass
+ */
+
+$sidebar-width: 320px !default
+$primary-background-color: #fff !default
+$responsive-width: 1280px !default
+$sidebar-animation-timing: 500ms !default
+
+.ui-component-sidebar
+  width: $sidebar-width
+  height: 100%
+  position: absolute
+  top: 0
+  z-index: 9000
+  background-color: $primary-background-color
+  overflow: hidden
+
+  @media (min-width: 0px) and (max-width: $responsive-width)
+    // make sure here we leave some modal visible to dismiss
+    max-width: 90vw
+    overflow-x: scroll
+
+  &.ui-component-sidebar-left
+    @include floating-x
+    left: 0
+    @media (min-width: 0px) and (max-width: $responsive-width)
+      left: -$sidebar-width
+
+  &.ui-component-sidebar-right
+    @include floating-x('right')
+    right: 0
+    @media (min-width: 0px) and (max-width: $responsive-width)
+      right: -$sidebar-width
+
+  .ui-component-content-wrapper
+    height: calc(100% + 12px)
+    width: calc(100% + 11px)
+    overflow: scroll
+
+.sidebar-animation-in
+  @include prefix(transition, transform $sidebar-animation-timing ease-in, webkit moz ms o)
+  &.ui-component-sidebar-left
+    @include prefix(transform, translate($sidebar-width) !important, webkit moz ms o)
+  &.ui-component-sidebar-right
+    @include prefix(transform, translate(-$sidebar-width) !important, webkit moz ms o)
+
+.sidebar-animation-out
+  @include prefix(transition, transform $sidebar-animation-timing ease-out, webkit moz ms o)
+  @include prefix(transform, translate(0px) !important, webkit moz ms o)
+
+[ui-role="menu-button"]
+  z-index: 4000
+  @media (min-width: $responsive-width)
+    display: none !important
