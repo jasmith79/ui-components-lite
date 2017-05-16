@@ -18,7 +18,7 @@ serve:
 clean:
 	rm -rf build
 
-build/ui.js: core/polyfill.js core/core.js $(CORE_DEPS) $(COMP_DEPS)
+build/ui.js: node_modules/es6-promise/dist/es6-promise.auto.js core/polyfill.js core/core.js $(CORE_DEPS) $(COMP_DEPS)
 	@mkdir -p $(@D)
 	babel $^ -o $@
 
