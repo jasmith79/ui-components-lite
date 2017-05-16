@@ -122,7 +122,7 @@ if (Object.values == null) {
   Object.defineProperty(Object, 'values', {
     value: obl => {
       if (obj == null) throw convertNullErr;
-      return Object.key(obj).map(k => obj[k]);
+      return Object.keys(obj).map(k => obj[k]);
     }
   });
 }
@@ -132,7 +132,7 @@ if (Object.entries == null) {
   Object.defineProperty(Object, 'entries', {
     value: obj => {
       if (obj == null) throw convertNullErr;
-      return Object.key(obj).map(k => [k, obj[k]]);
+      return Object.keys(obj).map(k => [k, obj[k]]);
     }
   });
 }
