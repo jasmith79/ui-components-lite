@@ -3,7 +3,7 @@
 
 let convertNullErr = new TypeError('Cannot convert null or undefined to object');
 let toStr = o => Object.prototype.toString.call(o);
-let identity = x => x
+let identity = x => x;
 
 // Function.prototype.name
 (p => {
@@ -120,7 +120,7 @@ if (Object.assign == null) {
 // Object.values
 if (Object.values == null) {
   Object.defineProperty(Object, 'values', {
-    value: obl => {
+    value: obj => {
       if (obj == null) throw convertNullErr;
       return Object.keys(obj).map(k => obj[k]);
     }
