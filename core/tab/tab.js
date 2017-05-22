@@ -10,7 +10,8 @@
 import { CoreElementMixin } from 'core';
 
 const Tab = function Tab(el=document.createElement('div')) {
-  el.classList.add('ui-component-tab', 'ui-component-ripple');
+  el.classList.add('ui-component-tab');
+  el.classList.add('ui-component-ripple');
   el.addEventListener('ui-component-select', evt => {
     let parent = el._parentUIComponent;
     if (parent && parent.select && parent.unselectAll) {

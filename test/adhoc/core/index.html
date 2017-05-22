@@ -83,12 +83,12 @@
       // The data binding is deliberately simple, if you want cross-element binding as seen here
       // wire it up with JavaScript, I'm not currently providing a declarative short-hand.
       var userpass = document.querySelector('#page-one').bind({ user: '', pass: ''});
-      document.querySelector('#login').addEventListener('click', evt => {
+      document.querySelector('#login').addEventListener('click', function(evt) {
         console.log(userpass.user, userpass.pass);
         document.querySelector('#page-three').setTemplateValue('name', userpass.user);
       });
 
-      document.querySelector('.ui-component-fab').addEventListener('click', evt => {
+      document.querySelector('.ui-component-fab').addEventListener('click', function(evt) {
         // Here we use a timeout to give the ripple effect time to complete before obscuring the
         // button.
         setTimeout(function() {
@@ -96,15 +96,15 @@
         }, 400);
       });
 
-      document.querySelector('.ui-component-modal-dialog').addEventListener('dialog-close', evt => {
+      document.querySelector('.ui-component-modal-dialog').addEventListener('dialog-close', function(evt) {
         console.log('closed');
       });
 
-      document.querySelector('.ui-component-modal-dialog').addEventListener('dialog-dismiss', evt => {
+      document.querySelector('.ui-component-modal-dialog').addEventListener('dialog-dismiss', function(evt) {
         console.log('dismissed');
       });
 
-      document.querySelector('.ui-component-modal-dialog').addEventListener('dialog-confirm', evt => {
+      document.querySelector('.ui-component-modal-dialog').addEventListener('dialog-confirm', function(evt) {
         console.log('confirmed');
         document.querySelector('.ui-component-pages').select(2);
       });

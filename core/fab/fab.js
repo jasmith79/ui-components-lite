@@ -21,7 +21,8 @@ const FabMixin = {
 };
 
 const Fab = function Fab(el=document.createElement('div')) {
-  el.classList.add('ui-component-fab', 'ui-component-ripple');
+  el.classList.add('ui-component-fab');
+  el.classList.add('ui-component-ripple');
   return Object.assign(el, CoreElementMixin, FabMixin).initialize();
 };
 

@@ -10,7 +10,8 @@
 import { CoreElementMixin } from 'core';
 
 const Button = function Button(el=document.createElement('div')) {
-  el.classList.add('ui-component-button', 'ui-component-ripple');
+  el.classList.add('ui-component-button');
+  el.classList.add('ui-component-ripple');
   return Object.assign(el, CoreElementMixin).wrapContent().centerContent({text: true});
 };
 

@@ -53,12 +53,12 @@ let identity = x => x;
 
         if (toStr(o.forEach) === '[object Function]') {
           o.forEach(v => res.push((f || identity).call((thisArg || o), v)));
-        } else if (Symbol && Symbol.iterator && o[Symbol.iterator]) {
+        } else if (window.Symbol && Symbol.iterator && o[Symbol.iterator]) {
           // need this for generators
           let iter = o[Symbol.iterator]();
           let done = false;
           while (!done) {
-            let v = iter.next()
+            let v = iter.next();
             res.push(v.value);
             done = v.done;
           }

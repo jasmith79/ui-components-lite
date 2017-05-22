@@ -71,12 +71,14 @@ const AlertViewMixin = {
 };
 
 const Backdrop = function Backdrop(el=document.createElement('div')) {
-  el.classList.add('ui-component-modal-backdrop', 'is-hidden');
+  el.classList.add('ui-component-modal-backdrop');
+  el.classList.add('is-hidden');
   return Object.assign(el, CoreElementMixin);
 };
 
 const Dialog = function Dialog(el=document.createElement('div')) {
-  el.classList.add('ui-component-modal-dialog', 'is-hidden');
+  el.classList.add('ui-component-modal-dialog');
+  el.classList.add('is-hidden');
   el._backdrop = Backdrop();
   document.body.appendChild(el._backdrop);
   el._backdrop.addEventListener('click', evt => {
