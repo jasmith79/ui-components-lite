@@ -52,7 +52,10 @@ const ListMixin = {
 
 const ListItem = function ListItem(el=document.createElement('div')) {
   el.classList.add('ui-component-list-item');
-  return Object.assign(el, CoreElementMixin);
+  el.classList.add('ui-component-ripple');
+  Object.assign(el, CoreElementMixin);
+  el.wrapContent().centerContent({ text: true });
+  return el;
 };
 
 const List = function List(el=document.createElement('div')) {
