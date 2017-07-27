@@ -20,7 +20,6 @@ const SelectMixin = {
           o.removeAttribute('selected');
         });
         option.setAttribute('selected', true);
-        // option.classList.remove('is-hidden');
         this.selected = option;
       }
 
@@ -32,13 +31,11 @@ const SelectMixin = {
 
   open () {
     this.removeAttribute('collapsed')
-    // this.options.forEach(o => o.show());
     return this;
   },
 
   close () {
     this.setAttribute('collapsed', true);
-    // this.options.forEach(o => { if (o !== this.selected) o.hide() });
     return this;
   },
 
@@ -48,11 +45,17 @@ const SelectMixin = {
 const Select = function Select(el=document.createElement('div')) {
   el.classList.add('ui-component-select');
   el.options = Array.from(el.querySelectorAll('.ui-component-option'));
-  el.options.forEach(x => {
+  el.options.forEach((x, i) => {
     x.classList.add('ui-component-list-item');
     let arrow = document.createElement('div');
     arrow.classList.add('ui-component-down-arrow');
     x.appendChild(arrow);
+    x.addEventListener('click', e => {
+      if (!el.getAttribute('collapsed')) {
+        el.select(i);
+        setTimeout(_ => { el.close() }, 500);
+      }
+    });
   });
 
   let pendingClose = null;
@@ -66,5 +69,9 @@ const Select = function Select(el=document.createElement('div')) {
 };
 
 document.querySelectorAll('.ui-component-select').forEach(Select);
+
+Select.fromArray = ls => {
+
+};
 
 export default Select
