@@ -7,7 +7,7 @@
  * JavaScript file for ui-component-select
  */
 
-import List from 'list';
+import { List, ListItem } from 'list';
 import { CoreElementMixin, extractType } from 'core';
 
 const SelectMixin = {
@@ -43,22 +43,25 @@ const SelectMixin = {
 };
 
 const Option = function Option(parent, el=document.createElement('div')) {
-  el.classList.add('ui-component-list-item');
+  ListItem(el);
+  el.classList.add('ui-component-option');
   let arrow = document.createElement('div');
   arrow.classList.add('ui-component-down-arrow');
   el.appendChild(arrow);
   el.addEventListener('click', e => {
     if (!parent.getAttribute('collapsed')) {
-      parent.select(i);
+      parent.select(el);
       setTimeout(_ => { parent.close() }, 500);
     }
   });
+
+  return el;
 };
 
 const Select = function Select(el=document.createElement('div')) {
   el.classList.add('ui-component-select');
   el.options = Array.from(el.querySelectorAll('.ui-component-option'));
-  el.options.forEach(Option);
+  el.options.forEach(o => Option(el, o));
 
   let pendingClose = null;
   el.addEventListener('click', () => el.open());
@@ -73,18 +76,26 @@ const Select = function Select(el=document.createElement('div')) {
 document.querySelectorAll('.ui-component-select').forEach(Select);
 
 Select.fromArray = ls => {
-  let select = Select();
-  select.options = ls.map(item => {
+  let select = document.createElement('div');
+  let opt;
+  ls.forEach(item => {
     if (extractType(item).match(/html/i)) {
-      return Option(item);
+      opt = item;
     } else {
       let div = document.createElement('div');
-      div.textContent = item;
-      return Option(div);
+      div.innerHTML = item;
+      opt = div;
     }
+    opt.classList.add('ui-component-option');
+    select.appendChild(opt);
+    return opt;
   });
 
+  Select(select);
+
+  if (!select.selected) select.select(0);
   return select;
 };
 
-export default Select
+export default Select;
+export { Select, Option };

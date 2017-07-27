@@ -23,6 +23,14 @@
       <div class="ui-component-option">Bar</div>
       <div class="ui-component-option">Baz</div>
     </div>
+    <div id="placeholder"></div>
     <script src="../../../build/ui.js"></script>
+    <script>
+      setTimeout(_ => {
+        var arr = ["qux", "fii", "yo"];
+        var sel = window.select.default.fromArray(arr);
+        document.getElementById('placeholder').appendChild(sel);
+      }, 100);
+    </script>
   </body>
 </html>

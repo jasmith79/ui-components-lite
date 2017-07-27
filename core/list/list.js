@@ -67,3 +67,4 @@ const List = function List(el=document.createElement('div')) {
 document.querySelectorAll('.ui-component-list').forEach(List);
 
 export default List;
+export { List, ListItem };
