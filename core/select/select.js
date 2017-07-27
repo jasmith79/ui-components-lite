@@ -42,21 +42,23 @@ const SelectMixin = {
   selected: null
 };
 
+const Option = function Option(parent, el=document.createElement('div')) {
+  el.classList.add('ui-component-list-item');
+  let arrow = document.createElement('div');
+  arrow.classList.add('ui-component-down-arrow');
+  el.appendChild(arrow);
+  el.addEventListener('click', e => {
+    if (!parent.getAttribute('collapsed')) {
+      parent.select(i);
+      setTimeout(_ => { parent.close() }, 500);
+    }
+  });
+};
+
 const Select = function Select(el=document.createElement('div')) {
   el.classList.add('ui-component-select');
   el.options = Array.from(el.querySelectorAll('.ui-component-option'));
-  el.options.forEach((x, i) => {
-    x.classList.add('ui-component-list-item');
-    let arrow = document.createElement('div');
-    arrow.classList.add('ui-component-down-arrow');
-    x.appendChild(arrow);
-    x.addEventListener('click', e => {
-      if (!el.getAttribute('collapsed')) {
-        el.select(i);
-        setTimeout(_ => { el.close() }, 500);
-      }
-    });
-  });
+  el.options.forEach(Option);
 
   let pendingClose = null;
   el.addEventListener('click', () => el.open());
@@ -71,7 +73,18 @@ const Select = function Select(el=document.createElement('div')) {
 document.querySelectorAll('.ui-component-select').forEach(Select);
 
 Select.fromArray = ls => {
+  let select = Select();
+  select.options = ls.map(item => {
+    if (extractType(item).match(/html/i)) {
+      return Option(item);
+    } else {
+      let div = document.createElement('div');
+      div.textContent = item;
+      return Option(div);
+    }
+  });
 
+  return select;
 };
 
 export default Select
