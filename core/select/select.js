@@ -75,7 +75,7 @@ const Select = function Select(el=document.createElement('div')) {
 
 document.querySelectorAll('.ui-component-select').forEach(Select);
 
-Select.fromArray = ls => {
+Select.fromArray = (ls, parent=null) => {
   let select = document.createElement('div');
   let opt;
   ls.forEach(item => {
@@ -90,7 +90,7 @@ Select.fromArray = ls => {
     select.appendChild(opt);
     return opt;
   });
-
+  if (parent) parent.appendChild(select);
   Select(select);
 
   if (!select.selected) select.select(0);

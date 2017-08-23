@@ -28,8 +28,7 @@
     <script>
       setTimeout(_ => {
         var arr = ["qux", "fii", "yo"];
-        var sel = window.select.default.fromArray(arr);
-        document.getElementById('placeholder').appendChild(sel);
+        var sel = window.select.default.fromArray(arr, document.getElementById('placeholder'));
       }, 100);
     </script>
   </body>
