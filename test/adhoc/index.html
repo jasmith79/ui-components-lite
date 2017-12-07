@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, minimum-scale=1.0">
+<meta charset="utf-8"/>
+<style>
+html, body {
+  font-family: sans-serif;
+  width: 100%;
+  height: 100%;
+}
+
+ui-button {
+  background-color: blue;
+  color: white;
+}
+
+ui-fab-button {
+  background-color: orange;
+  color: white;
+}
+
+#ui-card-1 {
+  width: 50%;
+  height: 50%;
+  position: absolute;
+  z-index: 1;
+  background-color: purple;
+  color: white;
+  left: 10%;
+}
+
+</style>
+</head>
+<body>
+  <script src="https://unpkg.com/inline-style-prefixer@3.0.1/dist/inline-style-prefixer.js"></script>
+  <script type="module" src="./index.js"></script>
+  <ui-alert></ui-alert>
+  <ui-hamburger ui-role="drawer-toggle"></ui-hamburger>
+  <ui-drawer modal right-oriented>
+  </ui-drawer>
+  <ui-button class="alert-bttn">show alert</ui-button>
+  <script>
+    setTimeout(() => {
+      document.querySelector('.alert-bttn').on('click', e => {
+        document.querySelector('ui-alert').alert('Alerted!');
+      });
+    }, 100);
+  </script>
+ </body>
+</html>
