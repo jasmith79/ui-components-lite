@@ -1,5 +1,4 @@
-import styler from '../utils/styler.js';
-export default styler.getClassList({
+export default {
   'overflow': 'hidden',
   'position': 'relative',
   'cursor': 'pointer',

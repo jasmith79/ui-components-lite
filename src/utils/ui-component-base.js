@@ -1,16 +1,17 @@
-import styler from './styler.js';
+import Styled from './styler.js';
 import camelCaser from './camelcaser.js';
 import extractType from '../../node_modules/extracttype/extracttype.js';
 import htmlAttrs from './html-attributes.js';
+import processHTMLAttr from './attribute-analyzer.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 const isHTMLElement = arg => Boolean(extractType(arg).match(/HTML[a-zA-Z]*Element/));
 
-const isHidden = styler.getClassList({
+const isHidden = {
   display: 'none !important',
-});
+};
 
-const baseMixin = (superclass) => class UIBase extends superclass {
+const baseMixin = (superclass) => class UIBase extends mix(superclass).with(Styled) {
   constructor () {
     super();
     this._listeners = [];
@@ -24,7 +25,7 @@ const baseMixin = (superclass) => class UIBase extends superclass {
       if (extractType(node) === 'ShadowRoot') return node;
       node = node.parentNode;
     }
-    return null;
+    return;
   }
 
   static get observedAttributes () {
@@ -52,6 +53,13 @@ const baseMixin = (superclass) => class UIBase extends superclass {
     return this._shadowElement || extractType(this) === 'ShadowRoot' || this.shadowParent;
   }
 
+  /**
+   * on :: Event, (Event -> *) -> this
+   *
+   * Registers an event listener. Listeners added via this method are
+   * automatically removed and reattached on being removed from/added to the
+   * DOM.
+   */
   on (evt, fn) {
     const isDupe = this._listeners.some(([e, f]) => e === evt && fn === f);
     if (!isDupe) {
@@ -61,17 +69,17 @@ const baseMixin = (superclass) => class UIBase extends superclass {
     return this;
   }
 
-  /*
-   * Removes a child node(s) or event listener. If no event name is provided, it removes that
-   * listener function for all events for which it is bound to the element. If no arguments arguments
-   * provided the method removes the element from its parent element. So this method
-   * responds to the following signatures and ignores all others:
-   *
+  /**
    * remove :: Void -> this      -- removes this from parent
    * remove :: Node -> this      -- removes child from this
    * remove :: [Node] -> this    -- removes children from this
    * remove :: (* -> *) -> this  -- removes listener for all events from this
    * remove :: String, (* -> *) -> this -- removes listener for specified event
+   *
+   * Removes a child node(s) or event listener. If no event name is provided, it removes that
+   * listener function for all events for which it is bound to the element. If no arguments arguments
+   * provided the method removes the element from its parent element. So this method
+   * responds to the following signatures and ignores all others:
    */
   remove (...args) {
     const [evt, fn, children] = (arr => {
@@ -121,13 +129,29 @@ const baseMixin = (superclass) => class UIBase extends superclass {
   }
 
   hide () {
-    this.classList.add(...isHidden);
-    return this;
+    return this.applyStyles(isHidden);
   }
 
   show () {
-    this.classList.remove(...isHidden);
-    return this;
+    return this.removeStyles(isHidden);
+  }
+
+  attr (name, value) {
+    if (value === undefined) {
+      return processHTMLAttr(this.getAttribute(name));
+    } else {
+      switch (extractType(value)) {
+        case 'Null':
+        case 'Undefined':
+          this.removeAttribute(name);
+          break;
+
+        default:
+          this.setAttribute(name, value);
+          break;
+      }
+      return this;
+    }
   }
 
   init () {

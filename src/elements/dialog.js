@@ -1,6 +1,7 @@
 import styler from '../utils/styler.js';
-import transferChildren from '../utils/transferchildren.js';
 import Floats from '../utils/float.js';
+import { FALSE, processHTMLAttr } from '../utils/attribute-analyzer.js';
+
 import Button from './button.js';
 import Card from './card.js';
 import './backdrop.js';
@@ -109,70 +110,55 @@ export default class Dialog extends Card {
   }
 
   set modal (bool) {
-    switch (bool) {
-      case 'false':
-      case false:
-        this._isModal = false;
-        break;
-      default:
-        this._isModal = true;
-        break;
+    if (processHTMLAttr(bool) === FALSE) {
+      this._isModal = false;
+    } else {
+      this._isModal = true;
     }
+
     return this;
   }
 
   set smallDialog (bool) {
-    switch (bool) {
-      case 'false':
-      case false:
-        this.classList.remove(...smallStyles);
-        break;
-      default:
-        this.removeAttribute('large-dialog', 'medium-dialog');
-        this.classList.add(...smallStyles);
-        break;
+    if (processHTMLAttr(bool) === FALSE) {
+      this.classList.remove(...smallStyles);
+    } else {
+      this.removeAttribute('large-dialog', 'medium-dialog');
+      this.classList.add(...smallStyles);
     }
+
     return this;
   }
 
   set mediumDialog (bool) {
-    switch (bool) {
-      case 'false':
-      case false:
-        this.classList.remove(...medStyles);
-        break;
-      default:
-        this.removeAttribute('small-dialog', 'large-dialog');
-        this.classList.add(...medStyles);
-        break;
+    if (processHTMLAttr(bool) === FALSE) {
+      this.classList.remove(...medStyles);
+    } else {
+      this.removeAttribute('small-dialog', 'large-dialog');
+      this.classList.add(...medStyles);
     }
+
     return this;
   }
 
   set largeDialog (bool) {
-    switch (bool) {
-      case 'false':
-      case false:
-        this.classList.remove(...largeStyles);
-        break;
-      default:
-        this.removeAttribute('small-dialog', 'medium-dialog');
-        this.classList.add(...largeStyles);
-        break;
+    if (processHTMLAttr(bool) === FALSE) {
+      this.classList.remove(...largeStyles);
+    } else {
+      this.removeAttribute('small-dialog', 'medium-dialog');
+      this.classList.add(...largeStyles);
     }
+
     return this;
   }
 
   set scrollableDialog (bool) {
-    switch (bool) {
-      case 'false':
-      case false:
-        this.classList.remove(...scrollableStyles);
-        break;
-      default:
-        this.classList.add(...scrollableStyles);
-        break;
+    if (processHTMLAttr(bool) === FALSE) {
+      this.classList.remove(...scrollableStyles);
+    } else {
+      this.classList.add(...scrollableStyles);
     }
+
     return this;
   }
 

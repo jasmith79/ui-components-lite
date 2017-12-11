@@ -35,17 +35,17 @@ ui-fab-button {
 <body>
   <script src="https://unpkg.com/inline-style-prefixer@3.0.1/dist/inline-style-prefixer.js"></script>
   <script type="module" src="./index.js"></script>
-  <ui-alert></ui-alert>
+  <!-- <ui-alert></ui-alert>
   <ui-hamburger ui-role="drawer-toggle"></ui-hamburger>
   <ui-drawer modal right-oriented>
-  </ui-drawer>
-  <ui-button class="alert-bttn">show alert</ui-button>
+  </ui-drawer> -->
+  <ui-card>show alert</ui-card>
   <script>
-    setTimeout(() => {
+    customElements.whenDefined('ui-button').then(_ => {
       document.querySelector('.alert-bttn').on('click', e => {
-        document.querySelector('ui-alert').alert('Alerted!');
+        // document.querySelector('ui-alert').alert('Alerted!');
       });
-    }, 100);
+    })
   </script>
  </body>
 </html>
