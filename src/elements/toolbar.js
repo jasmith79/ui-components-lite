@@ -10,13 +10,8 @@ const styles = {
   'top': '0',
   'left': '0',
   'width': '100vw',
-  'height': '70px',
   'background-color': '#079af1',
   'color': 'white',
-};
-
-const tallStyles = {
-
 };
 
 const [titleStyles, titleStyleElem] = Styler.generateStyles(Object.assign({
@@ -32,10 +27,19 @@ document.head.appendChild(titleStyleElem);
 
 const titleSelector = ` > .${titleStyles}`;
 const shortStyles = {
+  'height': '70px',
   [titleSelector]: {
     'text-overflow': 'ellipsis',
     'overflow': 'hidden',
     'white-space': 'nowrap',
+    'font-size': '22px',
+  }
+};
+
+const tallStyles = {
+  'height': '192px',
+  [titleSelector]: {
+    'font-size': '40px',
   }
 };
 
@@ -55,7 +59,7 @@ const Toolbar = (class Toolbar extends mix(HTMLElement).with(UIBase, Floats) {
   static get observedAttributes () {
     return [...super.observedAttributes, ...reflectedAttrs];
   }
-  
+
   init () {
     super.init();
     this.applyStyles(styles, preserve3dStyles);
