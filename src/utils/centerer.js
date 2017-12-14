@@ -1,6 +1,4 @@
-import styler from './styler.js';
-import transferChildren from './transferchildren.js';
-import toCSSString from './to_css_string.js';
+import Styled from './styler.js';
 
 const centered = {
   'position': 'relative',
@@ -8,32 +6,27 @@ const centered = {
   'transform': 'translateY(-51%)',
 };
 
+const [wrapperClassName, wrapperStyles] = Styled.generateStyles(centered);
+
 const wrapperSlot = document.createElement('slot');
 const slottedWrapperDiv = document.createElement('div');
 slottedWrapperDiv.id = 'ui-component-wrapper';
 slottedWrapperDiv.appendChild(wrapperSlot);
+slottedWrapperDiv.classList.add(wrapperClassName);
 
 const wrapperDiv = document.createElement('div');
 wrapperDiv.id = 'ui-component-wrapper';
+wrapperDiv.classList.add(wrapperClassName);
 
-const wrapperStyles = document.createElement('style');
-wrapperStyles.innerHTML = `
-  #ui-component-wrapper {
-    ${toCSSString(centered, ';\n\t')}
-  }
-`;
-
-const preserve3d = {
+const preserve3dStyles = {
   'transform-style': 'preserve-3d',
 };
-
-const preserve3dStyles = styler.getClassList(preserve3d);
 
 export default superclass => class Centerable extends superclass {
   centerContent ({unslotted}={}) {
     if (!this.shadowRoot || !this.shadowRoot.querySelector('#ui-component-wrapper')) {
       const wrapper = unslotted ? wrapperDiv : slottedWrapperDiv;
-      this.classList.add(...preserve3dStyles);
+      this.applyStyles(preserve3dStyles);
       const shadowRoot = this.shadowRoot || this.attachShadow({ mode: 'open' });
       shadowRoot.appendChild(wrapper.cloneNode(true));
       shadowRoot.appendChild(wrapperStyles.cloneNode(true));
@@ -44,6 +37,6 @@ export default superclass => class Centerable extends superclass {
 };
 
 export {
-  centered as centeredStyleObject,
-  preserve3d as preserve3dObject
+  centered as centeredStyles,
+  preserve3dStyles,
 };

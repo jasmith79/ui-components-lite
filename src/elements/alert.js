@@ -1,13 +1,14 @@
 import Dialog from './dialog.js';
 import Button from './button.js';
-import styler from '../utils/styler.js';
 
-const styles = styler.getClassList({
+import Styled from '../utils/styler.js';
+
+const styles = {
   'padding': '20px',
   'top': '30%',
-});
+};
 
-const btnStyles = styler.getClassList({
+const btnStyles = {
   'background-color': '#e83673',
   'color': '#fff',
   'position': 'relative',
@@ -15,9 +16,9 @@ const btnStyles = styler.getClassList({
   'height': '50px',
   'top': 'calc(100% - 55px)',
   'left': 'calc(100% - 105px)',
-});
+};
 
-const contentStyles = styler.getClassList({
+const [contentClassName, contentStyles] = Styled.generateStyles({
   'width': '90%',
   'margin-left': 'auto',
   'margin-right': 'auto',
@@ -26,24 +27,31 @@ const contentStyles = styler.getClassList({
   'top': '-50px',
 });
 
+// TODO: change this to shadowDOM?
+document.head.appendChild(contentStyles);
+const contentDiv = document.createElement('div');
+contentDiv.classList.add(contentClassName);
+
 export default class Alert extends Dialog {
 
   init () {
     // TODO: change this to shadowDOM?
-    this._contentArea = document.createElement('div');
-    this._contentArea.classList.add(...contentStyles);
-    this.setAttribute('modal', true);
-    this.setAttribute('scrollable-dialog', false);
-    this.setAttribute('small-dialog', true);
+    this._contentArea = contentDiv.cloneNode(true);
+    this.scrollableDialog = false;
+    this.smallDialog = true;
+    // this.isModal = true;
     this._closer = document.createElement('ui-button');
     this._closer.textContent = 'Close';
-    this._closer.classList.add(...btnStyles);
-    this._closer.setAttribute('dialog-dismiss', true);
-    this._closer.setAttribute('floating-y', true);
+    this._closer.applyStyles(btnStyles);
+    this._closer.dialogDismiss = true;
+    this._closer.floatingY = true;
     this.appendChild(this._closer);
     this.appendChild(this._contentArea);
     super.init();
-    this.classList.add(...styles);
+    this.applyStyles(styles);
+    this.on('attribute-change', ({ changed: { name, now } }) => {
+      name === 'is-open' && now ? this._backdrop.show() : this._backdrop.hide();
+    });
     return;
   }
 

@@ -1,8 +1,7 @@
 import Styled from './styler.js';
-import camelCaser from './camelcaser.js';
 import extractType from '../../node_modules/extracttype/extracttype.js';
-import htmlAttrs from './html-attributes.js';
 import processHTMLAttr from './attribute-analyzer.js';
+import { toSnakeCase, toCamelCase } from '../../node_modules/jsstring/src/jsstring.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 const isHTMLElement = arg => Boolean(extractType(arg).match(/HTML[a-zA-Z]*Element/));
@@ -11,12 +10,27 @@ const isHidden = {
   display: 'none !important',
 };
 
+const toPropertyObj = propList => {
+  return propList.reduce((acc, prop) => {
+    const property = toCamelCase(prop);
+    acc[property] = {
+      get: function() { return this[`_${property}`]; },
+      set: function(val) {
+        this[`_${property}`] = val;
+        this.attr(toSnakeCase(property, '-'), val);
+      }
+    };
+    return acc;
+  }, {});
+};
+
 const baseMixin = (superclass) => class UIBase extends mix(superclass).with(Styled) {
   constructor () {
     super();
     this._listeners = [];
     this._isCentered = false;
     this._shadowElement = null;
+    this._isReady = false;
   }
 
   _checkForShadowAncestor () {
@@ -33,8 +47,24 @@ const baseMixin = (superclass) => class UIBase extends mix(superclass).with(Styl
     return ['style', 'class'];
   }
 
+  static reflectToAttribute (attrs) {
+    const class_ = class extends this {
+      constructor (...args) {
+        super(...args);
+        this.on('attribute-change', ({ changed: { name, now } }) => {
+          if (attrs.includes(name)) {
+            this[toCamelCase(name)] = now;
+          }
+        });
+      }
+    };
+
+    Object.defineProperties(class_.prototype, toPropertyObj(attrs));
+    return class_;
+  }
+
   get isUIComponent () {
-    return this.constructor.name;
+    return this instanceof UIBase && (this.constructor.name || true);
   }
 
   get isVisible () {
@@ -156,7 +186,16 @@ const baseMixin = (superclass) => class UIBase extends mix(superclass).with(Styl
 
   init () {
     // Should be called by extension elements via super.
+    const self = this;
     setTimeout(() => {
+      self.constructor.observedAttributes.forEach(attr => {
+        if (self.attr(attr)) {
+          const evt = new CustomEvent('attribute-change');
+          evt.changed = { name: attr, now: self.attr(attr), was: null };
+          self.dispatchEvent(evt);
+        }
+      });
+      this._isReady = true;
       this.dispatchEvent(new CustomEvent('ui-component-ready'));
     }, 0);
   }
@@ -180,12 +219,11 @@ const baseMixin = (superclass) => class UIBase extends mix(superclass).with(Styl
   }
 
   attributeChangedCallback (name, was, now) {
-    if (!htmlAttrs.includes(name)) {
-      this[camelCaser(name)] = now == null ? false : now == '' ? true : now;
+    if (was !== now) {
+      const evt = new CustomEvent('attribute-change');
+      evt.changed = { name, was, now: processHTMLAttr(now), raw: now };
+      this.dispatchEvent(evt);
     }
-    const evt = new CustomEvent('attribute-change');
-    evt.changed = { name, was, now };
-    this.dispatchEvent(evt);
   }
 }
 

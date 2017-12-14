@@ -1,11 +1,10 @@
-import styler from '../utils/styler.js';
 import toCSSString from '../utils/to_css_string.js';
 import Floats from '../utils/float.js';
 import UIBase from '../utils/ui-component-base.js';
 
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
-const styles = styler.getClassList({
+const styles = {
 
 });
 

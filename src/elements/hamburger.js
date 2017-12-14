@@ -1,8 +1,7 @@
-import styler from '../utils/styler.js';
 import Button from './button.js';
 import Easer from '../animations/easer.js';
 import toCSSString from '../utils/to_css_string.js';
-import { centeredStyleObject, preserve3dObject } from '../utils/centerer.js';
+import { centeredStyles, preserve3dStyles } from '../utils/centerer.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 const reflectedAttrs = ['ui-role'];
@@ -44,27 +43,25 @@ lineDiv.innerHTML = `
   <div class="line bottom-line"></div>
 `;
 
-const styles = styler.getClassList(Object.assign({}, preserve3dObject, {
+const styles = {
   'background': 'transparent',
   'border': '1px solid black',
   'width': '48px',
   'height': '48px',
-}));
+};
 
-export default class Hamburger extends mix(Button).with(Easer) {
+const Hamburger = (class Hamburger extends mix(Button).with(Easer) {
   init () {
     super.init();
-    this._stackOfChanges = [];
     this.shadowRoot.appendChild(hamburgerShadowStyles);
     this.shadowRoot.querySelector('#ui-component-wrapper').appendChild(lineDiv.cloneNode(true));
-    this.classList.add(...styles);
-    // let slide = this.defineSlideAnimation({ direction: 'left' });
-    // this.on('click', e => slide.toggle());
+    this.applyStyles(styles);
   }
 
   centerContent() {
     return super.centerContent({unslotted: true});
   }
-}
+}).reflectToAttribute(reflectedAttrs);
 
+export default Hamburger;
 customElements.define('ui-hamburger', Hamburger);

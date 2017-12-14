@@ -71,57 +71,64 @@ const defaultTheme = {
 
 
 import { extractType } from '../../node_modules/extracttype/extracttype.js';
-import { random } from '../../node_modules/jsstring/src/jsstring.js';
-
 import toCSSString from './to_css_string.js';
+import { partitionBy } from './functional.js';
 
 const generatedStyles = {};
 const injectedStyles = new WeakMap;
 
-const generateCSSClass = _ => random.alpha(1) + random.alphanumeric(6);
-const generateStyles = styles => {
-  const str = toCSSString(styles);
-  if (!(str in generatedStyles)) {
+const generateStyles = (styles, selector='') => {
+  const [class_, str] = toCSSString(styles);
+  if (!(class_ in generatedStyles)) {
     const elem = document.createElement('style');
-    const class_ = generateCSSClass();
-    elem.innerHTML = `.${class_}{${str}}`;
-    generatedStyles[str] = [class_, elem];
+    elem.innerHTML = selector + str;
+    generatedStyles[class_] = elem;
   }
-  const [name, el] = generatedStyles[str];
-  return [name, el.cloneNode(true)];
+  const elem = generatedStyles[class_];
+  return [class_, elem.cloneNode(true)];
 };
 
 const injectStyleTag = (styleElem, root=document.head) => {
   const existing = injectedStyles.get(root) || [];
-  if (existing.includes(styleElem)) return;
+  if (existing.some(node => node.isEqualNode(styleElem))) return;
   existing.push(styleElem);
   root.appendChild(styleElem);
   injectedStyles.set(root, existing);
   return;
 };
 
-export default superclass => class Styled extends superclass {
-  applyStyles (...styles) {
+const Styled = superclass => class Styled extends superclass {
+  applyStyles (...stls) {
+    const [[selector], styles] = partitionBy(x => extractType(x) === 'String', stls);
     styles.forEach(style => {
-      const [class_, elem] = generateStyles(styles);
+      const [class_, elem] = generateStyles(style, selector);
       injectStyleTag(elem, this.shadowParent);
-      this.classList.add(class_);
-    }):
+      if (this._isReady) {
+        this.classList.add(class_);
+      } else {
+        this.on('ui-component-ready', e => {
+          this.classList.add(class_);
+        });
+      }
+    });
 
     return this;
   }
 
   removeStyles (...styles) {
     styles.forEach(style => {
-      const str = toCSSString(styles);
-      const [class_] = generatedStyles[str];
+      const [class_] = generateStyles(style);
       if (class_) {
         this.classList.remove(class_);
       } else {
         console.warn(`Tried to remove properties ${str} from ${this.tagName.toLowerCase()}.`);
       }
-    }):
+    });
 
     return this;
   }
 };
+
+// For non-ui-component use, e.g. content divs
+Styled.generateStyles = generateStyles;
+export default Styled;

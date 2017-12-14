@@ -1,53 +1,51 @@
-import styler from '../utils/styler.js';
 import Floats from '../utils/float.js';
-import { FALSE, processHTMLAttr } from '../utils/attribute-analyzer.js';
-
 import Button from './button.js';
 import Card from './card.js';
 import './backdrop.js';
 
-const largeStyles = styler.getClassList({
+const largeStyles = {
   width: '80%',
   height: '80%',
   top: '8%',
   left: '9%',
-});
+};
 
-const smallStyles = styler.getClassList({
+const smallStyles = {
   width: '250px',
   height: '185px',
   top: 'calc(50vh - 130px)',
   left: 'calc(50vw - 125px)',
-});
+};
 
-const medStyles = styler.getClassList({
+const medStyles = {
   width: '50%',
   height: '50%',
   top: '20%',
   left: '25%',
-});
+};
 
-const scrollableStyles = styler.getClassList({
+const scrollableStyles = {
   overflow: 'scroll',
-});
+};
 
-const styles = styler.getClassList({
+const styles = {
   'display': 'block',
   'position': 'absolute',
   'padding': '20px',
   'z-index': '10001',
   'background-color': '#fff',
-});
+};
 
 const reflectedAttrs = [
-  'modal',
+  'is-open',
+  'is-modal',
   'small-dialog',
   'medium-dialog',
   'large-dialog',
   'scrollable-dialog',
 ];
 
-export default class Dialog extends Card {
+const Dialog = (class Dialog extends Card {
   constructor () {
     super();
   }
@@ -59,11 +57,11 @@ export default class Dialog extends Card {
   init () {
     super.init();
     this._backdrop = document.createElement('ui-backdrop');
-    this.classList.add(...styles);
+    this.applyStyles(styles);
     document.body.appendChild(this._backdrop);
     this.hide();
     this._backdrop.hide();
-    this._backdrop.on('click', this.close.bind(this));
+    const closer = this.close.bind(this);
 
     // 500ms setTimeout is to let the ripple animation finish
     const dismisser = e => {
@@ -90,91 +88,69 @@ export default class Dialog extends Card {
           child.on('click', closer);
         }
 
-        child.on('attribute-change', e => {
-          const { name, was, now } = e.changed;
-          const yes = now !== 'false' && now !== null;
+        child.on('attribute-change', ({ changed: { name, now } }) => {
           if (name === 'dialog-confirm') {
-            yes ? child.on('click', confirmer) : child.remove('click', confirmer);
+            now ? child.on('click', confirmer) : child.remove('click', confirmer);
           }
 
           if (name === 'dialog-dismiss') {
-            yes ? child.on('click', dismisser) : child.remove('click', dismisser);
+            now ? child.on('click', dismisser) : child.remove('click', dismisser);
           }
         });
       }
     });
-  }
 
-  get modal () {
-    return this._isModal;
-  }
+    this.on('attribute-change', ({ changed: { now, name } }) => {
+      switch (name) {
+        case 'small-dialog':
+          return now ?
+            (this.applyStyles(smallStyles), this.removeStyles(medStyles, largeStyles)) :
+            this.removeStyles(smallStyles);
 
-  set modal (bool) {
-    if (processHTMLAttr(bool) === FALSE) {
-      this._isModal = false;
-    } else {
-      this._isModal = true;
-    }
+        case 'medium-dialog':
+          return now ?
+            (this.applyStyles(medStyles), this.removeStyles(smallStyles, largeStyles)) :
+            this.removeStyles(medStyles);
 
-    return this;
-  }
+        case 'large-dialog':
+          return now ?
+            (this.applyStyles(largeStyles), this.removeStyles(smallStyles, medStyles)) :
+            this.removeStyles(largeStyles);
 
-  set smallDialog (bool) {
-    if (processHTMLAttr(bool) === FALSE) {
-      this.classList.remove(...smallStyles);
-    } else {
-      this.removeAttribute('large-dialog', 'medium-dialog');
-      this.classList.add(...smallStyles);
-    }
+        case 'scrollable-dialog':
+          return now ?
+            this.applyStyles(scrollableStyles) :
+            this.removeStyles(scrollableStyles);
 
-    return this;
-  }
+        case 'is-modal':
+          return now ? this._backdrop.on('click', closer) : this._backdrop.remove(closer);
 
-  set mediumDialog (bool) {
-    if (processHTMLAttr(bool) === FALSE) {
-      this.classList.remove(...medStyles);
-    } else {
-      this.removeAttribute('small-dialog', 'large-dialog');
-      this.classList.add(...medStyles);
-    }
+        case 'is-open':
+          if (now) {
+            if (this.isModal) this._backdrop.show();
+            this.show();
+            this.dispatchEvent(new CustomEvent('dialog-opened'));
+          } else {
+            this._backdrop.hide();
+            this.hide();
+            this.dispatchEvent(new CustomEvent('dialog-closed'));
+          }
 
-    return this;
-  }
-
-  set largeDialog (bool) {
-    if (processHTMLAttr(bool) === FALSE) {
-      this.classList.remove(...largeStyles);
-    } else {
-      this.removeAttribute('small-dialog', 'medium-dialog');
-      this.classList.add(...largeStyles);
-    }
-
-    return this;
-  }
-
-  set scrollableDialog (bool) {
-    if (processHTMLAttr(bool) === FALSE) {
-      this.classList.remove(...scrollableStyles);
-    } else {
-      this.classList.add(...scrollableStyles);
-    }
-
-    return this;
+        default: break; // no-op
+      }
+    });
   }
 
   open () {
-    if (this.modal) this._backdrop.show();
-    this.show();
-    this.dispatchEvent(new CustomEvent('dialog-opened'));
+    this.isOpen = true;
     return this;
   }
 
   close () {
-    this._backdrop.hide();
-    this.hide();
-    this.dispatchEvent(new CustomEvent('dialog-closed'));
+    this.isOpen = false;
     return this;
   }
-}
+}).reflectToAttribute(reflectedAttrs);
 
+export default Dialog;
 customElements.define('ui-dialog', Dialog);

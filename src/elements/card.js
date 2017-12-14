@@ -1,4 +1,5 @@
 import UIBase from '../utils/ui-component-base.js';
+import Floats from '../utils/float.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 const styles = {

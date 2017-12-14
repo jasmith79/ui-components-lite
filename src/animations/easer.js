@@ -1,6 +1,6 @@
 import extracttype from '../../node_modules/extracttype/extracttype.js';
-import randomString, { lower as randomLower } from '../utils/randomstring.js';
-import toCSSString from '../utils/to_css_string.js';
+// import randomString, { lower as randomLower } from '../utils/randomstring.js'; s
+// import toCSSString from '../utils/to_css_string.js';
 
 //const propValRegex = /(translate|scale|rotate)([xyXY])?\((\-)?|opacity/;
 
@@ -21,7 +21,7 @@ export default superclass => class Easer extends superclass {
     if (!this._animations.sliding) this._animations.sliding = {};
     const [xy, min] = orientations[direction];
     const minus = min && distance.match('-') ? '' : min;
-    const styleObj = {
+    const styles = {
       in: {
         'transform': `translate${xy}(${minus}${distance})`,
         'transition-property': 'transform',
@@ -36,28 +36,28 @@ export default superclass => class Easer extends superclass {
       }
     };
 
-    let inClassList = [], outClassList = [];
+    // let inClassList = [], outClassList = [];
 
     // 13 character random prefix string. The call for 1 leading character assures
     // it starts with an alpha character.
     // Reason for this is Styletron (current CSSinJS lib) barfs on the transition-duration
     // property.
-    const prefix = randomLower(1) + randomString(12);
-    const styleElem = document.createElement('style');
-    styleElem.innerHTML = `
-      .${prefix}-slide-in {
-        ${toCSSString(styleObj.in)}
-      }
-
-      .${prefix}-slide-out {
-        ${toCSSString(styleObj.out)}
-      }
-    `;
-
-    inClassList.push(`${prefix}-slide-in`);
-    outClassList.push(`${prefix}-slide-out`);
-    const styleParent = this.shadowParent || document.head;
-    styleParent.appendChild(styleElem.cloneNode(true));
+    // const prefix = randomLower(1) + randomString(12);
+    // const styleElem = document.createElement('style');
+    // styleElem.innerHTML = `
+    //   .${prefix}-slide-in {
+    //     ${toCSSString(styleObj.in)}
+    //   }
+    //
+    //   .${prefix}-slide-out {
+    //     ${toCSSString(styleObj.out)}
+    //   }
+    // `;
+    //
+    // inClassList.push(`${prefix}-slide-in`);
+    // outClassList.push(`${prefix}-slide-out`);
+    // const styleParent = this.shadowParent || document.head;
+    // styleParent.appendChild(styleElem.cloneNode(true));
 
     const self = this;
     const obj = {
@@ -65,10 +65,12 @@ export default superclass => class Easer extends superclass {
 
       easeIn () {
         this._isIn = true;
-        self.classList.add(...inClassList);
+        // self.classList.add(...inClassList);
+        self.applyStyles(styles.in);
         return new Promise(res => {
           setTimeout(() => {
-            self.classList.remove(...outClassList);
+            // self.classList.remove(...outClassList);
+            self.removeStyles(styles.out);
             res(true);
           }, timing);
         });
@@ -76,10 +78,12 @@ export default superclass => class Easer extends superclass {
 
       easeOut () {
         this._isIn = false;
-        self.classList.add(...outClassList);
+        // self.classList.add(...outClassList);
+        self.applyStyles(styles.out);
         return new Promise(res => {
           setTimeout(() => {
-            self.classList.remove(...inClassList);
+            // self.classList.remove(...inClassList);
+            self.removeStyles(styles.in);
             res(true);
           }, timing);
         });
@@ -89,20 +93,20 @@ export default superclass => class Easer extends superclass {
         return this._isIn ? this.easeOut() : this.easeIn();
       },
 
-      attachStyles () {
-        if (self.isShadowElement) {
-          self.shadowParent.append(styleElem.cloneNode(true))
-        }
-        return this;
-      },
+      // attachStyles () {
+      //   if (self.isShadowElement) {
+      //     self.shadowParent.append(styleElem.cloneNode(true))
+      //   }
+      //   return this;
+      // },
 
       get styles () {
-        return styleObj;
+        return styles;
       },
 
-      get animationClasses () {
-        return [`${prefix}-slide-in`, `${prefix}-slide-out`];
-      }
+      // get animationClasses () {
+      //   return [`${prefix}-slide-in`, `${prefix}-slide-out`];
+      // }
     };
 
     this._animations.sliding[direction.toLowerCase()] = obj;

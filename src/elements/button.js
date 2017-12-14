@@ -1,22 +1,22 @@
 import UIBase from '../utils/ui-component-base.js';
-import styler from '../utils/styler.js';
-import rippleStyles from '../animations/rippler.js';
+import Ripples from '../animations/rippler.js';
 import Floats from '../utils/float.js';
 import Centerable from '../utils/centerer.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
-const styles = styler.getClassList({
+const styles = {
   'display': 'block',
   'height': '50px',
   'width': '120px',
   'text-align': 'center',
   'white-space': 'nowrap',
   'text-overflow': 'ellipsis',
+  'text-transform': 'uppercase',
   'border-radius': '5%',
   ':hover': {
     'box-shadow': 'inset 0 0 0 99999px rgba(150,150,150,0.2)',
   }
-});
+};
 
 const reflectedAttrs = [
   'dialog-dismiss',
@@ -24,7 +24,7 @@ const reflectedAttrs = [
   'submit',
 ];
 
-export default class Button extends mix(HTMLElement).with(UIBase, Floats, Centerable) {
+const Button = (class Button extends mix(HTMLElement).with(UIBase, Ripples, Floats, Centerable) {
   constructor () {
     super();
   }
@@ -35,11 +35,10 @@ export default class Button extends mix(HTMLElement).with(UIBase, Floats, Center
 
   init () {
     super.init();
-    this.classList.add(...styles);
-    this.classList.add(...rippleStyles);
-    this.textContent = this.textContent.toUpperCase();
+    this.applyStyles(styles);
     this.centerContent();
   }
-}
+}).reflectToAttribute(reflectedAttrs);
 
+export default Button;
 customElements.define('ui-button', Button);

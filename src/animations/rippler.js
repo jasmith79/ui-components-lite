@@ -1,4 +1,4 @@
-export default {
+const rippleStyles = {
   'overflow': 'hidden',
   'position': 'relative',
   'cursor': 'pointer',
@@ -24,4 +24,33 @@ export default {
     'transition': '0s',
     'background-color': 'orange',
   },
-});
+};
+
+const rippleEvents = ['click', 'tap', 'dblclick'];
+const handlerRegistry = new WeakMap;
+const handlerFactory = (evt, f, el) => {
+  const ls = handlerRegistry.get(f) || [];
+  const cached = ls.reduce((acc, [e, elem, handler]) => {
+    return acc || e === evt && el === elem ? handler : null;
+  }, null);
+
+  if (cached) return cached;
+  const handler =  e => setTimeout(f, 500, e);
+  handlerRegistry.set(f, [...ls, [evt, el, handler]]);
+  return handler;
+};
+
+export default superclass => class extends superclass {
+  init (...args) {
+    super.init(...args);
+    this.applyStyles(rippleStyles);
+  }
+
+  on (evt, f) {
+    if (rippleEvents.includes(evt)) {
+      super.on(evt, handlerFactory(evt, f, this));
+    } else {
+      super.on(evt, f);
+    }
+  }
+}
