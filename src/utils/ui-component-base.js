@@ -14,7 +14,9 @@ const toPropertyObj = propList => {
   return propList.reduce((acc, prop) => {
     const property = toCamelCase(prop);
     acc[property] = {
-      get: function() { return this[`_${property}`]; },
+      get: function() {
+        return this[`_${property}`];
+      },
       set: function(val) {
         this[`_${property}`] = val;
         this.attr(toSnakeCase(property, '-'), val);
@@ -204,9 +206,13 @@ const baseMixin = (superclass) => class UIBase extends mix(superclass).with(Styl
   // Callbacks they need to call super or perform appropriate init/cleanup
 
   connectedCallback () {
-    // This allows the elements to be detatched/reattatched without losing
+    // This allows the elements to be detatched/reattached without losing
     // handlers.
     this._listeners.forEach(([evt, f]) => this.addEventListener(evt, f));
+
+    // Allows element to be detatched and reattached while automatically cleaning up
+    // on eventual deletion.
+    if (this._mutationObservers) this._mutationObservers.forEach(([o, conf]) => o.observe(o, conf));
 
     // This avoids Chrome firing the event before DOM is ready
     setTimeout(() => { this.init(); }, 0);
@@ -216,6 +222,7 @@ const baseMixin = (superclass) => class UIBase extends mix(superclass).with(Styl
     this._isCentered = false;
     this._shadowElement = null;
     this._listeners.forEach(([evt, f]) => this.removeEventListener(evt, f));
+    if (this._mutationObservers) this._mutationObservers.forEach(([o]) => o.disconnect());
   }
 
   attributeChangedCallback (name, was, now) {

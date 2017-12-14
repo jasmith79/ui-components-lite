@@ -2,7 +2,7 @@ import Button from './button.js';
 import Easer from '../animations/easer.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
-const reflectedAttrs = ['ui-role'];
+const reflectedAttrs = ['ui-role', 'line-color'];
 const hamburgerShadowStyles = document.createElement('style');
 
 hamburgerShadowStyles.innerHTML = `
@@ -43,17 +43,27 @@ lineDiv.innerHTML = `
 
 const styles = {
   'background': 'transparent',
-  'border': '1px solid black',
   'width': '48px',
   'height': '48px',
 };
 
 const Hamburger = (class Hamburger extends mix(Button).with(Easer) {
+  static get observedAttributes () {
+    return [...super.observedAttributes, ...reflectedAttrs];
+  }
+
   init () {
     super.init();
     this.shadowRoot.appendChild(hamburgerShadowStyles);
     this.shadowRoot.querySelector('#ui-component-wrapper').appendChild(lineDiv.cloneNode(true));
     this.applyStyles(styles);
+    this.on('attribute-change', ({ changed: { now, name } }) => {
+      if (name === 'line-color') {
+        Array.from(this.shadowRoot.querySelectorAll('.line')).forEach(el => {
+          el.style.backgroundColor = now;
+        });
+      }
+    });
   }
 
   centerContent() {
