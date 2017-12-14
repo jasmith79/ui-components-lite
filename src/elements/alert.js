@@ -1,6 +1,5 @@
 import Dialog from './dialog.js';
 import Button from './button.js';
-
 import Styled from '../utils/styler.js';
 
 const styles = {
@@ -39,7 +38,6 @@ export default class Alert extends Dialog {
     this._contentArea = contentDiv.cloneNode(true);
     this.scrollableDialog = false;
     this.smallDialog = true;
-    // this.isModal = true;
     this._closer = document.createElement('ui-button');
     this._closer.textContent = 'Close';
     this._closer.applyStyles(btnStyles);

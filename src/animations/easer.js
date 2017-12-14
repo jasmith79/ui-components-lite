@@ -1,6 +1,4 @@
 import extracttype from '../../node_modules/extracttype/extracttype.js';
-// import randomString, { lower as randomLower } from '../utils/randomstring.js'; s
-// import toCSSString from '../utils/to_css_string.js';
 
 //const propValRegex = /(translate|scale|rotate)([xyXY])?\((\-)?|opacity/;
 
@@ -36,29 +34,6 @@ export default superclass => class Easer extends superclass {
       }
     };
 
-    // let inClassList = [], outClassList = [];
-
-    // 13 character random prefix string. The call for 1 leading character assures
-    // it starts with an alpha character.
-    // Reason for this is Styletron (current CSSinJS lib) barfs on the transition-duration
-    // property.
-    // const prefix = randomLower(1) + randomString(12);
-    // const styleElem = document.createElement('style');
-    // styleElem.innerHTML = `
-    //   .${prefix}-slide-in {
-    //     ${toCSSString(styleObj.in)}
-    //   }
-    //
-    //   .${prefix}-slide-out {
-    //     ${toCSSString(styleObj.out)}
-    //   }
-    // `;
-    //
-    // inClassList.push(`${prefix}-slide-in`);
-    // outClassList.push(`${prefix}-slide-out`);
-    // const styleParent = this.shadowParent || document.head;
-    // styleParent.appendChild(styleElem.cloneNode(true));
-
     const self = this;
     const obj = {
       _isIn: false,
@@ -93,20 +68,9 @@ export default superclass => class Easer extends superclass {
         return this._isIn ? this.easeOut() : this.easeIn();
       },
 
-      // attachStyles () {
-      //   if (self.isShadowElement) {
-      //     self.shadowParent.append(styleElem.cloneNode(true))
-      //   }
-      //   return this;
-      // },
-
       get styles () {
         return styles;
       },
-
-      // get animationClasses () {
-      //   return [`${prefix}-slide-in`, `${prefix}-slide-out`];
-      // }
     };
 
     this._animations.sliding[direction.toLowerCase()] = obj;

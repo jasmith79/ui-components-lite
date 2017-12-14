@@ -1,7 +1,5 @@
 import Button from './button.js';
 import Easer from '../animations/easer.js';
-import toCSSString from '../utils/to_css_string.js';
-import { centeredStyles, preserve3dStyles } from '../utils/centerer.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 const reflectedAttrs = ['ui-role'];

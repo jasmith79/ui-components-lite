@@ -46,10 +46,6 @@ const reflectedAttrs = [
 ];
 
 const Dialog = (class Dialog extends Card {
-  constructor () {
-    super();
-  }
-
   static get observedAttributes () {
     return [...super.observedAttributes, ...reflectedAttrs];
   }

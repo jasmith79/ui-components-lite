@@ -10,10 +10,6 @@ const styles = {
 };
 
 export default class Card extends mix(HTMLElement).with(UIBase, Floats) {
-  constructor () {
-    super();
-  }
-
   init () {
     super.init();
     this.applyStyles(styles);
