@@ -17,7 +17,7 @@ const btnStyles = {
   'left': 'calc(100% - 105px)',
 };
 
-const [contentClassName, contentStyles] = Styled.generateStyles({
+const contentClassName = Styled.addStyles({
   'width': '90%',
   'margin-left': 'auto',
   'margin-right': 'auto',
@@ -27,7 +27,7 @@ const [contentClassName, contentStyles] = Styled.generateStyles({
 });
 
 // TODO: change this to shadowDOM?
-document.head.appendChild(contentStyles);
+// document.head.appendChild(contentStyles);
 const contentDiv = document.createElement('div');
 contentDiv.classList.add(contentClassName);
 

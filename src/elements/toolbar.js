@@ -10,11 +10,11 @@ const styles = {
   'top': '0',
   'left': '0',
   'width': '100vw',
-  'background-color': '#079af1',
-  'color': 'white',
+  'background-color': Styler.primaryDarkColor,
+  'color': Styler.lightTextColor,
 };
 
-const [titleStyles, titleStyleElem] = Styler.generateStyles(Object.assign({
+const titleStyles = Styler.addStyles(Object.assign({
   'position': 'relative',
   'margin-left': 'auto',
   'margin-right': 'auto',
@@ -23,7 +23,7 @@ const [titleStyles, titleStyleElem] = Styler.generateStyles(Object.assign({
   'text-transform': 'capitalize',
   'overflow': 'hidden',
 }, centeredStyles));
-document.head.appendChild(titleStyleElem);
+// document.head.appendChild(titleStyleElem);
 
 const titleSelector = ` > .${titleStyles}`;
 const shortStyles = {

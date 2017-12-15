@@ -1,123 +1,108 @@
-// import Styletron from '../../node_modules/styletron-client/src/index.js';
-// import { injectStyle } from '../../node_modules/styletron-utils/src/index.js';
+import extractType from '../../node_modules/extracttype/extracttype.js';
+import { random } from '../../node_modules/jsstring/src/jsstring.js';
 
-
-// const styler = new Styletron();
-const defaultTheme = {
-  primaryColor: '#00bcd4',
-  primaryDarkColor: '#008ba3',
-  primaryLightColor: '#62efff',
-  primaryTextColor: '#000',
-  secondaryColor: '#ab47bc',
-  secondaryDarkColor: '#79e08b',
-  secondaryLightColor: '#df78ef',
-  secondaryTextColor: '#fff',
-  warningColor: '#ec407a',
-};
-
-// styler.getClassList = function(cssDeclarations) {
-//   return injectStyle(this, cssDeclarations).split(' ');
-// };
-//export default styler;
-
-
-
-
-
-// const namedThemes = {};
-// const appliedThemes = [];
-// let currentTheme = defaultTheme;
-//
-// class Styler {
-//   static applyTheme (...args) {
-//     let [first, second] = args;
-//     let firstType = extractType(first);
-//     if (firstType === 'String') {
-//       if (second) {
-//         namedThemes[first] = Object.assign({}, defaultTheme, second);
-//       }
-//       return this._applyTheme(namedThemes[first]);
-//     }
-//
-//     return this._applyTheme(first);
-//   }
-//
-//   static _applyTheme (theme) {
-//
-//   }
-//
-//   static revertTheme () {
-//     let theme = appliedThemes.pop() || defaultTheme;
-//     return this._applyTheme(theme);
-//   }
-//
-//   style (styles) {
-//     this.classList.add(injectStyle(styletron, styles));
-//     return this;
-//   }
-// };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-import { extractType } from '../../node_modules/extracttype/extracttype.js';
-import toCSSString from './to_css_string.js';
-import { partitionBy } from './functional.js';
+const primaryColor = Symbol('primaryColor');
+const primaryDarkColor = Symbol('primaryDarkColor');
+const primaryLightColor = Symbol('primaryLightColor');
+const darkTextColor = Symbol('darkTextColor');
+const secondaryColor = Symbol('secondaryColor');
+const secondaryDarkColor = Symbol('secondaryDarkColor');
+const secondaryLightColor = Symbol('secondaryLightColor');
+const lightTextColor = Symbol('lightTextColor');
+const warningColor = Symbol('warningColor');
 
 const generatedStyles = {};
 const injectedStyles = new WeakMap;
+const themedElements = new WeakMap;
+const appliedThemes = [];
 
-const generateStyles = (styles, selector='') => {
-  const [class_, str] = toCSSString(styles);
-  if (!(class_ in generatedStyles)) {
-    const elem = document.createElement('style');
-    elem.innerHTML = selector + str;
-    generatedStyles[class_] = elem;
-  }
-  const elem = generatedStyles[class_];
-  return [class_, elem.cloneNode(true)];
+const defaultTheme = {
+  [primaryColor]: '#00bcd4',
+  [primaryDarkColor]: '#008ba3',
+  [primaryLightColor]: '#62efff',
+  [darkTextColor]: '#000',
+  [secondaryColor]: '#ab47bc',
+  [secondaryDarkColor]: '#79e08b',
+  [secondaryLightColor]: '#df78ef',
+  [lightTextColor]: '#fff',
+  [warningColor]: '#ec407a',
 };
 
-const injectStyleTag = (styleElem, root=document.head) => {
-  const existing = injectedStyles.get(root) || [];
-  if (existing.some(node => node.isEqualNode(styleElem))) return;
-  existing.push(styleElem);
+const generateCSSClassName = () => random.alpha(1) + random.alphanumeric(5);
+
+const memoizeWriteStyles = f => {
+  const cache = new Map();
+  return (styles, elem, class_) => {
+    const hashed = cache.get(elem) || {};
+    const str = JSON.stringify(styles);
+    if (!(str in hashed)) {
+      hashed[str] = f(styles, elem, class_);
+      cache.set(elem, hashed);
+    }
+    return hashed[str];
+  };
+};
+
+const partitionBy = (pred, arr) => {
+  return arr.reduce((acc, x) => {
+    return (acc[pred(x) ? 0 : 1].push(x), acc);
+  }, [[],[]]);
+};
+
+const managedStyleSheets = new Map;
+const themedRules = new Map;
+
+const getStyleElem = (root=document.head) => {
+  const existing = managedStyleSheets.get(root);
+  if (existing) return existing;
+  const styleElem = document.createElement('style');
+  managedStyleSheets.set(root, styleElem);
   root.appendChild(styleElem);
-  injectedStyles.set(root, existing);
-  return;
+  return styleElem;
 };
+
+window.getStyleElem = getStyleElem;
+
+const writeStyles = memoizeWriteStyles((styles, styleElem, class_=generateCSSClassName()) => {
+  const currentTheme = appliedThemes[appliedThemes.length - 1] || defaultTheme;
+  const entries = Object.entries(styles);
+  const [regular, irregular] = partitionBy(([k, v]) => extractType(v) === 'String', entries);
+  const [themed, nested] = partitionBy(([k, v]) => extractType(v) === 'Symbol', irregular);
+  const basicProps = regular.map(([k, v]) => `${k}:${v};`).join('');
+  styleElem.innerHTML += `.${class_}{${basicProps}}`;
+  // styleElem.innerHTML += `.${class_}{${themed.map(([k, v]) => `${k}:${currentTheme[v]};`).join('')}}`
+  if (themed.length) {
+    const brandnew = document.createElement('style');
+    document.head.appendChild(brandnew);
+    themed.forEach(([k, v]) => {
+      const index = brandnew.sheet.insertRule(`.${class_}{${k}:${currentTheme[v]};}`);
+      const arr = themedRules.get(styleElem) || [];
+      arr.push(index);
+      themedRules.set(styleElem, arr);
+    });
+  }
+  nested.forEach(([k, v]) => writeStyles(v, styleElem, `${class_}${k}`));
+  return class_;
+});
 
 const Styled = superclass => class Styled extends superclass {
-  applyStyles (...stls) {
-    const [[selector], styles] = partitionBy(x => extractType(x) === 'String', stls);
-    styles.forEach(style => {
-      const [class_, elem] = generateStyles(style, selector);
-      injectStyleTag(elem, this.shadowParent);
-      if (this._isReady) {
-        this.classList.add(class_);
-      } else {
-        this.on('ui-component-ready', e => {
-          this.classList.add(class_);
-        });
-      }
-    });
-
+  applyStyles (...styles) {
+    const styleElem = getStyleElem(this.shadowParent);
+    const classList = styles.map(style => writeStyles(style, styleElem));
+    if (this._isReady) {
+      this.classList.add(...classList);
+    } else {
+      this.on('ui-component-ready', e => {
+        this.classList.add(...classList);
+      });
+    }
     return this;
   }
 
   removeStyles (...styles) {
     styles.forEach(style => {
-      const [class_] = generateStyles(style);
+      const styleElem = getStyleElem(this.shadowParent);
+      const class_ = writeStyles(style, styleElem);
       if (class_) {
         this.classList.remove(class_);
       } else {
@@ -129,6 +114,49 @@ const Styled = superclass => class Styled extends superclass {
   }
 };
 
-// For non-ui-component use, e.g. content divs
-Styled.generateStyles = generateStyles;
+Object.defineProperties(Styled, {
+  primaryColor: {
+    value: primaryColor,
+  },
+
+  primaryDarkColor: {
+    value: primaryDarkColor,
+  },
+
+  primaryLightColor: {
+    value: primaryLightColor,
+  },
+
+  darkTextColor: {
+    value: darkTextColor,
+  },
+
+  secondaryColor: {
+    value: secondaryColor,
+  },
+
+  secondaryDarkColor: {
+    value: secondaryDarkColor,
+  },
+
+  secondaryLightColor: {
+    value: secondaryLightColor,
+  },
+
+  lightTextColor: {
+    value: lightTextColor,
+  },
+
+  warningColor: {
+    value: warningColor,
+  },
+
+  addStyles: {
+    value: (styles, root) => {
+      const styleElem = getStyleElem(root);
+      return writeStyles(styles, styleElem);
+    }
+  }
+});
+
 export default Styled;
