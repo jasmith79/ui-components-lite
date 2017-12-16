@@ -1,6 +1,8 @@
 import extractType from '../../node_modules/extracttype/extracttype.js';
 import { random } from '../../node_modules/jsstring/src/jsstring.js';
 
+const matchCSSProperty = /(\{\s*[a-z\-]+:\s*)(.+;)/;
+
 const primaryColor = Symbol('primaryColor');
 const primaryDarkColor = Symbol('primaryDarkColor');
 const primaryLightColor = Symbol('primaryLightColor');
@@ -15,6 +17,9 @@ const generatedStyles = {};
 const injectedStyles = new WeakMap;
 const themedElements = new WeakMap;
 const appliedThemes = [];
+appliedThemes.last = function () {
+  return this[this.length - 1];
+};
 
 const defaultTheme = {
   [primaryColor]: '#00bcd4',
@@ -51,6 +56,7 @@ const partitionBy = (pred, arr) => {
 
 const managedStyleSheets = new Map;
 const themedRules = new Map;
+const themedStyleElements = new WeakMap;
 
 const getStyleElem = (root=document.head) => {
   const existing = managedStyleSheets.get(root);
@@ -61,26 +67,75 @@ const getStyleElem = (root=document.head) => {
   return styleElem;
 };
 
-window.getStyleElem = getStyleElem;
+const mixTheme = (t1, t2=defaultTheme) => Object.assign({}, t2, t1);
+
+const _applyTheme = (current, next)=> {
+  Array.from(managedStyleSheets.values())
+    .map(styleElem => {
+      const rulesElem = themedStyleElements.get(styleElem);
+      return [rulesElem, themedRules.get(rulesElem)];
+    })
+    .filter(([x, y]) => x != null && extractType(y) === 'Array')
+    .forEach(([el, arr]) => {
+      arr.forEach(obj => {
+        const [[sym, index]] = Object.getOwnPropertySymbols(obj).map(sym => [sym, obj[sym]]);
+        const text = el.sheet.cssRules[index].cssText;
+        const newColor = next[sym];
+        const oldColor = current[sym];
+        if (oldColor !== newColor) {
+          el.sheet.deleteRule(index);
+          el.sheet.insertRule(text.replace(matchCSSProperty, '$1' + newColor), index);
+        }
+      });
+    });
+
+  return next;
+};
+
+const applyTheme = theme => {
+  const currentTheme = appliedThemes.last() || defaultTheme;
+  const newTheme = mixTheme(theme, currentTheme);
+  appliedThemes.push(newTheme);
+  return _applyTheme(currentTheme, newTheme);
+};
+
+const revertTheme = () => {
+  const currentTheme = appliedThemes.pop() || defaultTheme;
+  const prev = appliedThemes.pop() || defaultTheme;
+  if (currentTheme !== prev) {
+    _applyTheme(currentTheme, prev);
+  }
+  return currentTheme;
+};
 
 const writeStyles = memoizeWriteStyles((styles, styleElem, class_=generateCSSClassName()) => {
-  const currentTheme = appliedThemes[appliedThemes.length - 1] || defaultTheme;
+  const currentTheme = appliedThemes.last() || defaultTheme;
   const entries = Object.entries(styles);
   const [regular, irregular] = partitionBy(([k, v]) => extractType(v) === 'String', entries);
   const [themed, nested] = partitionBy(([k, v]) => extractType(v) === 'Symbol', irregular);
   const basicProps = regular.map(([k, v]) => `${k}:${v};`).join('');
   styleElem.innerHTML += `.${class_}{${basicProps}}`;
-  // styleElem.innerHTML += `.${class_}{${themed.map(([k, v]) => `${k}:${currentTheme[v]};`).join('')}}`
+  // styleElem.sheet.insertRule(`.${class_}{${basicProps}}`);
+  styleElem.innerHTML += `.${class_}{${themed.map(([k, v]) => `${k}:${currentTheme[v]};`).join('')}}`
   if (themed.length) {
-    const brandnew = document.createElement('style');
-    document.head.appendChild(brandnew);
+    let rulesElem = themedStyleElements.get(styleElem);
+    if (!rulesElem) {
+      rulesElem = document.createElement('style');
+      styleElem.parentNode.appendChild(rulesElem);
+    }
+
     themed.forEach(([k, v]) => {
-      const index = brandnew.sheet.insertRule(`.${class_}{${k}:${currentTheme[v]};}`);
-      const arr = themedRules.get(styleElem) || [];
-      arr.push(index);
-      themedRules.set(styleElem, arr);
+      const index = rulesElem.sheet.insertRule(
+        `.${class_}{${k}:${currentTheme[v]};}`,
+        rulesElem.sheet.cssRules.length,
+      );
+      const arr = themedRules.get(rulesElem) || [];
+      arr.push({ [v]: index });
+      themedRules.set(rulesElem, arr);
     });
+    themedStyleElements.set(styleElem, rulesElem);
   }
+
   nested.forEach(([k, v]) => writeStyles(v, styleElem, `${class_}${k}`));
   return class_;
 });
@@ -156,7 +211,15 @@ Object.defineProperties(Styled, {
       const styleElem = getStyleElem(root);
       return writeStyles(styles, styleElem);
     }
-  }
+  },
+
+  applyTheme: {
+    value: applyTheme,
+  },
+
+  revertTheme: {
+    value: revertTheme,
+  },
 });
 
 export default Styled;
