@@ -4,9 +4,9 @@ import processHTMLAttr from './attribute-analyzer.js';
 import { toSnakeCase, toCamelCase } from '../../node_modules/jsstring/src/jsstring.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
-const isHTMLElement = arg => Boolean(extractType(arg).match(/HTML[a-zA-Z]*Element/));
+export const isHTMLElement = arg => Boolean(extractType(arg).match(/HTML[a-zA-Z]*Element/));
 
-const isHidden = {
+const hidden = {
   display: 'none !important',
 };
 
@@ -161,11 +161,11 @@ const baseMixin = (superclass) => class UIBase extends mix(superclass).with(Styl
   }
 
   hide () {
-    return this.applyStyles(isHidden);
+    return this.applyStyles(hidden);
   }
 
   show () {
-    return this.removeStyles(isHidden);
+    return this.removeStyles(hidden);
   }
 
   attr (name, value) {
