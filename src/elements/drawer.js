@@ -53,7 +53,7 @@ const Drawer = (class Drawer extends mix(HTMLElement).with(UIBase, Floats, Easer
 
     // Check for the drawer toggle in the DOM. If not, you'll need to use the toggledBy method
     // or wire up the handlers yourself
-    this.toggledBy(document.querySelector('[ui-role="drawer-toggle"]'));
+    this.toggledBy(document.querySelector('[drawer-toggle]'));
 
     this._leftAnimator = this.defineSlideAnimation({ direction: 'right', distance: '350px'});
     this._rightAnimator = this.defineSlideAnimation({ direction: 'left', distance: '350px'});

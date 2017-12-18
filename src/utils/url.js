@@ -19,7 +19,9 @@ const parseQueryString = qs => {
 };
 
 const parseURL = url => {
-  let secure = subdomain = domain = path = false;
+  let subdomain, domain, p, qs = '';
+  let secure = false;
+  let path = '';
   let data = {};
   let [first, rest] = url.split('://');
   if (rest) secure = first.toLowerCase() === 'https';
@@ -29,7 +31,7 @@ const parseURL = url => {
   subdomain = rest.length === 3 && rest[0];
   domain = rest.length === 3 ? rest.slice(1).join('.') : fullDomain;
   if (pAndQs) {
-    let [p, qs] = pAndQs.split('?');
+    ([p, qs] = pAndQs.split('?'));
     if (qs) data = parseQueryString(qs);
     path = '/' + p;
   }
@@ -37,12 +39,13 @@ const parseURL = url => {
   return {
     protocol,
     secure,
-    subdomain || '',
-    domain || '',
+    subdomain: subdomain || '',
+    domain: domain || '',
     fullDomain,
     data,
     url,
     path,
+    queryString: qs,
   };
 };
 

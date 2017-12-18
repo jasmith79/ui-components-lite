@@ -54,7 +54,7 @@ const Hamburger = (class Hamburger extends mix(Button).with(Easer) {
 
   init () {
     super.init();
-    this.shadowRoot.appendChild(hamburgerShadowStyles);
+    this.shadowRoot.appendChild(hamburgerShadowStyles.cloneNode(true));
     this.shadowRoot.querySelector('#ui-component-wrapper').appendChild(lineDiv.cloneNode(true));
     this.applyStyles(styles);
     this.on('attribute-change', ({ changed: { now, name } }) => {

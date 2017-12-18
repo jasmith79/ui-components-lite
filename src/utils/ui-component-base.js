@@ -174,7 +174,6 @@ const baseMixin = (superclass) => class UIBase extends mix(superclass).with(Styl
     } else {
       switch (extractType(value)) {
         case 'Null':
-        case 'Undefined':
           this.removeAttribute(name);
           break;
 
