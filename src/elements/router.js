@@ -8,6 +8,8 @@ const routerReflectedAttrs = ['updates-history', 'current-path', 'base-path', 'r
 const slot = document.createElement('slot');
 slot.name = 'router-content';
 
+let localNavigationCounter = -2;
+let historyManager = null;
 const Router = (class Router extends mix(HTMLElement).with(UIBase) {
   constructor () {
     super();
@@ -15,11 +17,16 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
     this.attachShadow({ mode: 'open' });
     this._routes = {};
     this.currentRoute = [];
-    window.addEventListener('popstate', ({ state: { path } }) => {
+    this._managingHistory = false;
+    this._popstateListener = ({ state: { path }={} }) => {
+      localNavigationCounter -= 2;
       console.log('stateppoped');
-      console.log(path);
-      this._updatePath(path);
-    });
+      this.route(path);
+      if (!localNavigationCounter) {
+        window.removeEventListener('popstate', this._popstateListener);
+        this._managingHistory = false;
+      }
+    };
   }
 
   static get observedAttributes () {
@@ -55,6 +62,10 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
     this.on('attribute-change', ({ changed: { now, name, was } }) => {
       switch (name) {
         case 'current-path':
+          localNavigationCounter++;
+          if (this.updatesHistory && !this._managingHistory) {
+            window.addEventListener('popstate', this._popstateListener);
+          }
           const [path, evt, queryString] = this._updatePath(now);
           const { protocol, fullDomain } = parseURL(window.location.href);
           if (this.updatesHistory) {
@@ -76,6 +87,24 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
             this.shadowRoot.appendChild(this._contentSlot);
           }
           break;
+
+        case 'updates-history':
+          if (now) {
+            if (historyManager) {
+              throw new Error(
+                `Only one router per page can manage the navigation history
+                 at a time. Please listen for that router's route-changed
+                 event to update other elements.`
+              );
+            }
+            historyManager = this;
+            this._managingHistory = true;
+            window.addEventListener('popstate', this._popstateListener);
+          } else {
+            historyManager = null;
+            this._managingHistory = false;
+            window.removeEventListener('popstate', this._popstateListener);
+          }
       }
     });
 
@@ -94,7 +123,7 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
 
   route (rt) {
     this.currentPath = rt;
-    return this._routes[rt];
+    return this._routes[rt][0];
   }
 }).reflectToAttribute(routerReflectedAttrs);
 

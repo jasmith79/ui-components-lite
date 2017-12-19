@@ -34,7 +34,6 @@ const styles = {
     top: '10px',
     left: '10px',
     float: 'left',
-    display: 'inline-block',
   },
 
   [rightButtonSlotSelector]: {
@@ -42,7 +41,6 @@ const styles = {
     top: '10px',
     right: '10px',
     float: 'right',
-    display: 'inline-block',
   },
 };
 
