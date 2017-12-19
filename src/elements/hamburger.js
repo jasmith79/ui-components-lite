@@ -54,6 +54,7 @@ const Hamburger = (class Hamburger extends mix(Button).with(Easer) {
 
   init () {
     super.init();
+    this.classList.add('ui-hamburger');
     this.shadowRoot.appendChild(hamburgerShadowStyles.cloneNode(true));
     this.shadowRoot.querySelector('#ui-component-wrapper').appendChild(lineDiv.cloneNode(true));
     this.applyStyles(styles);

@@ -12,6 +12,7 @@ const styles = {
 export default class Card extends mix(HTMLElement).with(UIBase, Floats) {
   init () {
     super.init();
+    this.classList.add('ui-card');
     this.applyStyles(styles);
     this.floatingY = true;
   }

@@ -34,6 +34,8 @@ contentDiv.classList.add(contentClassName);
 export default class Alert extends Dialog {
 
   init () {
+    this.classList.add('ui-alert');
+
     // TODO: change this to shadowDOM?
     this._contentArea = contentDiv.cloneNode(true);
     this.scrollableDialog = false;

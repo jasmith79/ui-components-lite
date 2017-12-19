@@ -16,6 +16,7 @@ export class Backdrop extends mix(HTMLElement).with(UIBase) {
   init () {
     super.init();
     this.hide();
+    this.classList.add('ui-backdrop');
     this.applyStyles(styles);
   }
 }

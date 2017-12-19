@@ -18,6 +18,7 @@ const titleStyles = Object.assign({
 const titleSelector = ' > [slot="title"]';
 const leftButtonSlotSelector = ' > [slot="left-button-slot"]';
 const rightButtonSlotSelector = ' > [slot="right-button-slot"]';
+const tabSelector = ' > [slot="tab-slot"]';
 
 const styles = {
   'position': 'absolute',
@@ -42,6 +43,11 @@ const styles = {
     right: '10px',
     float: 'right',
   },
+
+  [tabSelector]: {
+    position: 'relative',
+    width: '100vw',
+  }
 };
 
 const placeHolderStyles = {
@@ -59,7 +65,11 @@ const tallHeight = {
 
 const shortHeight = {
   'height': '70px',
-}
+};
+
+const shortWithTabs = {
+  'height': '125px',
+};
 
 const shortStyles = {
   [titleSelector]: {
@@ -74,7 +84,14 @@ const shortStyles = {
   [rightButtonSlotSelector]: {
     top: '-16px',
     right: '30px',
-  }
+  },
+  [tabSelector]: {
+    top: '44px',
+    'text-align': 'center',
+    ' > .ui-tab': {
+      'left': '-25px',
+    },
+  },
 };
 
 const tallStyles = {
@@ -88,6 +105,10 @@ const tallStyles = {
   [rightButtonSlotSelector]: {
     top: '-35px',
     right: '30px',
+  },
+  [tabSelector]: {
+    top: '94px',
+    'background-color': 'inherit',
   },
 };
 
@@ -107,6 +128,7 @@ const fragment = document.createDocumentFragment();
 fragment.appendChild(titleSlot);
 fragment.appendChild(leftButtonSlot);
 fragment.appendChild(rightButtonSlot);
+fragment.appendChild(tabSlot);
 
 const reflectedAttrs = [
   'is-tall',
@@ -115,7 +137,9 @@ const reflectedAttrs = [
 const PlaceHolder = class ToolbarBacking extends mix(HTMLElement).with(UIBase) {
   init () {
     super.init();
+    this.classList.add('ui-toolbar-placeholder');
     this.applyStyles(placeHolderStyles);
+    this._tabs = null;
   }
 };
 
@@ -126,9 +150,13 @@ const Toolbar = (class Toolbar extends mix(HTMLElement).with(UIBase, Floats) {
 
   init () {
     super.init();
+    this.classList.add('ui-toolbar');
     this.applyStyles(styles, preserve3dStyles);
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(fragment.cloneNode(true));
+    this.shadowRoot.querySelector('[name="tab-slot"]').addEventListener('slotchange', e => {
+      this._tabs = this.querySelector('[slot="tab-slot"]');
+    });
 
     this._backing = document.createElement('ui-toolbar-placeholder');
     document.body.insertBefore(this._backing, document.body.firstChild);
@@ -142,10 +170,10 @@ const Toolbar = (class Toolbar extends mix(HTMLElement).with(UIBase, Floats) {
       if (name === 'is-tall') {
         if (now) {
           this.removeStyles(shortStyles, shortHeight).applyStyles(tallStyles, tallHeight);
-          this._backing.removeStyles(shortHeight).applyStyles(tallHeight);
+          this._backing.removeStyles(shortHeight, shortWithTabs).applyStyles(tallHeight);
         } else {
           this.removeStyles(tallStyles, tallHeight).applyStyles(shortStyles, shortHeight);
-          this._backing.removeStyles(tallHeight).applyStyles(shortHeight);
+          this._backing.removeStyles(tallHeight).applyStyles(this._tabs ? shortWithTabs : shortHeight);
         }
       }
     });

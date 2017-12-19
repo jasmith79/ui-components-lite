@@ -26,7 +26,6 @@ export default superclass => class Centerable extends superclass {
       const shadowRoot = this.shadowRoot || this.attachShadow({ mode: 'open' });
       shadowRoot.appendChild(wrapper);
       wrapper.classList.add(Styled.addStyles(centered, shadowRoot));
-      wrapper.addEventListener('slotchange', console.log);
     }
     return this;
   }

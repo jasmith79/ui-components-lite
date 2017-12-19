@@ -20,7 +20,6 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
     this._managingHistory = false;
     this._popstateListener = ({ state: { path }={} }) => {
       localNavigationCounter -= 2;
-      console.log('stateppoped');
       this.route(path);
       if (!localNavigationCounter) {
         window.removeEventListener('popstate', this._popstateListener);
@@ -59,6 +58,7 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
   init () {
     super.init();
 
+    this.classList.add('ui-router');
     this.on('attribute-change', ({ changed: { now, name, was } }) => {
       switch (name) {
         case 'current-path':
@@ -75,7 +75,6 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
               path +
               (queryString ? `?${queryString}` : '');
 
-            console.log(url);
             history.pushState({ path }, '', url);
             window.dispatchEvent(evt);
           }
@@ -131,7 +130,17 @@ const Route = (class Route extends mix(HTMLElement).with(UIBase) {
   static get observedAttributes () {
     return [...super.observedAttributes, ...routeReflectedAttrs];
   }
+
+  init () {
+    super.init();
+    this.classList.add('ui-route');
+  }
 }).reflectToAttribute(routeReflectedAttrs);
+
+export {
+  Route,
+  Router,
+};
 
 customElements.define('ui-router', Router);
 customElements.define('ui-route', Route);

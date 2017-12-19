@@ -46,6 +46,7 @@ const Drawer = (class Drawer extends mix(HTMLElement).with(UIBase, Floats, Easer
 
   init () {
     super.init();
+    this.classList.add('ui-drawer');
     this.applyStyles(styles);
     this._backdrop.on('click', this.close.bind(this));
     const float = this.rightOriented ? 'floatRight' : 'floatLeft';

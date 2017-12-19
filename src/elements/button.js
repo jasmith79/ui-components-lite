@@ -35,6 +35,7 @@ const Button = (class Button extends mix(HTMLElement).with(UIBase, Ripples, Floa
 
   init () {
     super.init();
+    this.classList.add('ui-button');
     this.applyStyles(styles);
     this.centerContent();
   }

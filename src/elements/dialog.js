@@ -52,6 +52,7 @@ const Dialog = (class Dialog extends Card {
 
   init () {
     super.init();
+    this.classList.add('ui-dialog');
     this._backdrop = document.createElement('ui-backdrop');
     this.applyStyles(styles);
     document.body.appendChild(this._backdrop);

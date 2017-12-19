@@ -11,6 +11,7 @@ export class Fab extends Button {
 
   init () {
     super.init();
+    this.classList.add('ui-fab');
     this.applyStyles(styles);
     this.floatingY = true;
   }

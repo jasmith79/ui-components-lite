@@ -23,19 +23,25 @@ ui-fab-button {
 </style>
 </head>
 <body>
-  <script src="https://unpkg.com/inline-style-prefixer@3.0.1/dist/inline-style-prefixer.js"></script>
+  <!-- <script src="https://unpkg.com/inline-style-prefixer@3.0.1/dist/inline-style-prefixer.js"></script> -->
   <script type="module" src="./index.js"></script>
+  <script src="./backup.js" nomodule></script>
   <ui-alert></ui-alert>
   <ui-toolbar is-tall>
     <ui-hamburger line-color="white" drawer-toggle slot="left-button-slot"></ui-hamburger>
     <div slot="title">I'm a title!</div>
+    <ui-tabs slot="tab-slot" for="ui-router">
+      <ui-tab value="/">Login</ui-tab>
+      <ui-tab value="/beer">Beer</ui-tab>
+      <ui-tab value="/bourbon">Bourbon</ui-tab>
+    </ui-tabs>
   </ui-toolbar>
   <ui-drawer is-modal>
     <ui-button floating-y class="alert-bttn">show alert</ui-button>
   </ui-drawer>
   <ui-router updates-history renders-current base-path="/test/adhoc">
     <ui-route route-path="/">
-      <div>I'm root yo</div>
+      <div>Imma Login yo</div>
     </ui-route>
     <ui-route route-path="/beer">
       <div>Beer</div>
