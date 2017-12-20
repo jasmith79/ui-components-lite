@@ -1,15 +1,50 @@
-import UIBase, { isHTMLElement } from '../utils/ui-component-base.js';
+import UIBase from '../utils/ui-component-base.js';
 import extractType from '../../node_modules/extracttype/extracttype.js';
 import { parseURL, toQueryString } from '../utils/url.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
-const routeReflectedAttrs = ['route-path', 'selected'];
-const routerReflectedAttrs = ['updates-history', 'current-path', 'base-path', 'renders-current'];
+const routeReflectedAttrs = [
+  // updates-history: whether or not the route's data is converted to a url query string
+  // and added to the current browser url if the parent router manages the navigation history.
+  'updates-history',
+
+  // route-path: The url path associated with the element.
+  'route-path',
+
+  // selected: if the route is the current route of it's parent router.
+  'selected',
+
+  // warns-on-unload: whether or not data-changes to the route prompt user before leaving the
+  // current page.
+  'warns-on-unload',
+];
+
+const routerReflectedAttrs = [
+  // updates-history: whether or not the router manages the navigation history. NOTE: can only be
+  // set on one router element per page. Attempting to set more than one throws an error.
+  'updates-history',
+
+  // current-path: the current path of the router.
+  'current-path',
+
+  // base-path: automatically prepended to all paths, i.e. use if the document root is not '/'.
+  // For example, if you have a test page at /tests/index.html and load up e.g.
+  // localhost:8080/tests then router elements on that page should have a base-path set to '/tests'.
+  'base-path',
+
+  // renders-current: whether or not the router renders the child element associated with the
+  // current path. Routers do not render their children by default.
+  'renders-current',
+];
+
 const slot = document.createElement('slot');
 slot.name = 'router-content';
 
 let localNavigationCounter = -2;
+
+// Keep track of which router element is currently managing the navigation history.
 let historyManager = null;
+
 const Router = (class Router extends mix(HTMLElement).with(UIBase) {
   constructor () {
     super();
@@ -18,9 +53,11 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
     this._routes = {};
     this.currentRoute = [];
     this._managingHistory = false;
-    this._popstateListener = ({ state: { path }={} }) => {
+    this._popstateListener = ({ state: data }) => {
       localNavigationCounter -= 2;
-      this.route(path);
+      const { path } = parseURL(window.location.href);
+      const routePath = path.replace(this.basePath, '');
+      this.route(routePath);
       if (!localNavigationCounter) {
         window.removeEventListener('popstate', this._popstateListener);
         this._managingHistory = false;
@@ -69,13 +106,7 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
           const [path, evt, queryString] = this._updatePath(now);
           const { protocol, fullDomain } = parseURL(window.location.href);
           if (this.updatesHistory) {
-            const url = `${protocol}://` +
-              fullDomain +
-              (this.basePath || '') +
-              path +
-              (queryString ? `?${queryString}` : '');
-
-            history.pushState({ path }, '', url);
+            history.pushState(this._routes[path].data, '', this.basePath + path);
             window.dispatchEvent(evt);
           }
           break;
@@ -99,6 +130,19 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
             historyManager = this;
             this._managingHistory = true;
             window.addEventListener('popstate', this._popstateListener);
+
+            // Set up page load. Note that if the updates-history attribute is added
+            // by JavaScript after the load event you will need to manually update the
+            // current route, check querystring and/or localStorage, etc.
+            window.addEventListener('load', e => {
+              let { path, data } = parseURL(window.location.href);
+              const routePath = path.replace(this.basePath, '');
+              if (!Object.keys(data).length) {
+                data = localStorage.getItem(routePath);
+                if (data) data = JSON.parse(data);
+              }
+              this.route(routePath).update(data);
+            });
           } else {
             historyManager = null;
             this._managingHistory = false;
@@ -112,6 +156,9 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
         const path = el.getAttribute('route-path');
         this._routes[path] = [el];
         if (!i) this.currentPath = path;
+        el.on('data-changed', ({ data, target: el }) => {
+          if (this.updatesHistory) history.replaceState(data, '', this.basePath + this.currentPath);
+        });
       });
   }
 
@@ -127,13 +174,34 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
 }).reflectToAttribute(routerReflectedAttrs);
 
 const Route = (class Route extends mix(HTMLElement).with(UIBase) {
+  constructor () {
+    super();
+    this._data = null;
+    this._unloadListener = e => {
+      const [path, elem] = currentRoute;
+      if (elem && elem.data) localStorage.setItem(path, JSON.stringify(elem.data));
+    };
+  }
+
   static get observedAttributes () {
     return [...super.observedAttributes, ...routeReflectedAttrs];
+  }
+
+  get data () {
+    return this._data;
   }
 
   init () {
     super.init();
     this.classList.add('ui-route');
+  }
+
+  update (data) {
+    this._data = data;
+    const evt = new CustomEvent('data-changed');
+    evt.data = data;
+    this.dispatchEvent(evt);
+    return this;
   }
 }).reflectToAttribute(routeReflectedAttrs);
 

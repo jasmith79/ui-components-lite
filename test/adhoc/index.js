@@ -6,8 +6,6 @@ import '../../src/elements/toolbar.js';
 import '../../src/elements/tabs.js';
 import { Router } from '../../src/elements/router.js';
 
-window.removeEventListener('error', window._importErrorHandler);
-
 // import Styled from '../../src/utils/styler.js';
 // const theme = {
 //   [Styled.primaryDarkColor]: 'purple'
@@ -22,8 +20,11 @@ window.removeEventListener('error', window._importErrorHandler);
 //   });
 // });
 //
-customElements.whenDefined('ui-router').then(_ => {
-  const router = document.querySelector('ui-router');
-  window.router = router;
-  console.log(router instanceof Router);
-});
+// customElements.whenDefined('ui-router').then(_ => {
+//   const router = document.querySelector('ui-router');
+//   const inputRoute = document.querySelector('[route-path="/formica"]');
+//   const input = inputRoute.querySelector('input');
+//   input.addEventListener('change', e => {
+//     inputRoute.update({ value: input.value });
+//   });
+// });

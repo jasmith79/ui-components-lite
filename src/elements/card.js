@@ -9,12 +9,18 @@ const styles = {
   'padding': '2%',
 };
 
+const ELEMENT_NAME = 'ui-card';
+
 export default class Card extends mix(HTMLElement).with(UIBase, Floats) {
   init () {
     super.init();
-    this.classList.add('ui-card');
+    this.classList.add(ELEMENT_NAME);
     this.applyStyles(styles);
     this.floatingY = true;
+  }
+
+  get UIComponentName () {
+    return ELEMENT_NAME;
   }
 }
 

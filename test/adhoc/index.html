@@ -34,6 +34,7 @@ ui-fab-button {
       <ui-tab value="/">Login</ui-tab>
       <ui-tab value="/beer">Beer</ui-tab>
       <ui-tab value="/bourbon">Bourbon</ui-tab>
+      <ui-tab value="/formica">Input</ui-tab>
     </ui-tabs>
   </ui-toolbar>
   <ui-drawer is-modal>
@@ -48,6 +49,11 @@ ui-fab-button {
     </ui-route>
     <ui-route route-path="/bourbon">
       <div>Bourbon</div>
+    </ui-route>
+    <ui-route route-path="/formica" foo="super" updates-history>
+      I am changed my parent!
+      <ui-card id="ui-card-1" value="{{foo}}"></ui-card>
+      <ui-card id="ui-card-2" value="{{{foo}}}"></ui-card>
     </ui-route>
   </ui-router>
  </body>

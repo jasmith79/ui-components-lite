@@ -26,7 +26,7 @@ const parseURL = url => {
   let [first, rest] = url.split('://');
   if (rest) secure = first.toLowerCase() === 'https';
   const protocol = secure ? 'https' : 'http';
-  let [fullDomain, pAndQs] = (rest || first).split('/');
+  let [fullDomain, pAndQs] = (rest || first).split(/\/(.+)/);
   rest = fullDomain.split('.');
   subdomain = rest.length === 3 && rest[0];
   domain = rest.length === 3 ? rest.slice(1).join('.') : fullDomain;
