@@ -4,6 +4,8 @@ import Floats from '../utils/float.js';
 import Centerable from '../utils/centerer.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
+const ELEMENT_NAME = 'ui-button';
+
 const styles = {
   'display': 'block',
   'height': '50px',
@@ -33,9 +35,13 @@ const Button = (class Button extends mix(HTMLElement).with(UIBase, Ripples, Floa
     return [...super.observedAttributes, ...reflectedAttrs];
   }
 
+  get componentName () {
+    return ELEMENT_NAME;
+  }
+
   init () {
     super.init();
-    this.classList.add('ui-button');
+    this.classList.add(ELEMENT_NAME);
     this.applyStyles(styles);
     this.centerContent();
   }

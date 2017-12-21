@@ -5,6 +5,8 @@ import processHTMLAttr from '../utils/attribute-analyzer.js';
 import { centeredStyles, preserve3dStyles } from '../utils/centerer.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
+const ELEMENT_NAME = 'ui-toolbar';
+
 const titleStyles = Object.assign({
   'position': 'relative',
   'margin-left': 'auto',
@@ -148,9 +150,13 @@ const Toolbar = (class Toolbar extends mix(HTMLElement).with(UIBase, Floats) {
     return [...super.observedAttributes, ...reflectedAttrs];
   }
 
+  get componentName () {
+    return ELEMENT_NAME;
+  }
+
   init () {
     super.init();
-    this.classList.add('ui-toolbar');
+    this.classList.add(ELEMENT_NAME);
     this.applyStyles(styles, preserve3dStyles);
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(fragment.cloneNode(true));
@@ -166,15 +172,13 @@ const Toolbar = (class Toolbar extends mix(HTMLElement).with(UIBase, Floats) {
       this._backing.applyStyles(shortHeight);
     }
 
-    this.on('attribute-change', ({ changed: { now, name } }) => {
-      if (name === 'is-tall') {
-        if (now) {
-          this.removeStyles(shortStyles, shortHeight).applyStyles(tallStyles, tallHeight);
-          this._backing.removeStyles(shortHeight, shortWithTabs).applyStyles(tallHeight);
-        } else {
-          this.removeStyles(tallStyles, tallHeight).applyStyles(shortStyles, shortHeight);
-          this._backing.removeStyles(tallHeight).applyStyles(this._tabs ? shortWithTabs : shortHeight);
-        }
+    this.watchAttribute(this, 'is-tall', now => {
+      if (now) {
+        this.removeStyles(shortStyles, shortHeight).applyStyles(tallStyles, tallHeight);
+        this._backing.removeStyles(shortHeight, shortWithTabs).applyStyles(tallHeight);
+      } else {
+        this.removeStyles(tallStyles, tallHeight).applyStyles(shortStyles, shortHeight);
+        this._backing.removeStyles(tallHeight).applyStyles(this._tabs ? shortWithTabs : shortHeight);
       }
     });
   }

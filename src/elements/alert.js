@@ -2,6 +2,8 @@ import Dialog from './dialog.js';
 import Button from './button.js';
 import Styled from '../utils/styler.js';
 
+const ELEMENT_NAME = 'ui-alert';
+
 const styles = {
   'padding': '20px',
   'top': '30%',
@@ -33,8 +35,12 @@ contentDiv.classList.add(contentClassName);
 
 export default class Alert extends Dialog {
 
+  get componentName () {
+    return ELEMENT_NAME;
+  }
+
   init () {
-    this.classList.add('ui-alert');
+    this.classList.add(ELEMENT_NAME);
 
     // TODO: change this to shadowDOM?
     this._contentArea = contentDiv.cloneNode(true);
@@ -49,8 +55,8 @@ export default class Alert extends Dialog {
     this.appendChild(this._contentArea);
     super.init();
     this.applyStyles(styles);
-    this.on('attribute-change', ({ changed: { name, now } }) => {
-      name === 'is-open' && now ? this._backdrop.show() : this._backdrop.hide();
+    this.watchAttribute(this, 'is-open', open => {
+      open ? this._backdrop.show() : this._backdrop.hide();
     });
     return;
   }

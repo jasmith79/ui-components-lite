@@ -69,6 +69,10 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
     return [...super.observedAttributes, ...routerReflectedAttrs];
   }
 
+  get componentName () {
+    return 'ui-router';
+  }
+
   _updatePath (val) {
     let { data={}, path, queryString } = parseURL(val);
 
@@ -151,7 +155,7 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
       }
     });
 
-    Array.from(this.querySelectorAll('[route-path]'))
+    this.selectAll('[route-path]')
       .forEach((el, i) => {
         const path = el.getAttribute('route-path');
         this._routes[path] = [el];
@@ -185,6 +189,10 @@ const Route = (class Route extends mix(HTMLElement).with(UIBase) {
 
   static get observedAttributes () {
     return [...super.observedAttributes, ...routeReflectedAttrs];
+  }
+
+  get componentName () {
+    return 'ui-route';
   }
 
   get data () {

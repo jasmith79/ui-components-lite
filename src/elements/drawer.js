@@ -6,6 +6,8 @@ import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import './hamburger.js';
 import './backdrop.js';
 
+const ELEMENT_NAME = 'ui-drawer';
+
 const styles = {
   'position': 'absolute',
   'top': '0',
@@ -44,9 +46,13 @@ const Drawer = (class Drawer extends mix(HTMLElement).with(UIBase, Floats, Easer
     return [...super.observedAttributes, ...reflectedAttrs];
   }
 
+  get componentName () {
+    return ELEMENT_NAME;
+  }
+
   init () {
     super.init();
-    this.classList.add('ui-drawer');
+    this.classList.add(ELEMENT_NAME);
     this.applyStyles(styles);
     this._backdrop.on('click', this.close.bind(this));
     const float = this.rightOriented ? 'floatRight' : 'floatLeft';

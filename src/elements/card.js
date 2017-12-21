@@ -19,7 +19,7 @@ export default class Card extends mix(HTMLElement).with(UIBase, Floats) {
     this.floatingY = true;
   }
 
-  get UIComponentName () {
+  get componentName () {
     return ELEMENT_NAME;
   }
 }

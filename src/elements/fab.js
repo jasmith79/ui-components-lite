@@ -9,6 +9,10 @@ const styles = {
 
 export class Fab extends Button {
 
+  get componentName () {
+    return 'ui-fab';
+  }
+
   init () {
     super.init();
     this.classList.add('ui-fab');

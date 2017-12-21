@@ -36,6 +36,10 @@ const Tab = (class Tab extends Button {
     return [...super.observedAttributes, ...tabReflectedAttrs];
   }
 
+  get componentName () {
+    return 'ui-tab';
+  }
+
   init () {
     super.init();
     this.classList.add('ui-tab');
@@ -44,15 +48,11 @@ const Tab = (class Tab extends Button {
       this.isSelected = true;
     });
 
-    this.on('attribute-change', ({ changed: { now, name } }) => {
-      switch (name) {
-        case 'is-selected':
-          if (now) {
-            this.dispatchEvent(new CustomEvent('tab-selected'));
-          } else {
-            this.dispatchEvent(new CustomEvent('tab-deselected'));
-          }
-          break;
+    this.watchAttribute(this, 'is-selected', now => {
+      if (now) {
+        this.dispatchEvent(new CustomEvent('tab-selected'));
+      } else {
+        this.dispatchEvent(new CustomEvent('tab-deselected'));
       }
     });
   }
@@ -62,6 +62,10 @@ const Tabs = (class Tabs extends mix(HTMLElement).with(UIBase) {
   constructor () {
     super();
     this._selected = null;
+  }
+
+  get componentName () {
+    return 'ui-tabs';
   }
 
   get selected () {
@@ -76,7 +80,7 @@ const Tabs = (class Tabs extends mix(HTMLElement).with(UIBase) {
         // fallthrough
 
       default:
-        const tabs = Array.from(this.querySelectorAll('.ui-tab'));
+        const tabs = this.selectAll('.ui-tab');
         if (index) {
           elem = tabs[index];
           break;
@@ -107,7 +111,7 @@ const Tabs = (class Tabs extends mix(HTMLElement).with(UIBase) {
     super.init();
     this.classList.add('ui-tabs');
     this.applyStyles(tabsStyles);
-    Array.from(this.querySelectorAll('.ui-tab')).forEach((tab, i, arr) => {
+    this.selectAll('.ui-tab').forEach((tab, i, arr) => {
       if (tab.attr('is-selected')) this.selected = tab;
       tab.on('tab-selected', e => {
         arr.forEach((t, j) => {

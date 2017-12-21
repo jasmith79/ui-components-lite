@@ -2,6 +2,8 @@ import Button from './button.js';
 import Easer from '../animations/easer.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
+const ELEMENT_NAME = 'ui-hamburger';
+
 const reflectedAttrs = ['ui-role', 'line-color'];
 const hamburgerShadowStyles = document.createElement('style');
 
@@ -52,9 +54,13 @@ const Hamburger = (class Hamburger extends mix(Button).with(Easer) {
     return [...super.observedAttributes, ...reflectedAttrs];
   }
 
+  get componentName () {
+    return ELEMENT_NAME;
+  }
+
   init () {
     super.init();
-    this.classList.add('ui-hamburger');
+    this.classList.add(ELEMENT_NAME);
     this.shadowRoot.appendChild(hamburgerShadowStyles.cloneNode(true));
     this.shadowRoot.querySelector('#ui-component-wrapper').appendChild(lineDiv.cloneNode(true));
     this.applyStyles(styles);

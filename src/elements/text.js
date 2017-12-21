@@ -9,6 +9,14 @@ const styles = {
 };
 
 const Text = (class Text extends mix(HTMLElement).with(UIBase) {
+  static get observedAttributes () {
+    return [...super.observedAttributes, ...reflectedAttrs];
+  }
+
+  get componentName () {
+    return ELEMENT_NAME;
+  }
+
   init () {
     super.init();
     this.applyStyles(styles);

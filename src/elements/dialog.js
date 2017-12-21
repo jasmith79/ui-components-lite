@@ -3,6 +3,8 @@ import Button from './button.js';
 import Card from './card.js';
 import './backdrop.js';
 
+const ELEMENT_NAME = 'ui-dialog';
+
 const largeStyles = {
   width: '80%',
   height: '80%',
@@ -50,9 +52,13 @@ const Dialog = (class Dialog extends Card {
     return [...super.observedAttributes, ...reflectedAttrs];
   }
 
+  get componentName () {
+    return ELEMENT_NAME;
+  }
+
   init () {
     super.init();
-    this.classList.add('ui-dialog');
+    this.classList.add(ELEMENT_NAME);
     this._backdrop = document.createElement('ui-backdrop');
     this.applyStyles(styles);
     document.body.appendChild(this._backdrop);

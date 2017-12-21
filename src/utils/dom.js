@@ -91,6 +91,11 @@ export default superclass => class DOMutils extends superclass {
     }
   }
 
+  selectAll (selector) {
+    const nodeList = this.querySelectorAll(selector);
+    return nodeList ? Array.from(nodeList) : [];
+  }
+
   /**
    * on :: Event, (Event -> *) -> this
    *

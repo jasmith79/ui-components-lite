@@ -1,6 +1,8 @@
 import UIBase from '../utils/ui-component-base.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
+const ELEMENT_NAME = 'ui-backdrop';
+
 const styles = {
   'display': 'block',
   'height': '100vh',
@@ -13,10 +15,14 @@ const styles = {
 };
 
 export class Backdrop extends mix(HTMLElement).with(UIBase) {
+  get componentName () {
+    return ELEMENT_NAME;
+  }
+
   init () {
     super.init();
     this.hide();
-    this.classList.add('ui-backdrop');
+    this.classList.add(ELEMENT_NAME);
     this.applyStyles(styles);
   }
 }

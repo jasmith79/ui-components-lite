@@ -80,7 +80,7 @@ const baseMixin = sclass => class UIBase extends mix(sclass).with(Styled, DOMuti
 
     if (was !== now) {
       if (name in this._oneWayBoundAttrs && !this._internalMutationFlag) {
-        console.warn(`Attempted to manually set data-bound attribute ${name} of ${this.UIComponentName}.`);
+        console.warn(`Attempted to manually set data-bound attribute ${name} of ${this.componentName}.`);
         this._internalMutationFlag = true;
         this.attr(name, was);
         this._internalMutationFlag = false;
