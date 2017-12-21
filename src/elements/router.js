@@ -194,6 +194,8 @@ const Route = (class Route extends mix(HTMLElement).with(UIBase) {
   init () {
     super.init();
     this.classList.add('ui-route');
+    let data = localStorage.getItem(this.routePath);
+    if (data != null) this.update(data);
   }
 
   update (data) {
