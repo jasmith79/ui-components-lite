@@ -89,6 +89,8 @@ export default superclass => class DOMutils extends superclass {
       observer.observe(node, attrConf);
       this._mutationObservers.push([observer, node, attrConf]);
     }
+
+    return this;
   }
 
   selectAll (selector) {
@@ -103,12 +105,14 @@ export default superclass => class DOMutils extends superclass {
    * automatically removed and reattached on being removed from/added to the
    * DOM.
    */
-  on (evt, fn) {
-    const isDupe = this._listeners.some(([e, f]) => e === evt && fn === f);
-    if (!isDupe) {
-      this.addEventListener(evt, fn);
-      this._listeners.push([evt, fn]);
-    }
+  on (evts, fn) {
+    evts.split(/\s+/g).forEach(evt => {
+      const isDupe = this._listeners.some(([e, f]) => e === evt && fn === f);
+      if (!isDupe) {
+        this.addEventListener(evt, fn);
+        this._listeners.push([evt, fn]);
+      }
+    });
     return this;
   }
 

@@ -109,35 +109,39 @@ const revertTheme = () => {
 };
 
 const writeStyles = memoizeWriteStyles((styles, styleElem, class_=generateCSSClassName()) => {
-  const currentTheme = appliedThemes.last() || defaultTheme;
-  const entries = Object.entries(styles);
-  const [regular, irregular] = partitionBy(([k, v]) => extractType(v) === 'String', entries);
-  const [themed, nested] = partitionBy(([k, v]) => extractType(v) === 'Symbol', irregular);
-  const basicProps = regular.map(([k, v]) => `${k}:${v};`).join('');
-  styleElem.innerHTML += `.${class_}{${basicProps}}`;
-  // styleElem.sheet.insertRule(`.${class_}{${basicProps}}`);
-  styleElem.innerHTML += `.${class_}{${themed.map(([k, v]) => `${k}:${currentTheme[v]};`).join('')}}`
-  if (themed.length) {
-    let rulesElem = themedStyleElements.get(styleElem);
-    if (!rulesElem) {
-      rulesElem = document.createElement('style');
-      styleElem.parentNode.appendChild(rulesElem);
+  if (styles) {
+    const currentTheme = appliedThemes.last() || defaultTheme;
+    const entries = Object.entries(styles);
+    const [regular, irregular] = partitionBy(([k, v]) => extractType(v) === 'String', entries);
+    const [themed, nested] = partitionBy(([k, v]) => extractType(v) === 'Symbol', irregular);
+    const basicProps = regular.map(([k, v]) => `${k}:${v};`).join('');
+    styleElem.innerHTML += `.${class_}{${basicProps}}`;
+    // styleElem.sheet.insertRule(`.${class_}{${basicProps}}`);
+    styleElem.innerHTML += `.${class_}{${themed.map(([k, v]) => `${k}:${currentTheme[v]};`).join('')}}`
+    if (themed.length) {
+      let rulesElem = themedStyleElements.get(styleElem);
+      if (!rulesElem) {
+        rulesElem = document.createElement('style');
+        styleElem.parentNode.appendChild(rulesElem);
+      }
+
+      themed.forEach(([k, v]) => {
+        const index = rulesElem.sheet.insertRule(
+          `.${class_}{${k}:${currentTheme[v]};}`,
+          rulesElem.sheet.cssRules.length,
+        );
+        const arr = themedRules.get(rulesElem) || [];
+        arr.push({ [v]: index });
+        themedRules.set(rulesElem, arr);
+      });
+      themedStyleElements.set(styleElem, rulesElem);
     }
 
-    themed.forEach(([k, v]) => {
-      const index = rulesElem.sheet.insertRule(
-        `.${class_}{${k}:${currentTheme[v]};}`,
-        rulesElem.sheet.cssRules.length,
-      );
-      const arr = themedRules.get(rulesElem) || [];
-      arr.push({ [v]: index });
-      themedRules.set(rulesElem, arr);
-    });
-    themedStyleElements.set(styleElem, rulesElem);
+    nested.forEach(([k, v]) => writeStyles(v, styleElem, `${class_}${k}`));
+    return class_;
+  } else {
+    return '';
   }
-
-  nested.forEach(([k, v]) => writeStyles(v, styleElem, `${class_}${k}`));
-  return class_;
 });
 
 const Styled = superclass => class Styled extends superclass {

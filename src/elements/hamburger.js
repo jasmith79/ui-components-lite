@@ -64,12 +64,10 @@ const Hamburger = (class Hamburger extends mix(Button).with(Easer) {
     this.shadowRoot.appendChild(hamburgerShadowStyles.cloneNode(true));
     this.shadowRoot.querySelector('#ui-component-wrapper').appendChild(lineDiv.cloneNode(true));
     this.applyStyles(styles);
-    this.on('attribute-change', ({ changed: { now, name } }) => {
-      if (name === 'line-color') {
-        Array.from(this.shadowRoot.querySelectorAll('.line')).forEach(el => {
-          el.style.backgroundColor = now;
-        });
-      }
+    this.watchAttribute(this, 'line-color', now => {
+      Array.from(this.shadowRoot.querySelectorAll('.line')).forEach(el => {
+        el.style.backgroundColor = now;
+      });
     });
   }
 

@@ -29,11 +29,11 @@ ui-fab-button {
   <ui-alert></ui-alert>
   <ui-toolbar is-tall>
     <ui-hamburger line-color="white" drawer-toggle slot="left-button-slot"></ui-hamburger>
-    <div slot="title">I'm a title!</div>
+    <div slot="title">Site Record</div>
     <ui-tabs slot="tab-slot" for="ui-router">
       <ui-tab value="/">Login</ui-tab>
-      <ui-tab value="/beer">Beer</ui-tab>
-      <ui-tab value="/bourbon">Bourbon</ui-tab>
+      <ui-tab value="/beer">ITS</ui-tab>
+      <ui-tab value="/bourbon">Signals</ui-tab>
       <ui-tab value="/formica">Input</ui-tab>
     </ui-tabs>
   </ui-toolbar>
@@ -45,17 +45,17 @@ ui-fab-button {
       <div>Imma Login yo</div>
     </ui-route>
     <ui-route route-path="/beer">
-      <div>Beer</div>
+      <div>ITSy</div>
     </ui-route>
     <ui-route route-path="/bourbon">
-      <div>Bourbon</div>
+      <div>Signals</div>
     </ui-route>
     <ui-route route-path="/formica" foo="super" updates-history>
       <ui-card id="ui-card-1">
         I am changed by my parent! Parent says: <ui-text view-text="{{foo}}"></ui-text>
       </ui-card>
       <ui-card id="ui-card-2">
-        I can also change my parent, who says: <ui-text view-text="{{{foo}}}"></ui-text>
+        I can also change my parent, who says: <ui-input value="{{{foo}}}"></ui-input>
       </ui-card>
     </ui-route>
   </ui-router>
