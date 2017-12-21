@@ -2,6 +2,8 @@ import processHTMLAttr from './attribute-analyzer.js';
 import extractType from '../../node_modules/extracttype/extracttype.js';
 import { toCamelCase, toSnakeCase } from '../../node_modules/jsstring/src/jsstring.js';
 
+const attrConf = { attributes: true };
+
 const hidden = {
   display: 'none !important',
 };
@@ -25,6 +27,11 @@ const toPropertyObj = propList => {
 };
 
 export default superclass => class DOMutils extends superclass {
+  constructor () {
+    super();
+    this._mutationObservers = [];
+  }
+
   static reflectToAttribute (attrs) {
     const class_ = class extends this {
       constructor (...args) {
@@ -64,6 +71,24 @@ export default superclass => class DOMutils extends superclass {
 
   get isShadowElement () {
     return this._shadowElement || extractType(this) === 'ShadowRoot' || this.shadowParent;
+  }
+
+  // Observes changes to the given attribute on the given node.
+  watchAttribute (node, attr, cb) {
+    if ((node.constructor.observedAttributes || []).includes(attr)) {
+      node.on('attribute-change', ({ changed: { now, name, was } }) => {
+        if (name === attr) cb(now, name, was);
+      });
+    } else {
+      const observer = new MutationObserver(([mutation]) => {
+        if (mutation.attributeName === attr) {
+          cb(node.attr(mutation.attributeName), mutation.attributeName, mutation.oldValue);
+        }
+      });
+
+      observer.observe(node, attrConf);
+      this._mutationObservers.push([observer, node, attrConf]);
+    }
   }
 
   /**

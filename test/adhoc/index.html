@@ -51,9 +51,12 @@ ui-fab-button {
       <div>Bourbon</div>
     </ui-route>
     <ui-route route-path="/formica" foo="super" updates-history>
-      I am changed my parent!
-      <ui-card id="ui-card-1" value="{{foo}}"></ui-card>
-      <ui-card id="ui-card-2" value="{{{foo}}}"></ui-card>
+      <ui-card id="ui-card-1">
+        I am changed by my parent! Parent says: <ui-text view-text="{{foo}}"></ui-text>
+      </ui-card>
+      <ui-card id="ui-card-2">
+        I can also change my parent, who says: <ui-text view-text="{{{foo}}}"></ui-text>
+      </ui-card>
     </ui-route>
   </ui-router>
  </body>

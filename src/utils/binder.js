@@ -1,22 +1,11 @@
-const attrConf = { attributes: true };
+
 export default superclass => class DataBinder extends superclass {
 
-  // Observes changes to the given attribute on the given node.
-  _watchAttribute (node, attr, cb) {
-    if ((node.constructor.observedAttributes || []).includes(attr)) {
-      node.on('attribute-change', ({ changed: { now, name, was } }) => {
-        if (name === attr) cb(name, now, was);
-      });
-    } else {
-      const observer = new MutationObserver(([mutation]) => {
-        if (mutation.attributeName === attr) {
-          cb(mutation.attributeName, node.attr(mutation.attributeName), mutation.oldValue);
-        }
-      });
-
-      observer.observe(node, attrConf);
-      this._mutationObservers.push([observer, node, attrConf]);
-    }
+  constructor () {
+    super();
+    this._oneWayBoundAttrs = {};
+    this._twoWayBoundAttrs = {};
+    this._internalMutationFlag = false;
   }
 
   // Set up data-binding. Any element attributes with a value matching the binding syntax
@@ -54,7 +43,7 @@ export default superclass => class DataBinder extends superclass {
       this.attr(attribute, parent.attr(parentAttribute));
 
       // Watch changes.
-      this._watchAttribute(parent, parentAttribute, (name, now, was) => {
+      this.watchAttribute(parent, parentAttribute, (now, name, was) => {
         if (this.attr(attribute) !== now) {
           this._internalMutationFlag = true;
           this.attr(attribute, now);
@@ -62,7 +51,7 @@ export default superclass => class DataBinder extends superclass {
       });
 
       if (twoWay) {
-        this._watchAttribute(this, attribute, (name, now, was) => {
+        this.watchAttribute(this, attribute, (now, name, was) => {
           if (parent.attr(parentAttribute) !== now) {
             parent.attr(parentAttribute, now);
           }

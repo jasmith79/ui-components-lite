@@ -12,10 +12,6 @@ const baseMixin = sclass => class UIBase extends mix(sclass).with(Styled, DOMuti
     this._isCentered = false;
     this._shadowElement = null;
     this._isReady = false;
-    this._internalMutationFlag = false;
-    this._mutationObservers = [];
-    this._oneWayBoundAttrs = {};
-    this._twoWayBoundAttrs = {};
   }
 
   static get observedAttributes () {

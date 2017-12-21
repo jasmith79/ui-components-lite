@@ -4,6 +4,7 @@ import '../../src/elements/alert.js';
 import '../../src/elements/drawer.js';
 import '../../src/elements/toolbar.js';
 import '../../src/elements/tabs.js';
+import '../../src/elements/text.js';
 import { Router } from '../../src/elements/router.js';
 
 // import Styled from '../../src/utils/styler.js';
