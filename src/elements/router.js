@@ -83,17 +83,22 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
 
     if (this.selected) this.selected.removeAttribute('slot');
     const [elem, f] = this._routes[path];
-    this.selected = elem;
-    this.currentRoute = [path, elem];
-    if (f) f(elem, data);
-    elem.setAttribute('slot', 'router-content');
+    if (elem) {
+      this.selected = elem;
+      this.currentRoute = [path, elem];
+      if (f) f(elem, data);
+      elem.setAttribute('slot', 'router-content');
 
-    const evt = new CustomEvent('route-changed', { bubbles: true });
-    evt.data = data;
-    evt.routePath = path;
+      const evt = new CustomEvent('route-changed', { bubbles: true });
+      evt.data = data;
+      evt.routePath = path;
 
-    this.dispatchEvent(evt);
-    return [path, evt, queryString];
+      this.dispatchEvent(evt);
+      return [path, evt, queryString];
+    } else {
+      console.warn(`No element matches path ${path}, perhaps the ui-route has no path set?`);
+      return [];
+    }
   }
 
   init () {
@@ -109,7 +114,7 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
           }
           const [path, evt, queryString] = this._updatePath(now);
           const { protocol, fullDomain } = parseURL(window.location.href);
-          if (this.updatesHistory) {
+          if (this.updatesHistory && path) {
             history.pushState(this._routes[path].data, '', this.basePath + path);
             window.dispatchEvent(evt);
           }
@@ -160,9 +165,9 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
         const path = el.getAttribute('route-path');
         this._routes[path] = [el];
         if (!i) this.currentPath = path;
-        el.on('data-changed', ({ data, target: el }) => {
-          if (this.updatesHistory) history.replaceState(data, '', this.basePath + this.currentPath);
-        });
+        // el.on('data-changed', ({ data, target: el }) => {
+        //   if (this.updatesHistory) history.replaceState(data, '', this.basePath + this.currentPath);
+        // });
       });
   }
 
@@ -210,6 +215,12 @@ const Route = (class Route extends mix(HTMLElement).with(UIBase) {
     this._data = data;
     const evt = new CustomEvent('data-changed');
     evt.data = data;
+    if (this.updatesHistory) {
+      const qs = toQueryString(data);
+      if (qs !== '?') {
+        history.replaceState(data, '', window.location.href, window.location.href + qs);
+      }
+    }
     this.dispatchEvent(evt);
     return this;
   }

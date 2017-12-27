@@ -81,7 +81,7 @@ const Dialog = (class Dialog extends Card {
       }, 500);
     };
 
-    Array.from(this.children).forEach(child => {
+    [...this.children].forEach(child => {
       if (child instanceof Button) {
         if (child.getAttribute('dialog-dismiss') != null) {
           child.on('click', dismisser);

@@ -34,7 +34,8 @@ ui-fab-button {
       <ui-tab value="/">Login</ui-tab>
       <ui-tab value="/beer">ITS</ui-tab>
       <ui-tab value="/bourbon">Signals</ui-tab>
-      <ui-tab value="/formica">Input</ui-tab>
+      <ui-tab value="/inputy">Input</ui-tab>
+      <ui-tab value="/formica">Form</ui-tab>
     </ui-tabs>
   </ui-toolbar>
   <ui-drawer is-modal>
@@ -50,12 +51,26 @@ ui-fab-button {
     <ui-route route-path="/bourbon">
       <div>Signals</div>
     </ui-route>
-    <ui-route route-path="/formica" foo="super" updates-history>
+    <ui-route route-path="/inputy" foo="super">
       <ui-card id="ui-card-1">
         I am changed by my parent! Parent says: <ui-text view-text="{{foo}}"></ui-text>
       </ui-card>
       <ui-card id="ui-card-2">
         I can also change my parent, who says: <ui-input value="{{{foo}}}"></ui-input>
+      </ui-card>
+    </ui-route>
+    <ui-route route-path="/formica" updates-history>
+      <ui-card>
+        <ui-form id="form-1">
+          <ui-input name="foo" placeholder="type foo" required>foo</ui-input>
+          <ui-drop-down name="dd">
+            <ui-item>Fro</ui-item>
+            <ui-item value="Bro">Bar</ui-item>
+          </ui-drop-down>
+          <ui-input name="qux" default-value="fooey"></ui-input>
+          <!-- <input name="bar" /> -->
+        </ui-form>
+        <ui-input form="form-1" name="bar" default-value="3"></ui-input>
       </ui-card>
     </ui-route>
   </ui-router>

@@ -36,8 +36,7 @@ const baseMixin = sclass => class UIBase extends mix(sclass).with(Styled, DOMuti
         }
       });
 
-      // to the console but not throw.
-      Array.from(this.attributes).forEach(({ name: attr, value: val}) => {
+      [...this.attributes].forEach(({ name: attr, value: val}) => {
         const twoWay = val && val.match(/^\{\{\{(.+)\}\}\}$/);
         const oneWay = val && val.match(/^\{\{(.+)\}\}$/);
         const matched = twoWay ? twoWay[1] : oneWay ? oneWay[1] : null;

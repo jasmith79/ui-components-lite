@@ -95,7 +95,13 @@ export default superclass => class DOMutils extends superclass {
 
   selectAll (selector) {
     const nodeList = this.querySelectorAll(selector);
-    return nodeList ? Array.from(nodeList) : [];
+    return nodeList ? [...nodeList] : [];
+  }
+
+  matches (selector) {
+    if (super.matches) return super.matches(selector);
+    if (super.msMatchesSelector) return super.msMatchesSelector(selector);
+    throw new Error('HTMLElement does not implement the matches method.')
   }
 
   /**

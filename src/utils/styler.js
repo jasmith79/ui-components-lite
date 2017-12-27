@@ -70,7 +70,7 @@ const getStyleElem = (root=document.head) => {
 const mixTheme = (t1, t2=defaultTheme) => Object.assign({}, t2, t1);
 
 const _applyTheme = (current, next)=> {
-  Array.from(managedStyleSheets.values())
+  [...managedStyleSheets.values()]
     .map(styleElem => {
       const rulesElem = themedStyleElements.get(styleElem);
       return [rulesElem, themedRules.get(rulesElem)];
