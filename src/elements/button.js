@@ -31,10 +31,6 @@ const Button = (class Button extends mix(HTMLElement).with(UIBase, Ripples, Floa
     super();
   }
 
-  static get observedAttributes () {
-    return [...super.observedAttributes, ...reflectedAttrs];
-  }
-
   get componentName () {
     return ELEMENT_NAME;
   }

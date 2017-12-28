@@ -50,10 +50,6 @@ const styles = {
 };
 
 const Hamburger = (class Hamburger extends mix(Button).with(Easer) {
-  static get observedAttributes () {
-    return [...super.observedAttributes, ...reflectedAttrs];
-  }
-
   get componentName () {
     return ELEMENT_NAME;
   }

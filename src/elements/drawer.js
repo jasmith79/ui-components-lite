@@ -42,10 +42,6 @@ const Drawer = (class Drawer extends mix(HTMLElement).with(UIBase, Floats, Easer
     this._animator = null;
   }
 
-  static get observedAttributes () {
-    return [...super.observedAttributes, ...reflectedAttrs];
-  }
-
   get componentName () {
     return ELEMENT_NAME;
   }

@@ -14,8 +14,8 @@ const rippleStyles = {
     'transform': 'scale(10, 10)',
     'transition': 'transform .5s, opacity 1s',
     'pointer-events': 'none',
-    'background-image': 'radial-gradient(circle, #FFF 10%, transparent 10%)',
     'background-repeat': 'no-repeat',
+    'background-image': 'radial-gradient(circle, #fff 10%, transparent 10%)',
     'background-position': '50%',
   },
   ':active:after': {
@@ -44,6 +44,11 @@ export default superclass => class extends superclass {
   init (...args) {
     super.init(...args);
     this.applyStyles(rippleStyles);
+  }
+
+  set rippleColor (val) {
+    this.applyStyles({':after': {'background-image': `radial-gradient(circle, ${val} 10%, transparent 10%)`}});
+    return this;
   }
 
   on (evt, f) {

@@ -146,10 +146,6 @@ const PlaceHolder = class ToolbarBacking extends mix(HTMLElement).with(UIBase) {
 };
 
 const Toolbar = (class Toolbar extends mix(HTMLElement).with(UIBase, Floats) {
-  static get observedAttributes () {
-    return [...super.observedAttributes, ...reflectedAttrs];
-  }
-
   get componentName () {
     return ELEMENT_NAME;
   }

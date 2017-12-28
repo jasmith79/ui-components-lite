@@ -32,10 +32,6 @@ const tabsReflectedAttrs = [
 ];
 
 const Tab = (class Tab extends Button {
-  static get observedAttributes () {
-    return [...super.observedAttributes, ...tabReflectedAttrs];
-  }
-
   get componentName () {
     return 'ui-tab';
   }

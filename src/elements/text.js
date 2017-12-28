@@ -17,11 +17,7 @@ const Text = (class Text extends mix(HTMLElement).with(UIBase) {
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(this._textHolder);
   }
-
-  static get observedAttributes () {
-    return [...super.observedAttributes, ...reflectedAttrs];
-  }
-
+  
   get componentName () {
     return ELEMENT_NAME;
   }

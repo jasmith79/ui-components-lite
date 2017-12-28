@@ -65,10 +65,6 @@ const Router = (class Router extends mix(HTMLElement).with(UIBase) {
     };
   }
 
-  static get observedAttributes () {
-    return [...super.observedAttributes, ...routerReflectedAttrs];
-  }
-
   get componentName () {
     return 'ui-router';
   }
@@ -191,11 +187,7 @@ const Route = (class Route extends mix(HTMLElement).with(UIBase) {
       if (elem && elem.data) localStorage.setItem(path, JSON.stringify(elem.data));
     };
   }
-
-  static get observedAttributes () {
-    return [...super.observedAttributes, ...routeReflectedAttrs];
-  }
-
+  
   get componentName () {
     return 'ui-route';
   }

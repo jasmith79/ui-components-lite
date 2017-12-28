@@ -48,10 +48,6 @@ const reflectedAttrs = [
 ];
 
 const Dialog = (class Dialog extends Card {
-  static get observedAttributes () {
-    return [...super.observedAttributes, ...reflectedAttrs];
-  }
-
   get componentName () {
     return ELEMENT_NAME;
   }

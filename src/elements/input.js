@@ -99,11 +99,7 @@ const Input = (class Input extends mix(HTMLElement).with(UIBase, FormBehavior) {
     this.shadowRoot.appendChild(this._input);
     this.shadowRoot.appendChild(inputStyles.cloneNode(true));
   }
-
-  static get observedAttributes () {
-    return [...super.observedAttributes, ...reflectedAttrs];
-  }
-
+  
   init () {
     super.init();
     this.applyStyles(styles);

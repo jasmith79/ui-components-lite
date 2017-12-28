@@ -11,12 +11,7 @@ const reflectedAttrs = [
   'left-oriented',
 ];
 
-export default superclass => class Floating extends superclass {
-
-  static get observedAttributes () {
-    return [...super.observedAttributes, ...reflectedAttrs];
-  }
-
+export default superclass => (class Floating extends superclass {
   get isFloating () {
     return this.floatingX || this.floatingY;
   }
@@ -46,4 +41,4 @@ export default superclass => class Floating extends superclass {
       }
     });
   }
-}.reflectToAttribute(reflectedAttrs);
+}).reflectToAttribute(reflectedAttrs);

@@ -101,11 +101,6 @@ const Form = class Form extends mix(HTMLElement).with(UIBase) {
 };
 
 const FormBehavior = superclass => (class FormItem extends superclass {
-
-  static get observedAttributes () {
-    return [...super.observedAttributes, ...formBehaviorReflectedAttrs];
-  }
-
   validate (validator) {
     return this.watchAttribute(this, 'value', (...args) => {
       this.isValid = validator.apply(this, args);

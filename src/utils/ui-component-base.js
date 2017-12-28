@@ -1,6 +1,6 @@
 import Styled from './styler.js';
 import DataBinder from './binder.js';
-import DOMutils from './dom.js';
+import DOMutils from './dom-utils.js';
 import processHTMLAttr from './attribute-analyzer.js';
 import { toSnakeCase } from '../../node_modules/jsstring/src/jsstring.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
@@ -17,6 +17,10 @@ const baseMixin = sclass => class UIBase extends mix(sclass).with(Styled, DOMuti
   static get observedAttributes () {
     // If extension elements have additional, be sure to call super.
     return ['style', 'class'];
+  }
+
+  get componentName () {
+    return `ui-${toSnakeCase(this.constructor.name, '-')}`;
   }
 
   get isUIComponent () {
