@@ -1,10 +1,44 @@
 import Button from './button.js';
-import Easer from '../animations/easer.js';
-import { mix } from '../../node_modules/mixwith/src/mixwith.js';
-
-const ELEMENT_NAME = 'ui-hamburger';
+import { defineUIComponent, document } from '../utils/dom.js';
 
 const reflectedAttrs = ['ui-role', 'line-color'];
+const template = document.createElement('template');
+template.innerHTML = `
+  <style>
+    .line {
+      height: 5px;
+      width: 100%;
+      background-color: var(--ui-theme-dark-text-color, #000);
+      position: relative;
+      padding: 0;
+    }
+
+    .top-line {
+      top: 0px;
+    }
+
+    .middle-line {
+      top: 7px;
+    }
+
+    .bottom-line {
+      top: 15px;
+    }
+
+    #content-wrapper {
+      height: 30px;
+      width: 80px;
+      left: 10%;
+    }
+
+    :host {
+      background: transparent;
+      width: 48px;
+      height: 48px;
+    }
+  </style>
+`;
+
 const hamburgerShadowStyles = document.createElement('style');
 
 hamburgerShadowStyles.innerHTML = `
@@ -49,14 +83,9 @@ const styles = {
   'height': '48px',
 };
 
-const Hamburger = (class Hamburger extends mix(Button).with(Easer) {
-  get componentName () {
-    return ELEMENT_NAME;
-  }
-
+const Hamburger = defineElement('ui-hamburger', reflectedAttrs, class Hamburger extends mix(Button).with(Easer) {
   init () {
     super.init();
-    this.classList.add(ELEMENT_NAME);
     this.shadowRoot.appendChild(hamburgerShadowStyles.cloneNode(true));
     this.shadowRoot.querySelector('#ui-component-wrapper').appendChild(lineDiv.cloneNode(true));
     this.applyStyles(styles);
@@ -70,7 +99,6 @@ const Hamburger = (class Hamburger extends mix(Button).with(Easer) {
   centerContent() {
     return super.centerContent({unslotted: true});
   }
-}).reflectToAttribute(reflectedAttrs);
+});
 
 export default Hamburger;
-customElements.define('ui-hamburger', Hamburger);

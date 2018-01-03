@@ -1,4 +1,3 @@
-
 /*
  * NOTE: it is not currently possible to extend specific HTMLElements, leading
  * to this element being rather convoluted. Once it's possible to extend input
@@ -6,79 +5,74 @@
  *
  */
 
-import { FormBehavior } from './form.js';
 import UIBase from '../utils/ui-component-base.js';
 import Ripples from '../animations/rippler.js';
-import Styler from '../utils/styler.js';
+import { defineUIComponent, document } from '../utils/dom.js';
+import { FormBehavior } from './form.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
-import { extractType } from '../../node_modules/extracttype/extracttype.js';
 
-const reflectedAttrs = [
-  'checked',
-];
+const template = document.createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: inline-block;
+      min-height: 25px;
+      min-width: 25px;
+      background-color: #DDD;
+      position: relative;
+    }
 
-const styles = {
-  'display': 'inline',
-  'min-height': '25px',
-  'min-width': '25px',
-  'background-color': '#DDD',
-  'position': 'relative',
-  ':hover': {
-    'background-color': '#999',
-  },
-  ':after': {
-    'contents':'""',
-    'position': 'absolute',
-    'display': 'none',
-    'left': '9px',
-    'top': '5px',
-    'width': '5px',
-    'height': '10px',
-    'border': 'solid #fff',
-    'border-width': '0 3px 3px 0',
-    'transform': 'rotate(45deg)',
-  },
-};
+    :host(:hover) {
+      box-shadow: inset 0 0 0 99999px rgba(150,150,150,0.2);
+    }
 
-const checkedClass = Styler.addStyles({
-  ':after': { display: 'block' }
+    :host:after {
+      content:"";
+      position: absolute;
+      display: none;
+      left: 9px;
+      top: 5px;
+      width: 5px;
+      height: 10px;
+      border: solid #fff;
+      border-width: 0 3px 3px 0;
+      transform: rotate(45deg);
+    }
+
+    :host(.checked) {
+      background-color: var(--ui-theme-primary-dark-color, blue);
+    }
+
+    :host(.checked):after {
+      display: block;
+    }
+  </style>
+`;
+
+const reflectedAttrs = ['checked'];
+
+const Checkbox = defineUIComponent({
+  name: 'ui-checkbox',
+  template,
+  reflectedAttrs,
+  definition: class Checkbox extends mix(UIBase).with(Ripples, FormBehavior) {
+    constructor () {
+      super();
+      this._formElement = document.createElement('input');
+      this._formElement.style.opacity = 0;
+      this._formElement.type = 'checkbox';
+    }
+
+    init () {
+      this.watchAttribute('checked', now => {
+        now ? this.classList.add('checked') : this.classList.remove('checked');
+      });
+
+      this.on('click', e => {
+        this.checked = !this.checked;
+      });
+    }
+  }
 });
 
-
-const checkedStyles = {
-  'background-color': Styler.primaryDarkColor,
-};
-
-const debounce = (n, immed, f) => {
-  let [fn, now] = (() => {
-    switch(extractType(immed)) {
-      case 'Boolean':
-        return [f, immed];
-      case 'Function':
-        return [immed, false];
-      default:
-        throw new TypeError(`Unrecognized arguments ${immed} and ${f} to function debounce.`);
-    }
-  })();
-
-  let timer = null;
-  return function (...args) {
-    if (timer === null && now) {
-      fn.apply(this, args);
-    }
-    clearTimeout(timer);
-    timer = setTimeout(() => fn.apply(this, args), n);
-    return timer;
-  }
-};
-
-const Checkbox = (class Checkbox extends mix(HTMLElement).with(UIBase, FormBehavior, Ripples) {
-  init () {
-    super.init();
-    this.applyStyles(styles);
-  }
-}).reflectToAttribute(reflectedAttrs);
-
-
 export default Checkbox;
-customElements.define('ui-checkbox', Checkbox);

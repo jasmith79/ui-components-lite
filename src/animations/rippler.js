@@ -1,61 +1,83 @@
-const rippleStyles = {
-  'overflow': 'hidden',
-  'position': 'relative',
-  'cursor': 'pointer',
-  'transform': 'translate3d(0, 0, 0)',
-  ':after': {
-    'content': '""',
-    'position': 'absolute',
-    'width': '100%',
-    'height': '100%',
-    'top': '0',
-    'left': '0',
-    'opacity': '0',
-    'transform': 'scale(10, 10)',
-    'transition': 'transform .5s, opacity 1s',
-    'pointer-events': 'none',
-    'background-repeat': 'no-repeat',
-    'background-image': 'radial-gradient(circle, #fff 10%, transparent 10%)',
-    'background-position': '50%',
-  },
-  ':active:after': {
-    'opacity': '.7',
-    'transform': 'scale(0, 0)',
-    'transition': '0s',
-    'background-color': 'orange',
-  },
-};
+import { document, defineUIComponent } from '../utils/dom.js';
+import extractType from '../../node_modules/extracttype/extracttype.js';
 
 const rippleEvents = ['click', 'tap', 'dblclick'];
-const handlerRegistry = new WeakMap;
-const handlerFactory = (evt, f, el) => {
-  const ls = handlerRegistry.get(f) || [];
-  const cached = ls.reduce((acc, [e, elem, handler]) => {
-    return acc || e === evt && el === elem ? handler : null;
-  }, null);
-
-  if (cached) return cached;
-  const handler =  e => setTimeout(f, 500, e);
-  handlerRegistry.set(f, [...ls, [evt, el, handler]]);
-  return handler;
+const handlerRegistry = new WeakMap();
+const registerHandler = f => {
+  const cached = handlerRegistry.get(f);
+  let fn = cached || (e => { setTimeout(f, 500, e); });
+  handlerRegistry.set(f, fn);
+  return fn;
 };
 
-export default superclass => class extends superclass {
-  init (...args) {
-    super.init(...args);
-    this.applyStyles(rippleStyles);
-  }
+const template = document.createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      transform: translate3d(0, 0, 0);
+    }
 
-  set rippleColor (val) {
-    this.applyStyles({':after': {'background-image': `radial-gradient(circle, ${val} 10%, transparent 10%)`}});
-    return this;
-  }
+    :host:after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      transform: scale(10, 10);
+      transition: transform .5s, opacity 1s;
+      pointer-events: none;
+      background-repeat: no-repeat;
+      background-image: radial-gradient(circle, var(--ui-theme-ripple-color), 10%, transparent 10%);
+      background-position: 50%;
+    }
 
-  on (evt, f) {
-    if (rippleEvents.includes(evt)) {
-      super.on(evt, handlerFactory(evt, f, this));
-    } else {
-      super.on(evt, f);
+    :host(:active):after {
+      opacity: .7;
+      transform: scale(0, 0);
+      transition: 0s;
+      background-color: orange;
+    }
+  </style>
+`;
+
+export default superclass => defineUIComponent({
+  name: 'ui-ripples',
+  template,
+  registerElement: false,
+  definition: class Ripples extends superclass {
+
+    // Here we want to intercept any handlers on events that trigger a ripple and delay them
+    // to give the animation time to complete.
+    on (evts, f) {
+      const events = evts.split(/\s+/g);
+      events.forEach(evt => {
+        if (rippleEvents.includes(evt)) {
+          // Here we'll want to cache a canonical version for later removal
+          const fn = registerHandler(f);
+          super.on(evt, fn);
+        } else {
+          super.on(evt, f);
+        }
+      });
+    }
+
+    // Similar intercept here for function arguments
+    remove (...args) {
+      const correctArgs = args.reduce((acc, arg) => {
+        if (extractType(arg) === 'Function') {
+          let cached = registerHandler(arg);
+          acc.push(cached || arg);
+        } else {
+          acc.push(arg);
+        }
+        return acc;
+      }, []);
+      super.remove(...correctArgs);
     }
   }
-}
+});

@@ -1,83 +1,21 @@
 import processHTMLAttr from './attribute-analyzer.js';
 import extractType from '../../node_modules/extracttype/extracttype.js';
-import { toCamelCase, toSnakeCase, random } from '../../node_modules/jsstring/src/jsstring.js';
-window.random = random;
+import * as DOM from './dom.js';
+
 const attrConf = { attributes: true };
 
-const hidden = {
-  display: 'none !important',
-};
-
 const isHTMLElement = arg => Boolean(extractType(arg).match(/HTML[a-zA-Z]*Element/));
-
-const toPropertyObj = propList => {
-  return propList.reduce((acc, prop) => {
-    const property = toCamelCase(prop);
-    acc[property] = {
-      get: function() {
-        return this[`_${property}`];
-      },
-      set: function(val) {
-        this[`_${property}`] = val;
-        this.attr(toSnakeCase(property, '-'), val);
-      }
-    };
-    return acc;
-  }, {});
-};
 
 export default superclass => class DOMutils extends superclass {
   constructor () {
     super();
     this._mutationObservers = [];
-  }
-
-  static reflectToAttribute (attrs) {
-    const class_ = class extends this {
-      static get observedAttributes () {
-        return [...super.observedAttributes, ...attrs];
-      }
-
-      constructor (...args) {
-        super(...args);
-        this.on('attribute-change', ({ changed: { name, now } }) => {
-          if (attrs.includes(name)) {
-            this[toCamelCase(name)] = now;
-          }
-        });
-      }
-    };
-
-    Object.defineProperty(class_, 'name', {
-      get: () => this.name
-    });
-    Object.defineProperties(class_.prototype, toPropertyObj(attrs));
-    return class_;
-  }
-
-  _checkForShadowAncestor () {
-    let node = this.parentNode;
-    while (node) {
-      if (extractType(node) === 'ShadowRoot') return node;
-      node = node.parentNode;
-    }
-    return;
+    this.attachShadow({ mode: 'open' });
   }
 
   get isVisible () {
-    const style = window.getComputedStyle(this);
+    const style = DOM.global.getComputedStyle(this);
     return style.display !== 'none' && style.visibility !== 'hidden';
-  }
-
-  get shadowParent () {
-    if (!this._shadowElement) {
-      this._shadowElement = this._checkForShadowAncestor();
-    }
-    return this._shadowElement;
-  }
-
-  get isShadowElement () {
-    return this._shadowElement || extractType(this) === 'ShadowRoot' || this.shadowParent;
   }
 
   // Observes changes to the given attribute on the given node.
@@ -108,7 +46,7 @@ export default superclass => class DOMutils extends superclass {
   matches (selector) {
     if (super.matches) return super.matches(selector);
     if (super.msMatchesSelector) return super.msMatchesSelector(selector);
-    throw new Error('HTMLElement does not implement the matches method.')
+    throw new Error('HTMLElement does not implement the matches method.');
   }
 
   /**
@@ -122,7 +60,7 @@ export default superclass => class DOMutils extends superclass {
     evts.split(/\s+/g).forEach(evt => {
       const isDupe = this._listeners.some(([e, f]) => e === evt && fn === f);
       if (!isDupe) {
-        this.addEventListener(evt, fn);
+        super.addEventListener(evt, fn);
         this._listeners.push([evt, fn]);
       }
     });
@@ -174,7 +112,7 @@ export default superclass => class DOMutils extends superclass {
     if (fn && extractType(fn) === 'Function') {
       this._listeners = this._listeners.filter(([e, f]) => {
         if (f === fn && (evt === null || evt === e)) {
-          this.removeEventListener(e, f);
+          super.removeEventListener(e, f);
           return false;
         }
         return true;
@@ -188,12 +126,24 @@ export default superclass => class DOMutils extends superclass {
     return this;
   }
 
+  // Alias for the .on method. Intercepts addEventListener.
+  addEventListener(...args) {
+    return this.on(...args);
+  }
+
+  // Ditto for removal
+  removeEventListener(...args) {
+    return this.remove(...args);
+  }
+
   hide () {
-    return this.applyStyles(hidden);
+    this.style.display = 'none';
+    return this;
   }
 
   show () {
-    return this.removeStyles(hidden);
+    this.style.display = '';
+    return this;
   }
 
   attr (name, value) {

@@ -1,24 +1,21 @@
 import Button from './button.js';
+import { defineUIComponent, document } from '../utils/dom.js';
 
-const styles = {
-  'display': 'block',
-  'width': '74px',
-  'height': '74px',
-  'borderRadius': '50%',
-};
+const template = document.createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: block;
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      background-color: var(--ui-theme-accent-color, purple);
+    }
+  </style>
+`;
 
-export class Fab extends Button {
-
-  get componentName () {
-    return 'ui-fab';
-  }
-
-  init () {
-    super.init();
-    this.classList.add('ui-fab');
-    this.applyStyles(styles);
-    this.floatingY = true;
-  }
-}
-
-customElements.define('ui-fab-button', Fab);
+export default defineUIComponent({
+  name: 'ui-fab',
+  template,
+  definition: class Fab extends Button {}
+});

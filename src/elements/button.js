@@ -2,23 +2,30 @@ import UIBase from '../utils/ui-component-base.js';
 import Ripples from '../animations/rippler.js';
 import Floats from '../utils/float.js';
 import Centerable from '../utils/centerer.js';
+import { defineUIComponent, document } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
-const ELEMENT_NAME = 'ui-button';
+const template = document.createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: block;
+      height: 50px;
+      width: 120px;
+      text-align: center;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      border-radius: 5%;
+      background-color: var(--ui-theme-secondary-dark-color, blue);
+      color: var(--ui-theme-light-text-color, #fff);
+    }
 
-const styles = {
-  'display': 'block',
-  'height': '50px',
-  'width': '120px',
-  'text-align': 'center',
-  'white-space': 'nowrap',
-  'text-overflow': 'ellipsis',
-  'text-transform': 'uppercase',
-  'border-radius': '5%',
-  ':hover': {
-    'box-shadow': 'inset 0 0 0 99999px rgba(150,150,150,0.2)',
-  }
-};
+    :host(:hover) {
+      box-shadow: inset 0 0 0 99999px rgba(150,150,150,0.2);
+    }
+  </style>
+`;
 
 const reflectedAttrs = [
   'dialog-dismiss',
@@ -26,22 +33,11 @@ const reflectedAttrs = [
   'submit',
 ];
 
-const Button = (class Button extends mix(HTMLElement).with(UIBase, Ripples, Floats, Centerable) {
-  constructor () {
-    super();
-  }
-
-  get componentName () {
-    return ELEMENT_NAME;
-  }
-
-  init () {
-    super.init();
-    this.classList.add(ELEMENT_NAME);
-    this.applyStyles(styles);
-    this.centerContent();
-  }
-}).reflectToAttribute(reflectedAttrs);
+const Button = defineUIComponent({
+  name: 'ui-button',
+  template,
+  reflectedAttrs,
+  definition: class Button extends mix(UIBase).with(Centerable, Floats, Ripples) {}
+});
 
 export default Button;
-customElements.define('ui-button', Button);

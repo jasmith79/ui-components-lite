@@ -1,30 +1,31 @@
 import UIBase from '../utils/ui-component-base.js';
-import { mix } from '../../node_modules/mixwith/src/mixwith.js';
+import { defineUIComponent, document } from '../utils/dom.js';
 
-const ELEMENT_NAME = 'ui-backdrop';
+const template = document.createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: block;
+      height: 100vh;
+      width: 100vw;
+      background-color: rgba(0,0,0,0.7);
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      z-index: 10000;
+    }
+  </style>
+`;
 
-const styles = {
-  'display': 'block',
-  'height': '100vh',
-  'width': '100vw',
-  'background-color': 'rgba(0,0,0,0.7)',
-  'position': 'absolute',
-  'top': '0px',
-  'left': '0px',
-  'z-index': '10000',
-};
-
-export class Backdrop extends mix(HTMLElement).with(UIBase) {
-  get componentName () {
-    return ELEMENT_NAME;
+const Backdrop = defineUIComponent({
+  name: 'ui-backdrop',
+  template,
+  definition: class Backdrop extends UIBase {
+    constructor () {
+      super();
+      this.hide();
+    }
   }
+});
 
-  init () {
-    super.init();
-    this.hide();
-    this.classList.add(ELEMENT_NAME);
-    this.applyStyles(styles);
-  }
-}
-
-customElements.define('ui-backdrop', Backdrop);
+export default Backdrop;

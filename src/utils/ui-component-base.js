@@ -1,16 +1,16 @@
-import Styled from './styler.js';
+import './styler.js';
 import DataBinder from './binder.js';
 import DOMutils from './dom-utils.js';
 import processHTMLAttr from './attribute-analyzer.js';
+import { baseClass } from './dom.js';
 import { toSnakeCase } from '../../node_modules/jsstring/src/jsstring.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
-const baseMixin = sclass => class UIBase extends mix(sclass).with(Styled, DOMutils, DataBinder) {
+class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
   constructor () {
     super();
     this._listeners = [];
     this._isCentered = false;
-    this._shadowElement = null;
     this._isReady = false;
   }
 
@@ -80,7 +80,6 @@ const baseMixin = sclass => class UIBase extends mix(sclass).with(Styled, DOMuti
   }
 
   attributeChangedCallback (name, was, now) {
-
     if (was !== now) {
       if (name in this._oneWayBoundAttrs && !this._internalMutationFlag) {
         console.warn(`Attempted to manually set data-bound attribute ${name} of ${this.componentName}.`);
@@ -97,4 +96,4 @@ const baseMixin = sclass => class UIBase extends mix(sclass).with(Styled, DOMuti
   }
 }
 
-export default baseMixin;
+export default UIBase;

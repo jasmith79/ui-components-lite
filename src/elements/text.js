@@ -1,48 +1,51 @@
 import UIBase from '../utils/ui-component-base.js';
-import { mix } from '../../node_modules/mixwith/src/mixwith.js';
-
-const ELEMENT_NAME = 'ui-text';
+import { defineUIComponent, document } from '../utils/dom.js';
 
 const reflectedAttrs = ['view-text'];
-const styles = {
-  display: 'inline',
-};
+const template = document.createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: inline;
+    }
 
-const textHolder = document.createElement('span');
+    #text-holder {
+      color: var(--ui-theme-dark-text-color, #000);
+    }
+  </style>
+  <span id="text-holder"></span>
+`;
 
-const Text = (class Text extends mix(HTMLElement).with(UIBase) {
-  constructor () {
-    super();
-    this._textHolder = textHolder.cloneNode(true);
-    this.attachShadow({ mode: 'open' });
-    this.shadowRoot.appendChild(this._textHolder);
+const Text = defineUIComponent({
+  name: 'ui-text',
+  reflectedAttrs,
+  template,
+  definition: class Text extends UIBase {
+    constructor () {
+      super();
+      this._textHolder = null;
+    }
+
+    // Override the default textContent property
+    get textContent () {
+      return this._textHolder.textContent;
+    }
+
+    set textContent (text) {
+      this.viewText = text;
+      return text;
+    }
+
+    init () {
+      super.init();
+      this._textHolder = this.shadowRoot.querySelector('#text-holder');
+      this.watchAttribute(this, 'view-text', val => {
+        this._textHolder.textContent = val;
+      });
+
+      if (this.innerHTML && !this.viewText) this.viewText = this.innerHTML;
+    }
   }
-  
-  get componentName () {
-    return ELEMENT_NAME;
-  }
-
-  // Override the default textContent property
-  get textContent () {
-    return this._textHolder.textContent;
-  }
-
-  set textContent (text) {
-    this.viewText = text;
-    return text;
-  }
-
-  init () {
-    super.init();
-    this.applyStyles(styles);
-    this.classList.add(ELEMENT_NAME);
-    this.watchAttribute(this, 'view-text', val => {
-      this._textHolder.textContent = val;
-    });
-
-    if (this.innerHTML && !this.viewText) this.viewText = this.innerHTML;
-  }
-}).reflectToAttribute(reflectedAttrs);
+});
 
 export default Text;
-customElements.define('ui-text', Text);
