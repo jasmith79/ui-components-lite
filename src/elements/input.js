@@ -5,9 +5,8 @@
  *
  */
 
-import { FormBehavior } from './form.js';
 import UIBase from '../utils/ui-component-base.js';
-import Styler from '../utils/styler.js';
+import { FormBehavior } from './form.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import { extractType } from '../../node_modules/extracttype/extracttype.js';
 
@@ -36,35 +35,35 @@ const reflectedAttrs = [
   'default-value',
 ];
 
-const editableReflectedAttrs = ['value'];
+const template = document.createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: block;
+      border-bottom: solid 1px;
+      border-bottom-color: #999;
+      min-height: 25px;
+      margin-bottom: 10px;
+      margin-top: 10px;
+      max-width: 200px;
+    }
 
-const styles = {
-  'display': 'block',
-  'border-bottom': 'solid 1px',
-  'border-bottom-color': '#999',
-  'min-height': '25px',
-  'margin-bottom': '10px',
-  'margin-top': '10px',
-  'max-width': '200px',
-};
+    :host(.focused) {
+      border-bottom-color: var(--ui-theme-primary-dark-color, blue);
+      box-shadow: 0px 4px 4px -4px;
+    }
 
-const focusedStyles = {
-  'border-bottom-color': Styler.primaryDarkColor,
-  'box-shadow': '0px 4px 4px -4px',
-};
-
-const input = document.createElement('input');
-const inputStyles = document.createElement('style');
-inputStyles.innerHTML = `
-  input {
-    border: none;
-    outline: none;
-    width: 90%;
-    margin-left: 5%;
-    margin-bottom: 3px;
-    height: 25px;
-    font-size: 16px;
-  }
+    #input {
+      border: none;
+      outline: none;
+      width: 90%;
+      margin-left: 5%;
+      margin-bottom: 3px;
+      height: 25px;
+      font-size: 16px;
+    }
+  </style>
+  <input id="input"/>
 `;
 
 const debounce = (n, immed, f) => {
@@ -90,84 +89,86 @@ const debounce = (n, immed, f) => {
   }
 };
 
-const Input = (class Input extends mix(HTMLElement).with(UIBase, FormBehavior) {
-  constructor () {
-    super();
-    this._input = input.cloneNode(true);
-    this._before = '';
-    this.attachShadow({ mode: 'open' });
-    this.shadowRoot.appendChild(this._input);
-    this.shadowRoot.appendChild(inputStyles.cloneNode(true));
-  }
-  
-  init () {
-    super.init();
-    this.applyStyles(styles);
-    if (!this.type) this.type = 'text';
-    switch (this.type.toLowerCase()) {
-      case 'text':
-      case 'number':
-      case 'password':
-      case 'email':
-        this._input.setAttribute('type', this.type);
-        break;
+export default defineUIComponent({
+  name: 'ui-input';
+  template,
+  reflectedAttrs,
+  definition: class Input extends mix(UIBase).with(FormBehavior) {
+    constructor () {
+      super();
+      this._input = null;
     }
 
-    this._input.addEventListener('focus', e => {
-      this._before = this._input.value;
-      this.applyStyles(focusedStyles);
-    });
+    init () {
+      super.init();
+      this._input = this.shadowRoot.querySelector('#input');
+      if (!this.type) this.type = 'text';
+      switch (this.type.toLowerCase()) {
+        case 'text':
+        case 'number':
+        case 'password':
+        case 'email':
+          this._input.setAttribute('type', this.type);
+          break;
+      }
 
-    this._input.addEventListener('blur', e => {
-      this.removeStyles(focusedStyles);
-    })
-
-    changeTriggers.forEach(evtName => this._input.addEventListener(evtName, debounce(500, e => {
-      if (this._input.value !== this._before) {
+      this._input.addEventListener('focus', e => {
         this._before = this._input.value;
-        this.value = this._input.value;
-        console.log('changing');
-        this.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-    })));
+        this.classList.add('focused');
+      });
 
-    this.on('attribute-change', ({ changed: { now, name, was } } ) => {
-      switch (name) {
-        case 'value':
-          const val = now === true ? '' : now;
-          if (val === '') {
-            setTimeout(() => {
-              if (!this._input.value) {
-                this._input.value = this.defaultValue || '';
-                this.dispatchEvent(new Event('change', { bubbles: 'true' }));
-              }
-            }, 500);
-          } else if (this._input.value !== val) {
-            this._input.value = now;
-            this.dispatchEvent(new Event('change', { bubbles: 'true' }));
-          }
-          break;
+      this._input.addEventListener('blur', e => {
+        this.classList.remove('focused');
+      })
 
-        case 'default-value':
-          if (!this.value) this.value = now;
-          break;
+      changeTriggers.forEach(evtName => this._input.addEventListener(evtName, debounce(500, e => {
+        if (this._input.value !== this._before) {
+          this._before = this._input.value;
+          this.value = this._input.value;
+          this.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      })));
 
-        case 'type':
-          if (!['text', 'number', 'password', 'email'].includes(now)) return;
-          // fall-through
+      this.on('attribute-change', ({ changed: { now, name, was } } ) => {
+        switch (name) {
+          case 'name':
+            this._input.name = now;
+            this.name = now;
+            break;
+            
+          case 'value':
+            const val = now === true ? '' : now;
+            if (val === '') {
+              setTimeout(() => {
+                if (!this._input.value) {
+                  this._input.value = this.defaultValue || '';
+                  this.dispatchEvent(new Event('change', { bubbles: 'true' }));
+                }
+              }, 500);
+            } else if (this._input.value !== val) {
+              this._input.value = now;
+              this.dispatchEvent(new Event('change', { bubbles: 'true' }));
+            }
+            break;
 
-        case 'placeholder':
-        case 'required':
-          if (now == null) {
-            this._input.removeAttribute(name);
-          } else {
-            this._input.setAttribute(name, (now || true));
-          }
-          break;
-      }
-    });
+          case 'default-value':
+            if (!this.value) this.value = now;
+            break;
+
+          case 'type':
+            if (!['text', 'number', 'password', 'email'].includes(now)) return;
+            // fall-through
+
+          case 'placeholder':
+          case 'required':
+            if (now == null) {
+              this._input.removeAttribute(name);
+            } else {
+              this._input.setAttribute(name, (now || true));
+            }
+            break;
+        }
+      });
+    }
   }
-}).reflectToAttribute(reflectedAttrs);
-
-export default Input;
-customElements.define('ui-input', Input);
+});
