@@ -23,6 +23,9 @@ const Backdrop = defineUIComponent({
   definition: class Backdrop extends UIBase {
     constructor () {
       super();
+    }
+
+    init () {
       this.hide();
     }
   }

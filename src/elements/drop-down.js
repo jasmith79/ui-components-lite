@@ -34,6 +34,7 @@ export const Item = (() => {
         color: var(--ui-theme-primary-dark-color, #999);
       }
     </style>
+    <slot></slot>
   `;
 
   return defineUIComponent({
@@ -55,6 +56,7 @@ const ItemHolder = (() => {
         overflow-y: scroll;
         width: 107.5%;
         max-height: 190px;
+        min-height: 26px;
         background-color: white;
         z-index: 4000;
       }
@@ -100,6 +102,7 @@ export const DropDown = (() => {
         overflow: hidden;
         position: relative;
         top: 5px;
+        height: 300px;
       }
 
       .holder-shadow {
@@ -158,7 +161,7 @@ export const DropDown = (() => {
       }
     </style>
     <ui-item id="dummy-item">
-      <ui-text view-text="{{placeholder-text}}">...</ui-text>
+      <ui-text view-text="{{value}}">...</ui-text>
       <div class="arrow down"></div>
     </ui-item>
     <div class="holder-holder">
@@ -176,6 +179,8 @@ export const DropDown = (() => {
       constructor () {
         super();
         this._dummyItem = null;
+        this._holderHolder = null;
+        this._itemHolder = null;
         this._selected = null;
         this._items = [];
       }
@@ -206,7 +211,7 @@ export const DropDown = (() => {
           this.selectedIndex = this._items.indexOf(selection);
           this._selected = selection;
           this._dummyText = selection.textContent
-          this._dummyItem.querySelector('span').textContent = this._dummyText;
+          this._dummyItem.querySelector('ui-text').textContent = this._dummyText;
           setTimeout(() => { this.isOpen = false; }, 300);
         }
 
@@ -233,10 +238,11 @@ export const DropDown = (() => {
 
       init () {
         super.init();
-        this._dummyItem = this.querySelector('#dummy-item');
-        this._dummyItem.watchAttribute('value', now => this._dummyItem.textContent = now);
-
+        this.isOpen = false;
+        this._dummyItem = this.shadowRoot.querySelector('#dummy-item');
         this._arrow = this._dummyItem.querySelector('.arrow');
+        this._holderHolder = this.shadowRoot.querySelector('.holder-holder');
+        this._itemHolder = this.shadowRoot.querySelector('ui-item-holder');
 
         this._items = this.selectAll('.ui-item');
         this._items.forEach(el => el.on('click', this.selected = el));
@@ -255,24 +261,24 @@ export const DropDown = (() => {
               break;
 
             case 'is-open':
-            if (now) {
-              this._arrow.classList.remove('down');
-              this._arrow.classList.add('up');
-              this.items.forEach(el => el.attr('slot', 'item-slot'));
-              this._dummyItem.style.top = '10px';
-              this._itemHolder.in().then(_ => {
-                this._holderHolder.classList.add('holder-shadow');
-              });
-            } else {
-              this._holderHolder.classList.remove('holder-shadow');
-              this._itemHolder.out().then(_ => {
-                this.items.forEach(el => el.attr('slot', null));
-                this._dummyItem.style.top = '';
-                this._arrow.classList.remove('up');
-                this._arrow.classList.add('down');
-              });
-            }
-            break;
+              if (now) {
+                this._arrow.classList.remove('down');
+                this._arrow.classList.add('up');
+                this._items.forEach(el => el.attr('slot', 'item-slot'));
+                this._dummyItem.style.top = '10px';
+                this._itemHolder.in().then(_ => {
+                  this._holderHolder.classList.add('holder-shadow');
+                });
+              } else {
+                this._holderHolder.classList.remove('holder-shadow');
+                this._itemHolder.out().then(_ => {
+                  this.items.forEach(el => el.attr('slot', null));
+                  this._dummyItem.style.top = '';
+                  this._arrow.classList.remove('up');
+                  this._arrow.classList.add('down');
+                });
+              }
+              break;
           }
         });
 
@@ -283,11 +289,11 @@ export const DropDown = (() => {
           mouseon = this.isOpen;
         });
 
-        this.on('mouseenter', e => mouseon = true);
-        this.on('mouseleave', e => {
-          mouseon = false;
-          setTimeout(() => { if (!mouseon) this.isOpen = false; }, 1000);
-        });
+        // this.on('mouseenter', e => mouseon = true);
+        // this.on('mouseleave', e => {
+        //   mouseon = false;
+        //   setTimeout(() => { if (!mouseon) this.isOpen = false; }, 1000);
+        // });
       }
     }
   });

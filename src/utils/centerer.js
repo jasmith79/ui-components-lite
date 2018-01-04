@@ -1,19 +1,23 @@
 import { document, defineUIComponent } from './dom.js';
 
-const template = document.createElement('template');
-template.innerHTML = `
-  <style>
+const centeredStyles = `
     :host {
       transform-style: preserve-3d;
     }
 
-    #content-wrapper {
+    .content-wrapper {
       position: relative;
       top: 49%;
       transform: translateY(-51%);
     }
+`;
+
+const template = document.createElement('template');
+template.innerHTML = `
+  <style>
+    ${centeredStyles}
   </style>
-  <div id="content-wrapper">
+  <div class="content-wrapper">
     <slot></slot>
   </div>
 `;
@@ -24,3 +28,6 @@ export default superclass => defineUIComponent({
   registerElement: false,
   definition: class Centered extends superclass {}
 });
+
+
+export { centeredStyles };

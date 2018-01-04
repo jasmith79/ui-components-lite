@@ -20,13 +20,14 @@ template.innerHTML = `
       min-width: 25px;
       background-color: #DDD;
       position: relative;
+      border-radius: 5%;
     }
 
     :host(:hover) {
       box-shadow: inset 0 0 0 99999px rgba(150,150,150,0.2);
     }
 
-    :host:after {
+    :host:before {
       content:"";
       position: absolute;
       display: none;
@@ -43,7 +44,7 @@ template.innerHTML = `
       background-color: var(--ui-theme-primary-dark-color, blue);
     }
 
-    :host(.checked):after {
+    :host(.checked):before {
       display: block;
     }
   </style>
@@ -64,7 +65,7 @@ const Checkbox = defineUIComponent({
     }
 
     init () {
-      this.watchAttribute('checked', now => {
+      this.watchAttribute(this, 'checked', now => {
         now ? this.classList.add('checked') : this.classList.remove('checked');
       });
 

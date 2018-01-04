@@ -57,10 +57,11 @@ const defineUIComponent = ({ name, definition, reflectedAttrs=[], template, regi
   // actions to occur when these are set, use a handler for the 'attribute-change' event or the
   // watchAttribute shorthand method.
   Object.defineProperties(class_.prototype, toPropertyObj(reflectedAttrs));
-  if (registerElement) global.customElements.define(name, class_);
+  if (registerElement) {
+    global.customElements.define(name, class_);
+    registry[name] = class_;
+  }
 
-  // We'll keep internal track even if it isn't a custom element definition
-  registry[name] = class_;
   return class_;
 };
 

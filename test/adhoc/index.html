@@ -8,6 +8,7 @@ html, body {
   font-family: sans-serif;
   width: 100%;
   height: 100%;
+  margin: 0;
 }
 
 ui-button {
@@ -29,8 +30,9 @@ ui-fab-button {
   <ui-alert></ui-alert>
   <ui-toolbar is-tall>
     <ui-hamburger line-color="white" drawer-toggle slot="left-button-slot"></ui-hamburger>
-    <div slot="title">Site Record</div>
-    <ui-tabs slot="tab-slot" for="ui-router">
+    <ui-hamburger line-color="purple" drawer-toggle slot="right-button-slot"></ui-hamburger>
+    <div>Site Record</div>
+    <ui-tabs slot="secondary-toolbar-slot" for="ui-router">
       <ui-tab value="/">Login</ui-tab>
       <ui-tab value="/beer">ITS</ui-tab>
       <ui-tab value="/bourbon">Signals</ui-tab>
@@ -38,10 +40,11 @@ ui-fab-button {
       <ui-tab value="/formica">Form</ui-tab>
     </ui-tabs>
   </ui-toolbar>
+  <span>Foo!</span>
   <ui-drawer is-modal>
     <ui-button floating-y class="alert-bttn">show alert</ui-button>
   </ui-drawer>
-  <ui-router updates-history renders-current base-path="/test/adhoc">
+  <!-- <ui-router updates-history renders-current base-path="/test/adhoc">
     <ui-route route-path="/">
       <div>Imma Login yo</div>
       <ui-drop-down name="dd" placeholder-text="Choose wisely.">
@@ -109,6 +112,6 @@ ui-fab-button {
         <ui-input form="form-1" name="bar" default-value="3"></ui-input>
       </ui-card>
     </ui-route>
-  </ui-router>
+  </ui-router> -->
  </body>
 </html>

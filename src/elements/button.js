@@ -19,6 +19,7 @@ template.innerHTML = `
       border-radius: 5%;
       background-color: var(--ui-theme-secondary-dark-color, blue);
       color: var(--ui-theme-light-text-color, #fff);
+      margin: 5px;
     }
 
     :host(:hover) {

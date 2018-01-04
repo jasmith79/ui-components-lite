@@ -5,14 +5,17 @@ template.innerHTML = `
   <style>
     :host(.left-x) {
       box-shadow: 3px 0px 10px -3px #000;
+      margin-right: 3px;
     }
 
     :host(.right-x) {
       box-shadow: -3px 0px 10px -3px #000;
+      margin-left: 3px;
     }
 
     :host(.float-y) {
       box-shadow: 0px 3px 10px -3px #000;
+      margin-bottom: 3px;
     }
   </style>
 `;

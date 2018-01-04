@@ -10,6 +10,7 @@ const orientations = {
 
 export default superclass => defineUIComponent({
   name: 'ui-easer',
+  registerElement: false,
   definition: class Easer extends superclass {
     constructor () {
       super();

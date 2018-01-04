@@ -7,6 +7,7 @@
 
 import UIBase from '../utils/ui-component-base.js';
 import { FormBehavior } from './form.js';
+import { document, defineUIComponent } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import { extractType } from '../../node_modules/extracttype/extracttype.js';
 
@@ -90,7 +91,7 @@ const debounce = (n, immed, f) => {
 };
 
 export default defineUIComponent({
-  name: 'ui-input';
+  name: 'ui-input',
   template,
   reflectedAttrs,
   definition: class Input extends mix(UIBase).with(FormBehavior) {
@@ -135,7 +136,7 @@ export default defineUIComponent({
             this._input.name = now;
             this.name = now;
             break;
-            
+
           case 'value':
             const val = now === true ? '' : now;
             if (val === '') {

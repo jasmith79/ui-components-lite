@@ -68,11 +68,11 @@ const incorporateButtonChild = (el, child) => {
   const [dismisser, closer] = manip;
   if (child.attr('dialog-dismiss')) child.on('click', dismisser);
   if (child.attr('dialog-confirm')) child.on('click', confirmer);
-  child.watchAttribute('dialog-dismiss', now => {
+  child.watchAttribute(child, 'dialog-dismiss', now => {
     now ? child.on('click', dismisser) : child.remove('click', dismisser);
   });
 
-  child.watchAttribute('dialog-confirm', now => {
+  child.watchAttribute(child, 'dialog-confirm', now => {
     now ? child.on('click', confirmer) : child.remove('click', confirmer);
   });
 

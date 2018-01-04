@@ -25,7 +25,7 @@ template.innerHTML = `
       top: 15px;
     }
 
-    #content-wrapper {
+    .content-wrapper {
       height: 30px;
       width: 80px;
       left: 10%;
@@ -56,7 +56,7 @@ export default defineUIComponent({
     init () {
       super.init();
       this.shadowRoot
-        .querySelector('#content-wrapper')
+        .querySelector('.content-wrapper')
         .appendChild(document.importNode(lineDivTemplate.content, true));
 
       this.watchAttribute(this, 'line-color', now => {

@@ -40,7 +40,7 @@ const Text = defineUIComponent({
       super.init();
       this._textHolder = this.shadowRoot.querySelector('#text-holder');
       this.watchAttribute(this, 'view-text', val => {
-        this._textHolder.textContent = val;
+        this._textHolder.textContent = val || this.innerHTML; // render innerHTML as a fallback
       });
 
       if (this.innerHTML && !this.viewText) this.viewText = this.innerHTML;
