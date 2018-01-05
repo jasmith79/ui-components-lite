@@ -95,6 +95,10 @@ export const FormBehavior = (() => {
     registerElement: false,
     reflectedAttrs,
     definition: class extends superclass {
+      init () {
+        if (!this.value) this.value = this.textContent;
+      }
+
       validate (validator) {
         return this.watchAttribute(this, 'value', (...args) => {
           this.isValid = validator.apply(this, args);

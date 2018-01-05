@@ -24,19 +24,18 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
   }
 
   get isUIComponent () {
-    return this.classList.contains('is-ui-component');
+    return true;
   }
 
   init () {
     // Should be called by extension elements via super.
-    const self = this;
     setTimeout(() => {
-      self.classList.add('is-ui-component');
-      self.constructor.observedAttributes.forEach(attr => {
-        if (self.attr(attr)) {
+      this.classList.add('is-ui-component');
+      this.constructor.observedAttributes.forEach(attr => {
+        if (this.attr(attr)) {
           const evt = new CustomEvent('attribute-change');
-          evt.changed = { name: attr, now: self.attr(attr), was: null };
-          self.dispatchEvent(evt);
+          evt.changed = { name: attr, now: this.attr(attr), was: null };
+          this.dispatchEvent(evt);
         }
       });
 
@@ -46,13 +45,15 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
         const matched = twoWay ? twoWay[1] : oneWay ? oneWay[1] : null;
         const attrToWatch = matched ? toSnakeCase(matched, '-') : null;
         if (attrToWatch) {
-          this.attr(attr, parent);
           this.bindAttribute(attr, attrToWatch, twoWay);
         }
       });
 
-      this._isReady = true;
-      this.dispatchEvent(new CustomEvent('ui-component-ready'));
+      setTimeout(() => {
+        // if (this.matches('ui-text')) debugger;
+        this._isReady = true;
+        this.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: true }));
+      }, 0);
     }, 0);
   }
 

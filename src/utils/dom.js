@@ -21,7 +21,14 @@ const toPropertyObj = propList => {
   }, {});
 };
 
-const defineUIComponent = ({ name, definition, reflectedAttrs=[], template, registerElement=true }) => {
+const defineUIComponent = ({
+  name,
+  definition,
+  reflectedAttrs=[],
+  template,
+  registerElement=true,
+  isShadowHost,
+}) => {
   if (!name) throw new Error('ui-components must have a name.');
   if (!definition) throw new Error('ui-components must have a defining class');
   if (name in registry) throw new Error(`ui-component named ${name} already registered.`);
@@ -32,6 +39,7 @@ const defineUIComponent = ({ name, definition, reflectedAttrs=[], template, regi
 
     constructor (...args) {
       super(...args);
+      if ((isShadowHost || template) && !this.shadowRoot) this.attachShadow({ mode: 'open' });
       if (template) this.shadowRoot.appendChild(document.importNode(template.content, true));
       if (reflectedAttrs.length) {
         this.on('attribute-change', ({ changed: { name, now } }) => {

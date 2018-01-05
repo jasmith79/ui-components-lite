@@ -16,8 +16,8 @@ template.innerHTML = `
   <style>
     :host {
       display: inline-block;
-      min-height: 25px;
-      min-width: 25px;
+      height: 25px;
+      width: 25px;
       background-color: #DDD;
       position: relative;
       border-radius: 5%;

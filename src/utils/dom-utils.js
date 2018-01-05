@@ -10,7 +10,6 @@ export default superclass => class DOMutils extends superclass {
   constructor () {
     super();
     this._mutationObservers = [];
-    this.attachShadow({ mode: 'open' });
   }
 
   get isVisible () {
@@ -19,7 +18,11 @@ export default superclass => class DOMutils extends superclass {
   }
 
   // Observes changes to the given attribute on the given node.
-  watchAttribute (node, attr, cb) {
+  watchAttribute (n, a, callb) {
+    const [node, attr, cb] = (() => {
+      if (isHTMLElement(n)) return [n, a, callb];
+      return [this, n, a];
+    })();
     if ((node.constructor.observedAttributes || []).includes(attr)) {
       node.on('attribute-change', ({ changed: { now, name, was } }) => {
         if (name === attr) cb(now, name, was);
@@ -60,7 +63,7 @@ export default superclass => class DOMutils extends superclass {
     evts.split(/\s+/g).forEach(evt => {
       const isDupe = this._listeners.some(([e, f]) => e === evt && fn === f);
       if (!isDupe) {
-        super.addEventListener(evt, fn);
+        this.addEventListener(evt, fn);
         this._listeners.push([evt, fn]);
       }
     });
@@ -112,7 +115,7 @@ export default superclass => class DOMutils extends superclass {
     if (fn && extractType(fn) === 'Function') {
       this._listeners = this._listeners.filter(([e, f]) => {
         if (f === fn && (evt === null || evt === e)) {
-          super.removeEventListener(e, f);
+          this.removeEventListener(e, f);
           return false;
         }
         return true;
@@ -126,15 +129,15 @@ export default superclass => class DOMutils extends superclass {
     return this;
   }
 
-  // Alias for the .on method. Intercepts addEventListener.
-  addEventListener(...args) {
-    return this.on(...args);
-  }
-
-  // Ditto for removal
-  removeEventListener(...args) {
-    return this.remove(...args);
-  }
+  // // Alias for the .on method. Intercepts addEventListener.
+  // addEventListener(...args) {
+  //   return this.on(...args);
+  // }
+  //
+  // // Ditto for removal
+  // removeEventListener(...args) {
+  //   return this.remove(...args);
+  // }
 
   hide () {
     this.style.display = 'none';

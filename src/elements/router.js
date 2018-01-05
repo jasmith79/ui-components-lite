@@ -26,14 +26,7 @@ export const Router = (() => {
   ];
 
   const template = document.createElement('template');
-  template.innerHTML = `
-    <style>
-      ::slotted(.ui-route) {
-        display: block;
-      }
-    </style>
-    <slot name="router-content"></slot>
-  `;
+  template.innerHTML = `<slot name="router-content"></slot>`;
 
   return defineUIComponent({
     name: 'ui-router',
@@ -198,15 +191,9 @@ export const Route = (() => {
     'warns-on-unload',
   ];
 
-  const template = document.createElement('template');
-  template.innerHTML = `
-    <slot></slot>
-  `;
-
   return defineUIComponent({
     name: 'ui-route',
     reflectedAttrs,
-    template,
     definition: class Route extends UIBase {
       constructor () {
         super();
