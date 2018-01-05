@@ -33,18 +33,17 @@ ui-fab-button {
     <ui-hamburger line-color="purple" drawer-toggle slot="right-button-slot"></ui-hamburger>
     <div>Site Record</div>
     <ui-tabs slot="secondary-toolbar-slot" for="ui-router">
-      <ui-tab value="/">Login</ui-tab>
-      <ui-tab value="/beer">ITS</ui-tab>
-      <ui-tab value="/bourbon">Signals</ui-tab>
-      <ui-tab value="/inputy">Input</ui-tab>
-      <ui-tab value="/formica">Form</ui-tab>
+      <ui-tab data-value="/">Login</ui-tab>
+      <ui-tab data-value="/beer">ITS</ui-tab>
+      <ui-tab data-value="/bourbon">Signals</ui-tab>
+      <ui-tab data-value="/inputy">Input</ui-tab>
+      <ui-tab data-value="/formica">Form</ui-tab>
     </ui-tabs>
   </ui-toolbar>
-  <span>Foo!</span>
   <ui-drawer is-modal>
     <ui-button floating-y class="alert-bttn">show alert</ui-button>
   </ui-drawer>
-  <!-- <ui-router updates-history renders-current base-path="/test/adhoc">
+  <ui-router updates-history renders-current base-path="/test/adhoc">
     <ui-route route-path="/">
       <div>Imma Login yo</div>
       <ui-drop-down name="dd" placeholder-text="Choose wisely.">
@@ -107,11 +106,11 @@ ui-fab-button {
             <ui-item value="Bro">Bar</ui-item>
           </ui-drop-down>
           <ui-input name="qux" default-value="fooey"></ui-input>
-          <!-- <input name="bar" /> -->
+          <input name="bar" />
         </ui-form>
         <ui-input form="form-1" name="bar" default-value="3"></ui-input>
       </ui-card>
     </ui-route>
-  </ui-router> -->
+  </ui-router>
  </body>
 </html>

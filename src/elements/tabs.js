@@ -1,6 +1,7 @@
 import Button from './button.js';
 import UIBase from '../utils/ui-component-base.js';
 import { defineUIComponent, document } from '../utils/dom.js';
+import extractType from '../../node_modules/extracttype/extracttype.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 export const Tab = (() => {
@@ -115,7 +116,7 @@ export const Tabs = (() => {
           if (notify) {
             let router = document.querySelector(notify);
             if (router && extractType(router.route) === 'Function') {
-              router.route(elem.value);
+              router.route(elem.dataValue);
             }
           }
           return elem;
@@ -129,7 +130,7 @@ export const Tabs = (() => {
         super.init();
         this.selectAll('.ui-tab').forEach((tab, i, arr) => {
           if (tab.attr('is-selected')) this.selected = tab;
-          tab.on('tab-selected', e => {
+          tab.on('component-selected', e => {
             arr.forEach((t, j) => {
               if (i !== j) {
                 t.isSelected = false;
