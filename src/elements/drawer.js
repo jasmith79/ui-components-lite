@@ -18,7 +18,7 @@ template.innerHTML = `
       max-width: 90vw;
       width: 320px;
       padding: 10px;
-      background-color: var(--ui-theme-primary-light-color, #fff);
+      background-color: #fff;
     }
 
     :host([left-oriented]) {
@@ -31,6 +31,7 @@ template.innerHTML = `
       border-left: solid 1px var(--ui-theme-dark-text-color, #000);
     }
   </style>
+  <slot></slot>
 `;
 
 const reflectedAttrs = ['is-modal', 'is-open'];
@@ -81,6 +82,9 @@ const Drawer = defineUIComponent({
       super.init();
       if (!this.rightOriented) this.leftOriented = true;
       this.floatingX = true;
+
+      document.body.appendChild(this._backdrop);
+      this._backdrop.on('click', e => this.close());
 
       // Check for the drawer toggle in the DOM. If not, you'll need to use the toggledBy method
       // or wire up the handlers yourself

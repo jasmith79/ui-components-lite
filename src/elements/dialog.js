@@ -14,7 +14,7 @@ template.innerHTML = `
       position: absolute;
       padding: 20px;
       z-index: 10001;
-      background-color: var(--ui-theme-primary-light-color, #fff);
+      background-color: #fff;
       overflow: hidden;
     }
 

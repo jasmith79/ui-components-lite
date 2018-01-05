@@ -25,7 +25,7 @@ template.innerHTML = `
       position: relative;
       width: 105px;
       height: 50px;
-      top: calc(100% - 55px);
+      top: 12px;
       left: calc(100% - 105px);
     }
   </style>
@@ -46,6 +46,17 @@ const Alert = defineUIComponent({
       this.watchAttribute(this, 'is-open', open => {
         open ? this._backdrop.show() : this._backdrop.hide();
       });
+
+      this.shadowRoot.querySelector('#closer').on('click', e => this.close());
+    }
+
+    get textContent () {
+      return this.shadowRoot.querySelector('#content').textContent;
+    }
+
+    set textContent (txt) {
+      this.shadowRoot.querySelector('#content').textContent = txt;
+      return this;
     }
 
     alert (txt) {
