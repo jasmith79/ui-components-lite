@@ -32,6 +32,11 @@ export const ListBehavior = superclass => defineUIComponent({
     }
 
     set selected (value) {
+      if (value === null) {
+        this._selected = null;
+        return;
+      }
+
       const type = extractType(value);
       let selection;
       switch (type) {
@@ -60,6 +65,7 @@ export const ListBehavior = superclass => defineUIComponent({
         }
         const evt = new Event('change', { bubbles: true });
         evt.selection = this._selected;
+        evt.value = this.value;
         this.dispatchEvent(evt);
       }
 

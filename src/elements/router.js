@@ -87,15 +87,15 @@ export const Router = (() => {
           elem.update(data);
           elem.setAttribute('is-selected', true);
 
-          const evt = new CustomEvent('route-changed');
+          const evt = new Event('change');
           evt.data = data;
-          evt.routePath = path;
+          evt.value = path;
           evt.targetComponent = elem;
 
           this.dispatchEvent(evt);
           return [path, evt, queryString];
         } else {
-          if (elem) console.warn(`No element matches path ${path},
+          if (elem && path !== '/') console.warn(`No element matches path ${path},
             perhaps the ui-route has no path set?`);
           return [];
         }

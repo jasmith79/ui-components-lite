@@ -1,23 +1,34 @@
-import Button from './button.js';
 import UIBase from '../utils/ui-component-base.js';
+import { Item, ListBehavior } from './list.js';
 import { defineUIComponent, document } from '../utils/dom.js';
 import extractType from '../../node_modules/extracttype/extracttype.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 export const Tab = (() => {
-  const reflectedAttrs = [
-    'is-selected',
-    'data-value',
-  ];
-
   const template = document.createElement('template');
   template.innerHTML = `
     <style>
+      #content {
+        position: relative;
+        top: 16px;
+      }
+
       :host {
-        border-radius: 0%;
-        text-transform: capitalize;
         display: inline-block;
         background-color: inherit;
+        height: 49px;
+        width: 120px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        text-transform: capitalize;
+        border-radius: 5%;
+        margin: 5px;
+        padding: 0;
+        text-align: center;
+      }
+
+      :host(:hover) {
+        color: var(--ui-theme-light-text-color, #fff);
       }
 
       :host([is-selected="true"]) {
@@ -33,8 +44,7 @@ export const Tab = (() => {
   return defineUIComponent({
     name: 'ui-tab',
     template,
-    reflectedAttrs,
-    definition: class Tab extends Button {
+    definition: class Tab extends Item {
       init () {
         super.init();
         this.on('click', e => {
@@ -79,10 +89,9 @@ export const Tabs = (() => {
     name: 'ui-tabs',
     template,
     reflectedAttrs,
-    definition: class Tabs extends UIBase {
+    definition: class Tabs extends mix(UIBase).with(ListBehavior) {
       constructor () {
         super();
-        this._selected = null;
         this._for = null;
       }
 
@@ -92,78 +101,38 @@ export const Tabs = (() => {
         }
       }
 
-      get selected () {
-        return this._selected;
-      }
-
-      set selected (val) {
-        let index, elem;
-        switch (extractType(val)) {
-          case 'Number':
-            index = val;
-            // fallthrough
-
-          default:
-            const tabs = this.selectAll('.ui-tab');
-            if (index) {
-              elem = tabs[index];
-              break;
-            }
-            if (tabs.includes(val)) elem = val;
-        }
-
-        if (elem) {
-          this._selected = elem;
-          const evt = new Event('change');
-          evt.value = elem;
-          this.dispatchEvent(evt);
-          if (this._for) {
-            let router = document.querySelector(this._for);
-            if (router && extractType(router.route) === 'Function') {
-              router.route(elem.dataValue);
-            }
-          }
-          return elem;
-        } else {
-          console.warn(`Could not match selector ${val} to ui-tabs contents.`);
-          return null;
-        }
-      }
-
       init () {
         super.init();
-        this.selectAll('.ui-tab').forEach((tab, i, arr) => {
-          if (tab.attr('is-selected')) this.selected = tab;
-          tab.on('component-selected', e => {
-            arr.forEach((t, j) => {
-              if (i !== j) {
-                t.isSelected = false;
-              } else {
-                this.selected = t;
-              }
-            });
-          });
-        });
-
         this.on('attribute-change', ({ changed: { now, name } }) => {
           switch (name) {
             case 'for':
               if (now) {
                 this._for = now;
-                // this.watchAttribute(this._for, 'updates-history', val => {
-                //   if (val) {
-                //     window.addEventListener('popstate', popstateListener);
-                //   } else {
-                //     window.removeEventListener('popstate', popstateListener);
-                //   }
-                // });
-                // this._for.on('route-change', ({ routePath }) => {
-                //   if (routePath !== (this.selected && this.selected.dataValue)) {
-                //     this.selected = '';
-                //   }
-                // });
+                const elem = document.querySelector(this._for);
+                if (elem) {
+                  const method = elem.on ? 'on' : 'addEventListener';
+                  elem[method]('change', ({ value }) => {
+                    const matched = this._items.reduce((acc, item) => {
+                      if (acc) return acc;
+                      if (item.value === value) return item;
+                      return acc;
+                    }, null);
+
+                    if (matched) {
+                      this.selected = value;
+                    } else {
+                      this.selected = null;
+                    }
+                  });
+                }
               } else {
                 this._for = null;
+              }
+              break;
+
+            case 'selected-index':
+              if (now > -1 && this._for) {
+                document.querySelector(this._for).route(this.selected.value);
               }
               break;
           }
