@@ -1,13 +1,132 @@
 import UIBase from '../utils/ui-component-base.js';
 import Ripples from '../animations/rippler.js';
 import Checkbox from './checkbox.js';
-
-import Easer from '../animations/easer.js';
-
 import { FormBehavior } from './form.js';
 import { defineUIComponent, document } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import extractType from '../../node_modules/extracttype/extracttype.js';
+
+export const ListBehavior = superclass => defineUIComponent({
+  name: 'ui-list-behavior',
+  reflectedAttrs: ['multiple', 'selected-index'],
+  registerElement: false,
+  definition: class extends mix(superclass).with(FormBehavior) {
+    constructor () {
+      super();
+      this._items = null;
+      this._selected = null;
+    }
+
+    get value () {
+      return this.selected && this.selected.map ?
+        this.selected.map(x => x.value).join(',') :
+        (this.selected && this.selected.value) || null;
+    }
+
+    set value (value) {
+      this.selected = value;
+    }
+
+    get selected () {
+      return this._selected;
+    }
+
+    set selected (value) {
+      const type = extractType(value);
+      let selection;
+      switch (type) {
+        case 'Number':
+          selection = this._items[value];
+          break;
+
+        case 'String':
+          selection = this.querySelector(`[value="${value}"]`);
+          if (!selection) selection = this._items.filter(x => x.textContent === value)[0];
+          break;
+      }
+
+      if (type.match(/HTML\w*Element/) && this._items.includes(value)) selection = value;
+      if (selection) {
+        selection.isSelected = true;
+        if (this.multiple) {
+          this.selectedIndex = -1;
+          this._selected.push(selection);
+        } else {
+          this.selectedIndex = this._items.indexOf(selection);
+          this._selected = selection;
+          this._items.forEach(item => {
+            if (item !== selection) item.isSelected = false;
+          });
+        }
+        const evt = new Event('change', { bubbles: true });
+        evt.selection = this._selected;
+        this.dispatchEvent(evt);
+      }
+
+      return selection;
+    }
+
+    appendChild (node) {
+      if (node && node.matches && node.matches('.ui-item')) {
+        node.on('click', e => {
+          this.selected = node;
+          node.isSelected = true;
+        });
+        super.appendChild(node);
+        this._items.push(node);
+      } // else no-op
+      return node;
+    }
+
+    init () {
+      super.init();
+      this._items = [
+        ...this.selectAll('.ui-item'),
+        ...this.shadowRoot.querySelectorAll('.ui-item')
+      ];
+
+      this._items.forEach(item => {
+        if (item.isSelected) this.selected = item;
+        item.on('click', e => {
+          if (this.multiple) {
+            item.isSelected = !item.isSelected;
+            if (item.isSelected) {
+              this.selected = item;
+            } else {
+              this._selected = this._selected.filter(x => x !== item);
+            }
+          } else {
+            if (item !== this.selected) this.selected = item;
+          }
+        });
+      });
+
+      this.on('attribute-change', ({ changed: { now, name } }) => {
+        switch (name) {
+          case 'multiple':
+            if (now) {
+              this.selectedIndex = -1;
+              this._selected = [this.selected];
+            } else {
+              this.selected = this.selected == null ? null : this.selected[0];
+            }
+            break;
+
+          case 'selected-index':
+            if (now === -1 || this.multiple) return;
+            if (!this._items[now]) {
+              console.warn(`Attempted to set invalid index ${now} for ui-list.`);
+              this.attr('selected-index', was);
+              return;
+            }
+
+            if (this._items[now] !== this.selected) this.selected = now;
+            break;
+        }
+      });
+    }
+  }
+});
 
 export const Item = (() => {
   const template = document.createElement('template');
@@ -97,10 +216,6 @@ export const Item = (() => {
                 this.dispatchEvent(new CustomEvent('component-deselected'));
               }
               break;
-
-            case 'value':
-              if (now !== this.textContent) this.textContent = now;
-              break;
           }
         });
       }
@@ -109,7 +224,6 @@ export const Item = (() => {
 })();
 
 export const List = (() => {
-  const reflectedAttrs = ['selected-index', 'multiple'];
   const template = document.createElement('template');
   template.innerHTML = `
     <style>
@@ -125,117 +239,6 @@ export const List = (() => {
   return defineUIComponent({
     name: 'ui-list',
     template,
-    reflectedAttrs,
-    // definition: class List extends UIBase {
-    definition: class List extends mix(UIBase).with(Easer) {
-      constructor () {
-        super();
-        this._selected = null;
-        this._items = [];
-      }
-
-      get value () {
-        return this.selected && this.selected.map ? this.selected.map(x => x.value) : this.selected.value;
-      }
-
-      get items () {
-        return this._items;
-      }
-
-      get selected () {
-        return this._selected;
-      }
-
-      set selected (value) {
-        const type = extractType(value);
-        let selection;
-        switch (type) {
-          case 'Number':
-            selection = this._items[value];
-            break;
-
-          case 'String':
-            selection = this.querySelector(`[value="${value}"]`);
-            if (!selection) selection = this._items.filter(x => x.textContent === value)[0];
-            break;
-        }
-
-        if (type.match(/HTML\w*Element/) && this._items.includes(value)) selection = value;
-        if (selection) {
-          selection.isSelected = true;
-          if (this.multiple) {
-            this._selected.push(selection);
-          } else {
-            this.selectedIndex = this._items.indexOf(selection);
-            this._selected = selection;
-            this._items.forEach(item => {
-              if (item !== selection) item.isSelected = false;
-            });
-          }
-          const evt = new Event('change', { bubbles: true });
-          evt.selection = this._selected;
-          this.dispatchEvent(evt);
-        }
-
-        return selection;
-      }
-
-      appendChild (node) {
-        if (node && node.matches && node.matches('.ui-item')) {
-          node.on('click', e => this.selected = node);
-          super.appendChild(node);
-          this._items.push(node);
-        } // else no-op
-        return node;
-      }
-
-      init () {
-        super.init();
-        this._items = [...this.selectAll('.ui-item')];
-        this._items.forEach(item => {
-          item.on('click', e => {
-            if (this.multiple) {
-              item.isSelected = !item.isSelected;
-              if (item.isSelected) {
-                this.selected = item;
-              } else {
-                this._selected = this._selected.filter(x => x !== item);
-              }
-            } else {
-              if (item !== this.selected) this.selected = item;
-            }
-          });
-        });
-
-        this.on('attribute-change', ({ changed: { name, now, was } }) => {
-          switch (name) {
-            case 'selected-index':
-              if (now === -1 || this.multiple) return;
-              if (!this._items[now]) {
-                console.warn(`Attempted to set invalid index ${now} for ui-list.`);
-                this.attr('selected-index', was);
-                return;
-              }
-
-              if (this._items[now] !== this.selected) this.selected = now;
-              break;
-
-            case 'multiple':
-              if (now) {
-                this._selected = this._selected ? [this._selected] : [];
-                this.selectedIndex = -1;
-              } else {
-                const index = this._items.indexOf(this._selected[0]);
-                if (index > -1) {
-                  this.selectedIndex = index;
-                } else {
-                  this._selected = null;
-                }
-              }
-              break;
-          }
-        });
-      }
-    }
+    definition: class List extends mix(UIBase).with(ListBehavior) {}
   });
 })();

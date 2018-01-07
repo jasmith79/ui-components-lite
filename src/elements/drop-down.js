@@ -1,16 +1,10 @@
 import UIBase from '../utils/ui-component-base.js';
-import Centerer from '../utils/centerer.js';
-import Ripples from '../animations/rippler.js';
-import Easer from '../animations/easer.js';
-import { FormBehavior } from './form.js';
+import { ListBehavior } from './list.js';
 import { defineUIComponent, document } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import { extractType } from '../../node_modules/extracttype/extracttype.js';
 
-import './text.js';
-import './list.js';
-
-const reflectedAttrs = ['selected-index', 'is-open', 'multiple', 'placeholder-text'];
+const reflectedAttrs = ['selected-index', 'is-open', 'multiple'];
 const template = document.createElement('template');
 template.innerHTML = `
   <style>
@@ -56,6 +50,10 @@ template.innerHTML = `
       border-top: 1px solid #999;
     }
 
+    ::slotted(.ui-item) {
+      border: none;
+    }
+
     :host {
       display: block;
       max-width: 200px;
@@ -94,7 +92,7 @@ template.innerHTML = `
     <div class="arrow down"></div>
   </ui-item>
   <div id="list-holder" class="not-overflowing">
-    <ui-list multiple="{{multiple}}" class="initial-list">
+    <ui-list multiple="{{multiple}}">
       <slot></slot>
     </ui-list>
   </div>
@@ -104,33 +102,12 @@ export default defineUIComponent({
   name: 'ui-drop-down',
   reflectedAttrs,
   template,
-  definition: class DropDown extends mix(UIBase).with(FormBehavior) {
+  definition: class DropDown extends mix(UIBase).with(ListBehavior) {
     constructor () {
       super();
       this._list = null;
       this._listHolder = null;
       this._dummyItem = null;
-      this._selected = null;
-      this._items = null;
-    }
-
-    get items () {
-      return this._items;
-    }
-
-    get selected () {
-      return this._selected;
-    }
-
-    set selected (val) {
-      this._selected = val;
-      if (this.selected && !this.multiple) {
-        this.textContent = this.selected.value;
-        this._dummyItem.classList.remove('default');
-      } else {
-        this.textContent = '...';
-        this._dummyItem.classList.add('default');
-      }
     }
 
     get textContent () {
@@ -138,17 +115,24 @@ export default defineUIComponent({
     }
 
     set textContent (val) {
-      this._dummyItem.querySelector('#dummy-item-content').textContent = val;
+      const txt = val ||
+        this.placeholderText ||
+        this.name ||
+        '...';
+
+      this._dummyItem.querySelector('#dummy-item-content').textContent = txt;
+      if (txt === '...') {
+        this._dummyItem.classList.add('default');
+      } else {
+        this._dummyItem.classList.remove('default');
+      }
       return this;
     }
 
     appendChild (node) {
       if (node.matches && node.matches('.ui-item')) {
         super.appendChild(node);
-        this._items.push(node);
         node.on('click', e => {
-          this.selected = node;
-          node.isSelected = true;
           setTimeout(() => {
             this.close();
           }, 300);
@@ -177,28 +161,26 @@ export default defineUIComponent({
       if (!this.multiple) this.multiple = false;
       if (!this.isOpen) this.isOpen = false;
 
-      this._items = this.selectAll('.ui-item');
       this._list = this.shadowRoot.querySelector('ui-list');
       this._listHolder = this.shadowRoot.querySelector('#list-holder');
       this._dummyItem = this.shadowRoot.querySelector('#dummy-item');
-
       this._dummyItem._checkbox.style.display = 'none';
-      this._list.classList.remove('initial-list');
-      this._list.on('change', ({ selection }) => {
-        this.selected = selection
-      });
 
-      this._items.forEach(item => {
-        item.on('click', e => {
-          this.selected = item;
-          item.isSelected = true;
-          if (!this.multiple) {
-            setTimeout(() => {
-              this.close();
-            }, 300);
-          }
+      if (this.name && !this.selected) this.textContent = null;
+
+      this._items = this._items
+        .filter(x => x !== this._dummyItem)
+        .map(item => {
+          item.on('click', e => {
+            if (!this.multiple) {
+              setTimeout(() => {
+                this.close();
+              }, 300);
+            }
+          });
+
+          return item;
         });
-      });
 
       this._listHolder.classList.remove('not-overflowing');
 
@@ -213,6 +195,20 @@ export default defineUIComponent({
       this.on('mouseleave', e => {
         mouseon = false;
         setTimeout(() => { if (!mouseon) this.isOpen = false; }, 1000);
+      });
+
+      this.on('attribute-change', ({ changed: { now, name } }) => {
+        switch (name) {
+          case 'selected-index':
+            if (this.selected && !this.multiple) {
+              this.textContent = this.selected.textContent;
+            } else {
+              this.textContent = ''; // default
+            }
+            break;
+          default:
+
+        }
       });
     }
   }

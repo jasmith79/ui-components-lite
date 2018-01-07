@@ -6,6 +6,7 @@ import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 export const Router = (() => {
   let historyManager = null;
+  let localNavigationCounter = -2;
   const reflectedAttrs = [
     // updates-history: whether or not the router manages the navigation history. NOTE: can only be
     // set on one router element per page. Attempting to set more than one throws an error.
@@ -71,19 +72,22 @@ export const Router = (() => {
         }
 
         const elem = this._routes[path];
-        if (elem) {
+        if (elem && elem !== this.selected) {
           if (this.selected) {
-            this.selected.removeAttribute('slot');
             this.selected.removeAttribute('is-selected');
+            this.selected.removeAttribute('slot');
+          }
+
+          if (this.rendersCurrent) {
+            elem.setAttribute('slot', 'router-content');
           }
 
           this.selected = elem;
           this._currentRoute = path;
           elem.update(data);
-          elem.setAttribute('slot', 'router-content');
           elem.setAttribute('is-selected', true);
 
-          const evt = new CustomEvent('route-changed', { bubbles: true });
+          const evt = new CustomEvent('route-changed');
           evt.data = data;
           evt.routePath = path;
           evt.targetComponent = elem;
@@ -91,7 +95,8 @@ export const Router = (() => {
           this.dispatchEvent(evt);
           return [path, evt, queryString];
         } else {
-          console.warn(`No element matches path ${path}, perhaps the ui-route has no path set?`);
+          if (elem) console.warn(`No element matches path ${path},
+            perhaps the ui-route has no path set?`);
           return [];
         }
       }
@@ -101,7 +106,7 @@ export const Router = (() => {
         let path = null;
         if (type === 'String') path = val;
         if (type.match(/HTML\w*Element/)) path = val.getAttribute('route-path');
-        if (path && path in this._routes) this._updatePath(path);
+        if (path && path in this._routes) this.currentPath = path;
         return this;
       }
 
@@ -112,20 +117,28 @@ export const Router = (() => {
         this.on('attribute-change', ({ changed: { now, name, was } }) => {
           switch (name) {
             case 'current-path':
-              localNavigationCounter++;
-              if (this.updatesHistory && !this._managingHistory) {
-                window.addEventListener('popstate', this._popstateListener);
-              }
-              const [path, evt, queryString] = this._updatePath(now);
-              const { protocol, fullDomain } = parseURL(window.location.href);
-              if (this.updatesHistory && path) {
-                history.pushState(this._routes[path].data, '', this.basePath + path);
-                window.dispatchEvent(evt);
+              if (now !== was) {
+                localNavigationCounter++;
+                if (this.updatesHistory && !this._managingHistory) {
+                  window.addEventListener('popstate', this._popstateListener);
+                }
+                const [path, evt, queryString] = this._updatePath(now);
+                const { protocol, fullDomain } = parseURL(window.location.href);
+                if (this.updatesHistory && path) {
+                  history.pushState(this._routes[path].data, '', this.basePath + path);
+                  window.dispatchEvent(evt);
+                }
               }
               break;
 
             case 'renders-current':
-              this._contentSlot.display = now ? '' : 'none';
+              if (this.selected) {
+                if (now) {
+                  this.selected.setAttribute('slot', 'router-content');
+                } else {
+                  this.selected.removeAttribute('slot');
+                }
+              }
               break;
 
             case 'updates-history':

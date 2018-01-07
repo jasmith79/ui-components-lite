@@ -89,15 +89,12 @@ export const Form = (() => {
 })();
 
 export const FormBehavior = (() => {
-  const reflectedAttrs = ['name', 'value', 'required', 'is-valid'];
+  const reflectedAttrs = ['name', 'value', 'required', 'is-valid', 'placeholder-text'];
   return superclass => defineUIComponent({
     name: 'ui-form-behavior',
     registerElement: false,
     reflectedAttrs,
     definition: class extends superclass {
-      init () {
-        if (!this.value) this.value = this.textContent;
-      }
 
       validate (validator) {
         return this.watchAttribute(this, 'value', (...args) => {

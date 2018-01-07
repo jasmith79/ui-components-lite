@@ -20,8 +20,8 @@ export const Tab = (() => {
         background-color: inherit;
       }
 
-      :host([is-selected]) {
-        height: 55px;
+      :host([is-selected="true"]) {
+        box-shadow: 0px 0px 10px -1px var(--ui-theme-light-text-color, #fff);
       }
 
       :host-context(.tabs-centered) {
@@ -67,6 +67,10 @@ export const Tabs = (() => {
         background-color: var(--ui-theme-primary-dark-color, blue);
         width: 100%;
       }
+
+      ::slotted(.ui-tab:hover) {
+        text-shadow: 1px 1px 6px #fff;
+      }
     </style>
     <slot></slot>
   `;
@@ -79,6 +83,7 @@ export const Tabs = (() => {
       constructor () {
         super();
         this._selected = null;
+        this._for = null;
       }
 
       appendChild (node) {
@@ -112,9 +117,8 @@ export const Tabs = (() => {
           const evt = new Event('change');
           evt.value = elem;
           this.dispatchEvent(evt);
-          let notify = this.attr('for');
-          if (notify) {
-            let router = document.querySelector(notify);
+          if (this._for) {
+            let router = document.querySelector(this._for);
             if (router && extractType(router.route) === 'Function') {
               router.route(elem.dataValue);
             }
@@ -139,6 +143,30 @@ export const Tabs = (() => {
               }
             });
           });
+        });
+
+        this.on('attribute-change', ({ changed: { now, name } }) => {
+          switch (name) {
+            case 'for':
+              if (now) {
+                this._for = now;
+                // this.watchAttribute(this._for, 'updates-history', val => {
+                //   if (val) {
+                //     window.addEventListener('popstate', popstateListener);
+                //   } else {
+                //     window.removeEventListener('popstate', popstateListener);
+                //   }
+                // });
+                // this._for.on('route-change', ({ routePath }) => {
+                //   if (routePath !== (this.selected && this.selected.dataValue)) {
+                //     this.selected = '';
+                //   }
+                // });
+              } else {
+                this._for = null;
+              }
+              break;
+          }
         });
       }
     }

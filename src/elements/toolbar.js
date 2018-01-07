@@ -5,10 +5,6 @@ import { defineUIComponent, document } from '../utils/dom.js';
 import processHTMLAttr from '../utils/attribute-analyzer.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
-const updateChildComponent = () => {
-
-};
-
 const reflectedAttrs = [
   'is-tall',
 ];
