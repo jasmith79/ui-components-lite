@@ -49,11 +49,23 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
         }
       });
 
-      setTimeout(() => {
-        // if (this.matches('ui-text')) debugger;
+      Promise.all([...this.children].map(el => {
+        if ('_isReady' in el) {
+          if (el._isReady) return Promise.resolve(el);
+          return new Promise(res => {
+            const listener = e => {
+              el.removeEventListener('ui-component-ready', listener);
+              res(el);
+            };
+            el.addEventListener('ui-component-ready', listener);
+          });
+        } else {
+          return Promise.resolve(el);
+        }
+      })).then(_ => {
         this._isReady = true;
         this.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: true }));
-      }, 0);
+      });
     }, 0);
   }
 

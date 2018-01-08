@@ -15,6 +15,8 @@ template.innerHTML = `
       left: -5px;
       z-index: 1000;
       width: 100%;
+      max-height: 225px;
+      overflow-y: scroll;
     }
 
     .arrow {
@@ -116,7 +118,7 @@ export default defineUIComponent({
 
     set textContent (val) {
       const txt = val ||
-        this.placeholderText ||
+        this.placeholder ||
         this.name ||
         '...';
 

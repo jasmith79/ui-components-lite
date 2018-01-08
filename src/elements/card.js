@@ -13,6 +13,7 @@ template.innerHTML = `
       padding: 2%;
     }
   </style>
+  <slot></slot>
 `;
 
 const Card = defineUIComponent({

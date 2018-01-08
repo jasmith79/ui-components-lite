@@ -4,6 +4,9 @@ import extractType from '../../node_modules/extracttype/extracttype.js';
 import { parseURL, toQueryString } from '../utils/url.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
+// TODO ui-component-ready handler being called more than once on each route?
+// weird skips in the back button handling?
+
 export const Router = (() => {
   let historyManager = null;
   let localNavigationCounter = -2;
@@ -44,7 +47,7 @@ export const Router = (() => {
           localNavigationCounter -= 2;
           const { path } = parseURL(window.location.href);
           const routePath = path.replace(this.basePath, '');
-          this.route(routePath);
+          this.route(routePath, data);
           if (!localNavigationCounter) {
             window.removeEventListener('popstate', this._popstateListener);
             this._managingHistory = false;
@@ -64,7 +67,7 @@ export const Router = (() => {
       }
 
       _updatePath (val) {
-        let { data={}, path, queryString } = parseURL(val);
+        let { data, path, queryString } = parseURL(val);
 
         if (!path) {
           if ('/' in this._routes) path = '/';
@@ -84,11 +87,11 @@ export const Router = (() => {
 
           this.selected = elem;
           this._currentRoute = path;
-          elem.update(data);
+          if (data && Object.keys(data).length) elem.update(data);
           elem.setAttribute('is-selected', true);
 
           const evt = new Event('change');
-          evt.data = data;
+          evt.data = elem.data;
           evt.value = path;
           evt.targetComponent = elem;
 
@@ -101,12 +104,15 @@ export const Router = (() => {
         }
       }
 
-      route (val) {
+      route (val, data) {
         const type = extractType(val);
         let path = null;
         if (type === 'String') path = val;
         if (type.match(/HTML\w*Element/)) path = val.getAttribute('route-path');
-        if (path && path in this._routes) this.currentPath = path;
+        if (path && path in this._routes) {
+          if (data) this._routes[path].update(data);
+          this.currentPath = path;
+        }
         return this;
       }
 
@@ -211,9 +217,10 @@ export const Route = (() => {
       constructor () {
         super();
         this._data = null;
+        this._dataElements = [];
+        this._fromChangeHandler = false;
         this._unloadListener = e => {
-          const [path, elem] = currentRoute;
-          if (elem && elem.data) localStorage.setItem(path, JSON.stringify(elem.data));
+          if (this.data) localStorage.setItem(this.routePath, JSON.stringify(elem.data));
         };
       }
 
@@ -221,23 +228,17 @@ export const Route = (() => {
         return this._data;
       }
 
-      init () {
-        super.init();
-        let data = localStorage.getItem(this.routePath);
-        if (data != null) this.update(data);
-
-        this.on('attribute-change', ({ changed: { now, name } }) => {
-          if (name === 'is-selected') {
-            const evtName = now ? 'component-selected' : 'route-deselected';
-            this.dispatchEvent(new CustomEvent(evtName));
-          }
-        });
-      }
-
       update (data) {
         this._data = data;
         const evt = new CustomEvent('data-changed');
         evt.data = data;
+        localStorage.setItem(this.routePath, JSON.stringify(this.data));
+
+        if (!this._fromChangeHandler) {
+          this._dataElements.forEach(el => el.data = data);
+        }
+        this._fromChangeHandler = false;
+
         if (this.updatesHistory) {
           const qs = toQueryString(data);
           if (qs !== '?') {
@@ -246,6 +247,54 @@ export const Route = (() => {
         }
         this.dispatchEvent(evt);
         return this;
+      }
+
+      appendChild (node) {
+        if (node.matches && node.matches('[is-data-element]')) this._dataElements.push(node);
+        super.appendChild();
+      }
+
+      init () {
+        super.init();
+
+        this.on('ui-component-ready', _ => {
+          this._dataElements = this.shadowRoot ?
+            [
+              ...this.shadowRoot.querySelectorAll('[is-data-element]'),
+              ...this.selectAll('[is-data-element]')
+            ] :
+            this.selectAll('[is-data-element]');
+
+          this._dataElements.forEach(el => {
+            el.on('change', _ => {
+              this._fromChangeHandler = true;
+              this.update(this._dataElements.reduce((acc, el) => {
+                const data = el.serialize();
+                Object.entries(data).forEach(([k, v]) => {
+                  if (k in acc) {
+                    console.warn(`Overwriting duplicate data-element property ${k}.`);
+                  }
+                  acc[k] = v;
+                });
+                return acc;
+              }, {}));
+            });
+          });
+
+          let data = localStorage.getItem(this.routePath);
+
+          // Check to see if it was written from query string first.
+          if (!this.data && data != null) this.update(JSON.parse(data));
+        });
+
+        this.on('attribute-change', ({ changed: { now, name } }) => {
+          switch (name) {
+            case 'is-selected':
+              const evtName = now ? 'component-selected' : 'component-deselected';
+              this.dispatchEvent(new CustomEvent(evtName));
+              break;
+          }
+        });
       }
     }
   });

@@ -103,6 +103,13 @@ export default defineUIComponent({
     init () {
       super.init();
       this._input = this.shadowRoot.querySelector('#input');
+      const placeholder = this.placeholder ||
+        this.name ||
+        this.defaultValue ||
+        null;
+
+      if (placeholder) this.placeholder = placeholder;
+
       if (!this.type) this.type = 'text';
       switch (this.type.toLowerCase()) {
         case 'text':

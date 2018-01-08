@@ -3,6 +3,10 @@ import extractType from '../../node_modules/extracttype/extracttype.js';
 import { defineUIComponent, document } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
+// TODO external ui-input not getting cached data? input elements lose data sometimes
+// on multiple reloads?
+
+// const inputReducer = (ips, init) => ips.reduce((acc, ip) => (acc.append(ip.name, ip.value), acc), init);
 export const Form = (() => {
   const reflectedAttrs = ['action', 'method', 'autocomplete', 'response-type'];
   const template = document.createElement('template');
@@ -12,6 +16,7 @@ export const Form = (() => {
         display: block;
       }
     </style>
+    <slot></slot>
   `;
 
   return defineUIComponent({
@@ -19,32 +24,101 @@ export const Form = (() => {
     template,
     reflectedAttrs,
     definition: class Form extends UIBase {
+      constructor () {
+        super();
+        this._inputs = null;
+        this._selects = null;
+        this._formElements = null;
+      }
+
+      _isFormEligible (el) {
+        return el &&
+          el.matches &&
+          (() => {
+            if (
+              el.matches('input[name]') ||
+              el.matches(`input[form="${this.id}"]`)
+            ) return 'input';
+
+            if (
+              el.matches('select[name]') ||
+              el.matches(`select[form="${this.id}"]`)
+            ) return 'select';
+
+            if (
+              el.matches('.ui-form-behavior') ||
+              el.matches(`.ui-form-behavior[form="${this.id}"]`)
+            ) return 'formElement';
+
+            return false;
+          })();
+      }
+
+      get elements () {
+        // return [
+        //   ...this._inputs,
+        //   ...this._selects,
+        //   ...this._formElements
+        // ];
+        return this.id ?
+          [
+            ...new Set([
+              ...this.selectAll('input[name], select[name], .ui-form-behavior'),
+              ...document.querySelectorAll(`[form="${this.id}"]`)
+            ])
+          ] :
+          this.selectAll('input[name], select[name], .ui-form-behavior');
+      }
+
       get data () {
-        const inputs = [
-          ...new Set([
-            ...this.selectAll('input[name]'),
-            ...(document.querySelectorAll(`input[form="${this.id}"]`) || []),
-          ]),
-        ];
+        // return this._selects.reduce((acc, sel) => {
+        //   acc.append(sel.name, sel.options[sel.selectedIndex].value);
+        //   return acc;
+        // }, inputReducer(this._inputs, inputReducer(this._formElements, new FormData)));
+        return this.elements.reduce((formdata, el) => {
+          if (el.name && !el.matches('[type="password"]')) formdata.append(el.name, el.value);
+          return formdata
+        }, new FormData);
+      }
 
-        const selects = [
-          ...new Set([
-            ...this.selectAll('select[name]'),
-            ...(document.querySelectorAll(`select[form="${this.id}"]`) || []),
-          ]),
-        ];
+      set data (data) {
+        Object.entries(data).forEach(([name, val]) => {
+          const els = this.elements.filter(el => el.matches(`[name="${name}"]`));
+          els.forEach((el, i, arr) => {
+            const type = this._isFormEligible(el);
+            let value = Array.isArray(val) ?
+              (val[i] || val[val.length - 1]) :
+              val;
 
-        const components = [
-          ...new Set([
-            ...this.selectAll('.is-ui-component[name][value]'),
-            ...(document.querySelectorAll(`.is-ui-component[name][value][form="${this.id}"]`) || []),
-          ]),
-        ];
+            if (value === 'undefined' || value === 'null') value = null;
 
-        return selects.reduce((acc, sel) => {
-          acc.append(sel.name, sel.options[sel.selectedIndex].value);
-          return acc;
-        }, inputReducer(inputs, inputReducer(components, new FormData)));
+            switch (type) {
+              case 'input':
+                // debugger;
+              case 'formElement':
+                if (el.value !== value) el.value = value;
+                break;
+
+              case 'select':
+                [...sel.options].forEach((opt, j) => {
+                  if (opt.value === value && j !== sel.selectedIndex) sel.selectedIndex = j;
+                });
+                break;
+            }
+          });
+        });
+
+        return this.data;
+      }
+
+      appendChild (node) {
+        const isEligible = this._isFormEligible(node);
+        if (isEligible) {
+          super.appendChild(node);
+          this[`_${isEligible}s`].push(node);
+        }
+
+        return node;
       }
 
       serialize () {
@@ -84,12 +158,38 @@ export const Form = (() => {
           default: return result;
         }
       }
+
+      init () {
+        super.init();
+        this.attr('is-data-element', true);
+
+        this.on('ui-component-ready', _ => {
+          this._inputs = [
+            ...new Set([
+              ...this.selectAll('input[name]'),
+              ...(document.querySelectorAll(`input[form="${this.id}"]`) || []),
+            ])
+          ];
+
+          this._selects = [...new Set([
+              ...this.selectAll('select[name]'),
+              ...(document.querySelectorAll(`select[form="${this.id}"]`) || []),
+            ])
+          ];
+
+          this._formElements = [...new Set([
+              ...this.selectAll('.ui-form-behavior'),
+              ...(document.querySelectorAll(`.ui-form-behavior[form="${this.id}"]`) || []),
+            ])
+          ];
+        });
+      }
     }
   });
 })();
 
 export const FormBehavior = (() => {
-  const reflectedAttrs = ['name', 'value', 'required', 'is-valid', 'placeholder-text'];
+  const reflectedAttrs = ['name', 'value', 'required', 'is-valid', 'placeholder'];
   return superclass => defineUIComponent({
     name: 'ui-form-behavior',
     registerElement: false,
