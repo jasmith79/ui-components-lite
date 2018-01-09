@@ -2,6 +2,7 @@ import './styler.js';
 import DataBinder from './binder.js';
 import DOMutils from './dom-utils.js';
 import processHTMLAttr from './attribute-analyzer.js';
+import elementReady from './element-ready.js';
 import { baseClass } from './dom.js';
 import { toSnakeCase } from '../../node_modules/jsstring/src/jsstring.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
@@ -27,44 +28,35 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     return true;
   }
 
+  get _childrenUpgraded () {
+    return Promise.all([...this.children].map(elementReady));
+  }
+
   init () {
     // Should be called by extension elements via super. setTimeout is so that any initialization
     // and event handlers in the descendant classes can be attached before the reflected attribute
     // setup.
     setTimeout(() => {
       this.classList.add('is-ui-component');
-      this.constructor.observedAttributes.forEach(attr => {
-        if (this.attr(attr)) {
-          const evt = new CustomEvent('attribute-change');
-          evt.changed = { name: attr, now: this.attr(attr), was: null };
-          this.dispatchEvent(evt);
-        }
-      });
+      this._childrenUpgraded.then(_ => {
+        this.constructor.observedAttributes.forEach(attr => {
+          if (this.attr(attr)) {
+            const evt = new CustomEvent('attribute-change');
+            evt.changed = { name: attr, now: this.attr(attr), was: null };
+            this.dispatchEvent(evt);
+          }
+        });
 
-      [...this.attributes].forEach(({ name: attr, value: val}) => {
-        const twoWay = val && val.match(/^\{\{\{(.+)\}\}\}$/);
-        const oneWay = val && val.match(/^\{\{(.+)\}\}$/);
-        const matched = twoWay ? twoWay[1] : oneWay ? oneWay[1] : null;
-        const attrToWatch = matched ? toSnakeCase(matched, '-') : null;
-        if (attrToWatch) {
-          this.bindAttribute(attr, attrToWatch, twoWay);
-        }
-      });
-
-      Promise.all([...this.children].map(el => {
-        if ('_isReady' in el) {
-          if (el._isReady) return Promise.resolve(el);
-          return new Promise(res => {
-            const listener = e => {
-              el.removeEventListener('ui-component-ready', listener);
-              res(el);
-            };
-            el.addEventListener('ui-component-ready', listener);
-          });
-        } else {
-          return Promise.resolve(el);
-        }
-      })).then(_ => {
+        [...this.attributes].forEach(({ name: attr, value: val}) => {
+          const twoWay = val && val.match(/^\{\{\{(.+)\}\}\}$/);
+          const oneWay = val && val.match(/^\{\{(.+)\}\}$/);
+          const matched = twoWay ? twoWay[1] : oneWay ? oneWay[1] : null;
+          const attrToWatch = matched ? toSnakeCase(matched, '-') : null;
+          if (attrToWatch) {
+            this.bindAttribute(attr, attrToWatch, twoWay);
+          }
+        });
+        
         this._isReady = true;
         this.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: true }));
       });

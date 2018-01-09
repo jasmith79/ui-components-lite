@@ -1,5 +1,6 @@
 import UIBase from '../utils/ui-component-base.js';
 import { ListBehavior } from './list.js';
+import elementReady from '../utils/element-ready.js';
 import { defineUIComponent, document } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import { extractType } from '../../node_modules/extracttype/extracttype.js';
@@ -132,14 +133,19 @@ export default defineUIComponent({
     }
 
     appendChild (node) {
-      if (node.matches && node.matches('ui-item')) {
-        super.appendChild(node);
-        node.on('click', e => {
-          setTimeout(() => {
-            this.close();
-          }, 300);
+      if (node) {
+        elementReady(node).then(node => {
+          if (node.matches && node.matches('.ui-item')) {
+            super.appendChild(node);
+            node.on('click', e => {
+              setTimeout(() => {
+                this.close();
+              }, 300);
+            });
+          }
         });
       }
+
       return node;
     }
 
@@ -160,19 +166,12 @@ export default defineUIComponent({
 
     init () {
       super.init();
+      let mouseon = false;
       if (!this.multiple) this.multiple = false;
       if (!this.isOpen) this.isOpen = false;
 
-      this._list = this.shadowRoot.querySelector('ui-list');
-      this._listHolder = this.shadowRoot.querySelector('#list-holder');
-      this._dummyItem = this.shadowRoot.querySelector('#dummy-item');
-      this._dummyItem.shadowRoot.querySelector('ui-checkbox').style.display = 'none';
-
-      if (this.name && !this.selected) this.textContent = null;
-
-      this._items = this._items
-        .filter(x => x !== this._dummyItem)
-        .map(item => {
+      this._childrenUpgraded.then(_ => {
+        this._items.forEach(item => {
           item.on('click', e => {
             if (!this.multiple) {
               setTimeout(() => {
@@ -180,17 +179,19 @@ export default defineUIComponent({
               }, 300);
             }
           });
-
-          return item;
         });
 
-      this._listHolder.classList.remove('not-overflowing');
+        this._list = this.shadowRoot.querySelector('ui-list');
+        this._listHolder = this.shadowRoot.querySelector('#list-holder');
+        this._dummyItem = this.shadowRoot.querySelector('#dummy-item');
+        this._dummyItem.shadowRoot.querySelector('ui-checkbox').style.display = 'none';
+        if (this.name && !this.selected) this.textContent = null;
+        this._listHolder.classList.remove('not-overflowing');
 
-      let mouseon = false;
-
-      this._dummyItem.on('click', e => {
-        this.toggle();
-        mouseon = this.isOpen;
+        this._dummyItem.on('click', e => {
+          this.toggle();
+          mouseon = this.isOpen;
+        });
       });
 
       this.on('mouseenter', e => mouseon = true);
@@ -208,8 +209,6 @@ export default defineUIComponent({
               this.textContent = ''; // default
             }
             break;
-          default:
-
         }
       });
     }

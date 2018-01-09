@@ -1,4 +1,6 @@
 import Floats from '../utils/float.js';
+import elementReady from '../utils/element-ready.js';
+
 import Card from './card.js';
 import './backdrop.js';
 import './button.js';
@@ -92,12 +94,18 @@ const Dialog = defineUIComponent({
 
     // Intercepts calls to appendChild so buttons can be appropriately used.
     appendChild (node) {
-      if (node && node.matches && node.matches('.ui-button')) {
-        incorporateButtonChild(this, node);
-        this.shadowRoot.appendChild(node);
-      } else {
-        super.appendChild(node);
+      if (node) {
+        elementReady(node).then(node => {
+          if (node.matches && node.matches('.ui-button')) {
+            incorporateButtonChild(this, node);
+            this.shadowRoot.appendChild(node);
+          } else {
+            super.appendChild(node);
+          }
+        });
       }
+
+      return node;
     }
 
     open (txt) {
@@ -115,7 +123,12 @@ const Dialog = defineUIComponent({
       this._backdrop = document.createElement('ui-backdrop');
       this._backdrop.for = this;
       document.body.appendChild(this._backdrop);
-      this.selectAll('.ui-button').forEach(el => incorporateButtonChild(this, el));
+
+      this._childrenUpgraded.then(children => {
+        children
+          .filter(el => el.matches && el.matches('.ui-button'))
+          .forEach(el => incorporateButtonChild(this, el));
+      });
 
       const closer = e => this.close();
 

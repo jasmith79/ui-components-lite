@@ -74,15 +74,6 @@ export const ListBehavior = superclass => defineUIComponent({
     }
 
     appendChild (node) {
-      // if (node && node.matches && node.matches('ui-item')) {
-      //   node.on('click', e => {
-      //     this.selected = node;
-      //     node.isSelected = true;
-      //   });
-      //   super.appendChild(node);
-      //   this._items.push(node);
-      // } // else no-op
-
       if (node) {
         elementReady(node).then(node => {
           if (node.matches && node.matches('.ui-item')) {
@@ -100,26 +91,6 @@ export const ListBehavior = superclass => defineUIComponent({
 
     init () {
       super.init();
-      // this._items = [
-      //   ...this.selectAll('ui-item'),
-      //   ...this.shadowRoot.querySelectorAll('ui-item')
-      // ];
-      //
-      // this._items.forEach(item => {
-      //   if (item.isSelected) this.selected = item;
-      //   item.on('click', e => {
-      //     if (this.multiple) {
-      //       item.isSelected = !item.isSelected;
-      //       if (item.isSelected) {
-      //         this.selected = item;
-      //       } else {
-      //         this._selected = this._selected.filter(x => x !== item);
-      //       }
-      //     } else {
-      //       if (item !== this.selected) this.selected = item;
-      //     }
-      //   });
-      // });
 
       Promise.all([...this.children].map(elementReady)).then(els => {
         els
