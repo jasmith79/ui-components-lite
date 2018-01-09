@@ -6,7 +6,6 @@ const template = document.createElement('template');
 template.innerHTML = `
   <style>
     :host {
-      padding: 20px;
       top: 30%;
     }
 
@@ -15,8 +14,6 @@ template.innerHTML = `
       margin-left: auto;
       margin-right: auto;
       height: 65%;
-      position: relative;
-      top: 50px;
     }
 
     #closer {
@@ -29,9 +26,7 @@ template.innerHTML = `
       left: calc(100% - 105px);
     }
   </style>
-  <div id="content">
-    <slot></slot>
-  </div>
+  <div id="content"></div>
   <ui-button id="closer">Close</ui-button>
 `;
 

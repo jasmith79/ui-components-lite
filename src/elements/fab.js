@@ -17,5 +17,10 @@ template.innerHTML = `
 export default defineUIComponent({
   name: 'ui-fab',
   template,
-  definition: class Fab extends Button {}
+  definition: class Fab extends Button {
+    init () {
+      super.init();
+      this.floatingY = true;
+    }
+  }
 });

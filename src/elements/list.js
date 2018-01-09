@@ -2,6 +2,7 @@ import UIBase from '../utils/ui-component-base.js';
 import Ripples from '../animations/rippler.js';
 import Checkbox from './checkbox.js';
 import { FormBehavior } from './form.js';
+import elementReady from '../utils/element-ready.js';
 import { defineUIComponent, document } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import extractType from '../../node_modules/extracttype/extracttype.js';
@@ -13,13 +14,13 @@ export const ListBehavior = superclass => defineUIComponent({
   definition: class extends mix(superclass).with(FormBehavior) {
     constructor () {
       super();
-      this._items = null;
+      this._items = [];
       this._selected = null;
     }
 
     get value () {
       return this.selected && this.selected.map ?
-        this.selected.map(x => x.value).join(',') :
+        this.selected.map(x => x ? x.value : '').join(',') :
         (this.selected && this.selected.value) || null;
     }
 
@@ -73,39 +74,74 @@ export const ListBehavior = superclass => defineUIComponent({
     }
 
     appendChild (node) {
-      if (node && node.matches && node.matches('.ui-item')) {
-        node.on('click', e => {
-          this.selected = node;
-          node.isSelected = true;
+      // if (node && node.matches && node.matches('ui-item')) {
+      //   node.on('click', e => {
+      //     this.selected = node;
+      //     node.isSelected = true;
+      //   });
+      //   super.appendChild(node);
+      //   this._items.push(node);
+      // } // else no-op
+
+      if (node) {
+        elementReady(node).then(node => {
+          if (node.matches && node.matches('.ui-item')) {
+            node.on('click', e => {
+              this.selected = node;
+              node.isSelected = true;
+            });
+            super.appendChild(node);
+            this._items.push(node);
+          }
         });
-        super.appendChild(node);
-        this._items.push(node);
-      } // else no-op
+      }
       return node;
     }
 
     init () {
       super.init();
-      this._items = [
-        ...this.selectAll('.ui-item'),
-        ...this.shadowRoot.querySelectorAll('.ui-item')
-      ];
+      // this._items = [
+      //   ...this.selectAll('ui-item'),
+      //   ...this.shadowRoot.querySelectorAll('ui-item')
+      // ];
+      //
+      // this._items.forEach(item => {
+      //   if (item.isSelected) this.selected = item;
+      //   item.on('click', e => {
+      //     if (this.multiple) {
+      //       item.isSelected = !item.isSelected;
+      //       if (item.isSelected) {
+      //         this.selected = item;
+      //       } else {
+      //         this._selected = this._selected.filter(x => x !== item);
+      //       }
+      //     } else {
+      //       if (item !== this.selected) this.selected = item;
+      //     }
+      //   });
+      // });
 
-      this._items.forEach(item => {
-        if (item.isSelected) this.selected = item;
-        item.on('click', e => {
-          if (this.multiple) {
-            item.isSelected = !item.isSelected;
-            if (item.isSelected) {
-              this.selected = item;
-            } else {
-              this._selected = this._selected.filter(x => x !== item);
-            }
-          } else {
-            if (item !== this.selected) this.selected = item;
-          }
-        });
+      Promise.all([...this.children].map(elementReady)).then(els => {
+        els
+          .filter(el => el.matches && el.matches('.ui-item'))
+          .map(item => {
+            this._items.push(item);
+            if (item.isSelected) this.selected = item;
+            item.on('click', e => {
+              if (this.multiple) {
+                item.isSelected = !item.isSelected;
+                if (item.isSelected) {
+                  this.selected = item;
+                } else {
+                  this._selected = this._selected.filter(x => x !== item);
+                }
+              } else {
+                if (item !== this.selected) this.selected = item;
+              }
+            });
+          });
       });
+
 
       this.on('attribute-change', ({ changed: { now, name } }) => {
         switch (name) {
@@ -121,7 +157,7 @@ export const ListBehavior = superclass => defineUIComponent({
           case 'selected-index':
             if (now === -1 || this.multiple) return;
             if (!this._items[now]) {
-              console.warn(`Attempted to set invalid index ${now} for ui-list.`);
+              console.warn(`Attempted to set invalid index ${now} for element.`);
               this.attr('selected-index', was);
               return;
             }

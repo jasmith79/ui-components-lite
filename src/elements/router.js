@@ -1,5 +1,5 @@
 import UIBase from '../utils/ui-component-base.js';
-import { defineUIComponent, document } from '../utils/dom.js';
+import { defineUIComponent, document, global } from '../utils/dom.js';
 import extractType from '../../node_modules/extracttype/extracttype.js';
 import { parseURL, toQueryString } from '../utils/url.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
@@ -46,7 +46,7 @@ export const Router = (() => {
         this._popstateListener = ({ state: data }) => {
           localNavigationCounter -= 2;
           const { path } = parseURL(window.location.href);
-          const routePath = path.replace(this.basePath, '');
+          const routePath = this.basePath ? path.replace(this.basePath, '') : path;
           this.route(routePath, data);
           if (!localNavigationCounter) {
             window.removeEventListener('popstate', this._popstateListener);
@@ -131,9 +131,12 @@ export const Router = (() => {
                 const [path, evt, queryString] = this._updatePath(now);
                 const { protocol, fullDomain } = parseURL(window.location.href);
                 if (this.updatesHistory && path) {
-                  history.pushState(this._routes[path].data, '', this.basePath + path);
+                  history.pushState(this._routes[path].data, '', (this.basePath || '') + path);
                   window.dispatchEvent(evt);
                 }
+
+                // TODO: makes maps work, need to fix this
+                global.dispatchEvent(new Event('resize'));
               }
               break;
 
@@ -165,12 +168,12 @@ export const Router = (() => {
                 // current route, check querystring and/or localStorage, etc.
                 window.addEventListener('load', e => {
                   let { path, data } = parseURL(window.location.href);
-                  const routePath = path.replace(this.basePath, '');
+                  const routePath = this.basePath ? path.replace(this.basePath, '') : path;
                   if (!Object.keys(data).length) {
                     data = localStorage.getItem(routePath);
                     if (data) data = JSON.parse(data);
                   }
-                  this.route(routePath).update(data);
+                  this.route(routePath, data);
                 });
               } else {
                 historyManager = null;

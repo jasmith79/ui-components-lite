@@ -23,6 +23,7 @@ const Backdrop = defineUIComponent({
   definition: class Backdrop extends UIBase {
     constructor () {
       super();
+      this.for = null; // Elements that use this element should set this property to themselves.
     }
 
     init () {

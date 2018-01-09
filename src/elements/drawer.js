@@ -44,6 +44,7 @@ const Drawer = defineUIComponent({
     constructor () {
       super();
       this._backdrop = document.createElement('ui-backdrop');
+      this._backdrop.for = this;
       this._backdrop.style.zIndex = '9000';
       this._toggleElem = null;
       this._isOpen = false;

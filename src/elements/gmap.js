@@ -34,7 +34,9 @@ export const mapsAPILoaded = (() => {
 
 (() => {
   const mapsAPI = document.createElement('script');
-  mapsAPI.src = `https://maps.googleapis.com/maps/api/js?key=${global.GOOGLE_MAPS_API_KEY}&callback=_fireMapsEvent`;
+  mapsAPI.src = 'https://maps.googleapis.com/maps/api/js?' +
+    `key=${global.GOOGLE_MAPS_API_KEY}&callback=_resolveMapsLoader`;
+
   document.head.appendChild(mapsAPI);
 })();
 
@@ -46,7 +48,13 @@ template.innerHTML = `
       min-width: 400px;
       min-height: 300px;
     }
+
+    #map-container {
+      height: 100%;
+      width: 100%;
+    }
   </style>
+  <div id="map-container"></div>
 `;
 
 const reflectedAttrs = [
@@ -62,15 +70,21 @@ export const GoogleMap = defineUIComponent({
   definition: class GoogleMap extends UIBase {
     constructor () {
       super();
+      this._mapContainer = null;
       this._mapObj = null;
     }
 
+    get map () {
+      return this._mapObj;
+    }
+
     init () {
+      this._mapContainer = this.shadowRoot.querySelector('#map-container');
       mapsAPILoaded.then(_ => {
         super.init();
         const options = {
           zoom: 11,
-          center: new global.google.maps.LatLng(39.805, -86.16),
+          center: new global.google.maps.LatLng(39.75, -86.16),
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
 
@@ -83,7 +97,28 @@ export const GoogleMap = defineUIComponent({
           this.longitude
         );
 
-        this._mapObj = new global.google.maps.Map(this, options);
+        this._mapObj = new global.google.maps.Map(this._mapContainer, options);
+        // TODO: add position tracking and fix this
+        global.addEventListener('resize', e => {
+          setTimeout(() => {
+            this.map.setCenter(new global.google.maps.LatLng(39.75, -86.16));
+          }, 0);
+        });
+        // if (!this.isVisible) {
+        //   // this.watchAttribute(this, 'style', _ => {
+        //   //   if (this.isVisible) global.dispatchEvent(new Event('resize'));
+        //   // });
+        //   let node = this.parentNode;
+        //   while (node) {
+        //     if (node.matches && node.matches('.ui-router')) {
+        //       node.on('change', e => {
+        //         if (this.isVisible) global.dispatchEvent(new Event('resize'));
+        //       });
+        //       break;
+        //     }
+        //     node = node.parentNode || node.host;
+        //   }
+        // }
       });
     }
   }

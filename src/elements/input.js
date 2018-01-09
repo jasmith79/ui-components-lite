@@ -164,6 +164,10 @@ export default defineUIComponent({
             break;
 
           case 'type':
+            if (now === 'hidden') {
+              this.hide();
+              return;
+            }
             if (!['text', 'number', 'password', 'email'].includes(now)) return;
             // fall-through
 

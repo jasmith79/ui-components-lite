@@ -132,7 +132,7 @@ export default defineUIComponent({
     }
 
     appendChild (node) {
-      if (node.matches && node.matches('.ui-item')) {
+      if (node.matches && node.matches('ui-item')) {
         super.appendChild(node);
         node.on('click', e => {
           setTimeout(() => {
@@ -166,7 +166,7 @@ export default defineUIComponent({
       this._list = this.shadowRoot.querySelector('ui-list');
       this._listHolder = this.shadowRoot.querySelector('#list-holder');
       this._dummyItem = this.shadowRoot.querySelector('#dummy-item');
-      this._dummyItem._checkbox.style.display = 'none';
+      this._dummyItem.shadowRoot.querySelector('ui-checkbox').style.display = 'none';
 
       if (this.name && !this.selected) this.textContent = null;
 

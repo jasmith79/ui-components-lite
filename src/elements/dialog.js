@@ -29,7 +29,7 @@ template.innerHTML = `
       width: 250px;
       height: 185px;
       top: calc(50vh - 130px);
-      left: calc(50vw - 125px);
+      left: calc(50vw - 155px);
     }
 
     :host(.medium-dialog) {
@@ -92,11 +92,15 @@ const Dialog = defineUIComponent({
 
     // Intercepts calls to appendChild so buttons can be appropriately used.
     appendChild (node) {
-      if (node && node.matches && node.matches('.ui-button')) incorporateButtonChild(this, node);
-      super.appendChild(node);
+      if (node && node.matches && node.matches('.ui-button')) {
+        incorporateButtonChild(this, node);
+        this.shadowRoot.appendChild(node);
+      } else {
+        super.appendChild(node);
+      }
     }
 
-    open () {
+    open (txt) {
       this.isOpen = true;
       return this;
     }
@@ -109,8 +113,12 @@ const Dialog = defineUIComponent({
     init () {
       super.init();
       this._backdrop = document.createElement('ui-backdrop');
+      this._backdrop.for = this;
       document.body.appendChild(this._backdrop);
       this.selectAll('.ui-button').forEach(el => incorporateButtonChild(this, el));
+
+      const closer = e => this.close();
+
       this.on('attribute-change', ({ changed: { now, name } }) => {
         switch (name) {
           case 'small-dialog':

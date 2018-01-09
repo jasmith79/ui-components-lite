@@ -28,7 +28,9 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
   }
 
   init () {
-    // Should be called by extension elements via super.
+    // Should be called by extension elements via super. setTimeout is so that any initialization
+    // and event handlers in the descendant classes can be attached before the reflected attribute
+    // setup.
     setTimeout(() => {
       this.classList.add('is-ui-component');
       this.constructor.observedAttributes.forEach(attr => {
@@ -82,7 +84,7 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     this._mutationObservers.forEach(([o, target, conf]) => o.observe(target, conf));
 
     // This avoids Chrome firing the event before DOM is ready
-    setTimeout(() => { this.init(); }, 0);
+    setTimeout(() => { this.init(); }, 10);
   }
 
   disconnectedCallback () {
