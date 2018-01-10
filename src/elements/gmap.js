@@ -19,7 +19,7 @@ export const mapsAPILoaded = (() => {
       (document.querySelector('ui-alert') || global).alert(failMessage);
     }, failTimeout);
 
-    global._resolveMapsLoader = _ => {
+    global._resolveMapsLoader = function() {
       clearTimeout(warnHandle);
       clearTimeout(failHandle);
       const alerter = document.querySelector('ui-alert');
@@ -52,6 +52,10 @@ template.innerHTML = `
     #map-container {
       height: 100%;
       width: 100%;
+
+      /* This is here because with no initial content height was 0 despite the parent styles */
+      min-width: 400px;
+      min-height: 300px;
     }
   </style>
   <div id="map-container"></div>
@@ -72,6 +76,7 @@ export const GoogleMap = defineUIComponent({
       super();
       this._mapContainer = null;
       this._mapObj = null;
+      this._center = null;
     }
 
     get map () {
@@ -91,34 +96,29 @@ export const GoogleMap = defineUIComponent({
         if (this.mapType && this.mapType.toUpperCase() in global.google.maps.MapTypeId) {
           options.mapTypeId = global.google.maps[this.mapType.toUpperCase()];
         }
+
         if (this.zoomLevel) options.zoom = this.zoomLevel;
         if (this.latitude && this.longitude) options.center = new global.google.maps.LatLng(
           this.latitude,
           this.longitude
         );
 
+        this._center = options.center;
         this._mapObj = new global.google.maps.Map(this._mapContainer, options);
-        // TODO: add position tracking and fix this
+
+        // Google maps really don't like to be unrendered, especially when they're first created:
+        // tiles won't render until a resize event is triggered on window. So we'll track center
+        // changes and set it manually. Currently the parent element responsible for rendering
+        // this element needs to trigger resize on visibility changes, which I'm hoping to fix.
+        this._mapObj.addListener('center_changed', e => {
+          this._center = this.map.getCenter();
+        });
+
         global.addEventListener('resize', e => {
           setTimeout(() => {
-            this.map.setCenter(new global.google.maps.LatLng(39.75, -86.16));
+            this.map.setCenter(this._center);
           }, 0);
         });
-        // if (!this.isVisible) {
-        //   // this.watchAttribute(this, 'style', _ => {
-        //   //   if (this.isVisible) global.dispatchEvent(new Event('resize'));
-        //   // });
-        //   let node = this.parentNode;
-        //   while (node) {
-        //     if (node.matches && node.matches('.ui-router')) {
-        //       node.on('change', e => {
-        //         if (this.isVisible) global.dispatchEvent(new Event('resize'));
-        //       });
-        //       break;
-        //     }
-        //     node = node.parentNode || node.host;
-        //   }
-        // }
       });
     }
   }

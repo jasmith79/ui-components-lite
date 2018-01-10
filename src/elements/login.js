@@ -15,11 +15,6 @@ template.innerHTML = `
       height: 315px;
     }
 
-    ui-form {
-      width: 100%;
-      height: 100%;
-    }
-
     ui-input {
       margin-bottom: 30px;
     }
@@ -27,13 +22,14 @@ template.innerHTML = `
     ui-fab {
       float: right;
       position: relative;
-      top: -90px;
-      background-color: #79e08b;
+      top: 30px;
+      left: 15px;
     }
 
     h2 {
       color: #AAA;
       font-style: italic;
+      margin-bottom: 40px;
     }
 
     #heading {
@@ -58,13 +54,14 @@ template.innerHTML = `
     :host {
       position: relative;
       left: 50px;
+      top: 50px;
     }
   </style>
-  <h2 id="heading">Login</h2>
   <ui-card>
+    <h2 id="heading">Login</h2>
     <ui-form>
       <ui-input name="user" placeholder="User"></ui-input>
-      <ui-input name="pass" placeholder="Password"></ui-input>
+      <ui-input name="pass" placeholder="Password" type="password"></ui-input>
     </ui-form>
     <ui-fab><div class="arrow"></div></ui-fab>
   </ui-card>
