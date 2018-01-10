@@ -12,11 +12,14 @@
     "babel-cli": "6.24.1",
     "babel-plugin-transform-es2015-modules-umd": "6.24.1",
     "babel-preset-env": "1.4.0",
+    "express": "^4.16.2",
     "node-sass": "4.5.2"
   },
   "dependencies": {
     "es6-promise": "4.1.0",
-    "jsstring": "^0.2.0"
+    "extracttype": "^1.0.1",
+    "jsstring": "^0.2.0",
+    "mixwith": "^0.1.1"
   },
   "repository": {
     "type": "git",
