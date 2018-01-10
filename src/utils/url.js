@@ -23,6 +23,7 @@ const parseURL = url => {
   let secure = false;
   let path = '';
   let data = {};
+  let route = '';
   let [first, rest] = url.split('://');
   if (rest) secure = first.toLowerCase() === 'https';
   const protocol = secure ? 'https' : 'http';
@@ -33,7 +34,9 @@ const parseURL = url => {
   if (pAndQs) {
     ([p, qs] = pAndQs.split('?'));
     if (qs) data = parseQueryString(qs);
-    path = '/' + p;
+    let [serverPath, clientPath] = p.split('#!');
+    if (clientPath) route = clientPath;
+    path = '/' + serverPath;
   }
 
   return {
@@ -45,6 +48,7 @@ const parseURL = url => {
     data,
     url,
     path,
+    route,
     queryString: qs,
   };
 };
@@ -52,6 +56,8 @@ const parseURL = url => {
 const toQueryString = obj => '?' + Object.entries(obj)
   .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
   .join('&');
+
+window.parseURL = parseURL;
 
 export {
   parseURL,

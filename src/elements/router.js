@@ -22,7 +22,7 @@ export const Router = (() => {
     // For example, if you have a test page at /tests/index.html and load up e.g.
     // localhost:8080/tests then router elements on that page should have a base-path set to
     // '/tests'.
-    'base-path',
+    // 'base-path',
 
     // renders-current: whether or not the router renders the child element associated with the
     // current path. Routers do not render their children by default.
@@ -47,14 +47,14 @@ export const Router = (() => {
         this._currentRoute = null;
         this._managingHistory = false;
         this._popstateListener = ({ state: data }) => {
-          localNavigationCounter -= 2;
-          const { path } = parseURL(window.location.href);
-          const routePath = this.basePath ? path.replace(this.basePath, '') : path;
-          this.route(routePath, data);
-          if (!localNavigationCounter) {
-            window.removeEventListener('popstate', this._popstateListener);
-            this._managingHistory = false;
-          }
+          // localNavigationCounter -= 2;
+          // const { path } = parseURL(window.location.href);
+          // const routePath = this.basePath ? path.replace(this.basePath, '') : path;
+          // this.route(routePath, data);
+          // if (!localNavigationCounter) {
+          //   window.removeEventListener('popstate', this._popstateListener);
+          //   this._managingHistory = false;
+          // }
         };
       }
 
@@ -70,14 +70,14 @@ export const Router = (() => {
       }
 
       _updatePath (val) {
-        let { data, path, queryString } = parseURL(val);
+        let { data, path, route, queryString } = parseURL(val);
 
-        if (!path) {
-          if ('/' in this._routes) path = '/';
-          if (!path || !this._routes[path]) throw new Error(`Unknown route ${path || 'empty'}.`);
+        if (!route) {
+          if ('/' in this._routes) route = '/';
+          if (!route || !this._routes[route]) throw new Error(`Unknown route ${route || 'empty'}.`);
         }
 
-        const elem = this._routes[path];
+        const elem = this._routes[route];
         if (elem && elem !== this.selected) {
           if (this.selected) {
             this.selected.removeAttribute('is-selected');
@@ -89,19 +89,19 @@ export const Router = (() => {
           }
 
           this.selected = elem;
-          this._currentRoute = path;
+          this._currentRoute = route;
           if (data && Object.keys(data).length) elem.update(data);
           elem.setAttribute('is-selected', true);
 
           const evt = new Event('change');
           evt.data = elem.data;
-          evt.value = path;
+          evt.value = route;
           evt.targetComponent = elem;
 
           this.dispatchEvent(evt);
-          return [path, evt, queryString];
+          return [path, route, evt, queryString];
         } else {
-          if (elem && path !== '/') console.warn(`No element matches path ${path},
+          if (elem && route !== '/') console.warn(`No element matches path ${route},
             perhaps the ui-route has no path set?`);
           return [];
         }
@@ -131,10 +131,11 @@ export const Router = (() => {
                 if (this.updatesHistory && !this._managingHistory) {
                   window.addEventListener('popstate', this._popstateListener);
                 }
-                const [path, evt, queryString] = this._updatePath(now);
+                const [path, route, evt, queryString] = this._updatePath(now);
                 const { protocol, fullDomain } = parseURL(window.location.href);
-                if (this.updatesHistory && path) {
-                  history.pushState(this._routes[path].data, '', (this.basePath || '') + path);
+                if (this.updatesHistory && route) {
+                  console.log(`${path}#!${route}`);
+                  history.pushState(this._routes[route].data, '', `${path}#!${route}`);
                   window.dispatchEvent(evt);
                 }
 
@@ -165,19 +166,6 @@ export const Router = (() => {
                 historyManager = this;
                 this._managingHistory = true;
                 window.addEventListener('popstate', this._popstateListener);
-
-                // Set up page load. Note that if the updates-history attribute is added
-                // by JavaScript after the load event you will need to manually update the
-                // current route, check querystring and/or localStorage, etc.
-                window.addEventListener('load', e => {
-                  let { path, data } = parseURL(window.location.href);
-                  const routePath = this.basePath ? path.replace(this.basePath, '') : path;
-                  if (!Object.keys(data).length) {
-                    data = localStorage.getItem(routePath);
-                    if (data) data = JSON.parse(data);
-                  }
-                  this.route(routePath, data);
-                });
               } else {
                 historyManager = null;
                 this._managingHistory = false;
@@ -190,8 +178,11 @@ export const Router = (() => {
         this.selectAll('[route-path]').forEach((el, i) => {
           const path = el.getAttribute('route-path');
           this._routes[path] = el;
-          if (!i) selected = path;
+          if (!i && !selected) selected = path;
           if (el.matches && el.matches('[selected]')) selected = path;
+          el.on('component-selected', e => {
+            this.route(el);
+          });
         });
         this.route(selected);
       }
