@@ -27,6 +27,9 @@ export const Router = (() => {
     // renders-current: whether or not the router renders the child element associated with the
     // current path. Routers do not render their children by default.
     'renders-current',
+
+    // hash-bang: whether or not the history updates use hash-bang urls for client-side routing
+    'hash-bang',
   ];
 
   const template = document.createElement('template');
