@@ -255,7 +255,7 @@ export const Route = (() => {
       init () {
         super.init();
 
-        this.on('ui-component-ready', _ => {
+        this.isReady.then(_ => {
           this._dataElements = this.shadowRoot ?
             [
               ...this.shadowRoot.querySelectorAll('[is-data-element]'),

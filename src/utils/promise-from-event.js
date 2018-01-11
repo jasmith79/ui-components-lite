@@ -14,7 +14,7 @@ export default ({ eventName, element, callback, timeout }) => {
     const listener = e => {
       clearTimeout(timeoutHandle);
       element.removeEventListener(eventName, listener);
-      if (callback) callback(e);
+      if (callback) res(callback(e));
       res(e);
     };
 

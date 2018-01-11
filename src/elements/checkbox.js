@@ -65,6 +65,7 @@ const Checkbox = defineUIComponent({
     }
 
     init () {
+      super.init();
       this.watchAttribute(this, 'checked', now => {
         now ? this.classList.add('checked') : this.classList.remove('checked');
       });

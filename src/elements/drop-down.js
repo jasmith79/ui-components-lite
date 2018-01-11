@@ -1,6 +1,5 @@
 import UIBase from '../utils/ui-component-base.js';
 import { ListBehavior } from './list.js';
-import elementReady from '../utils/element-ready.js';
 import { defineUIComponent, document } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import { extractType } from '../../node_modules/extracttype/extracttype.js';
@@ -111,10 +110,11 @@ export default defineUIComponent({
       this._list = null;
       this._listHolder = null;
       this._dummyItem = null;
+      this._textContent = '';
     }
 
     get textContent () {
-      return (this._dummyItem && this._dummyItem.textContent) || '';
+      return (this._dummyItem && this._dummyItem.textContent) || this._textContent;
     }
 
     set textContent (val) {
@@ -123,26 +123,35 @@ export default defineUIComponent({
         this.name ||
         '...';
 
+      this._textContent = txt;
+      if (!this._dummyItem) this._dummyItem = this.selectInternalElement('#dummy-item');
       this._dummyItem.querySelector('#dummy-item-content').textContent = txt;
       if (txt === '...') {
         this._dummyItem.classList.add('default');
       } else {
         this._dummyItem.classList.remove('default');
       }
+
       return this;
     }
 
     appendChild (node) {
       if (node) {
-        elementReady(node).then(node => {
-          if (node.matches && node.matches('.ui-item')) {
-            super.appendChild(node);
-            node.on('click', e => {
-              setTimeout(() => {
-                this.close();
-              }, 300);
-            });
-          }
+        // Promise.resolve(node.isReady).then(node => {
+        //   if (node && node.matches && node.matches('.ui-item')) {
+        //     super.appendChild(node);
+        //     node.on('click', e => {
+        //       setTimeout(() => {
+        //         this.close();
+        //       }, 300);
+        //     });
+        //   }
+        // });
+        super.appendChild(node);
+        node.on('click', e => {
+          setTimeout(() => {
+            this.close();
+          }, 300);
         });
       }
 
@@ -165,13 +174,16 @@ export default defineUIComponent({
     }
 
     init () {
-      super.init();
       let mouseon = false;
-      if (!this.multiple) this.multiple = false;
-      if (!this.isOpen) this.isOpen = false;
+      super.init();
+      this._beforeReady(_ => {
+        this._list = this.shadowRoot.querySelector('ui-list');
+        this._listHolder = this.shadowRoot.querySelector('#list-holder');
+        this._dummyItem = this.shadowRoot.querySelector('#dummy-item');
+        this._dummyItem.shadowRoot.querySelector('ui-checkbox').style.display = 'none';
 
-      this._childrenUpgraded.then(_ => {
         this._items.forEach(item => {
+          if (item.isSelected) this.selected = item;
           item.on('click', e => {
             if (!this.multiple) {
               setTimeout(() => {
@@ -181,10 +193,6 @@ export default defineUIComponent({
           });
         });
 
-        this._list = this.shadowRoot.querySelector('ui-list');
-        this._listHolder = this.shadowRoot.querySelector('#list-holder');
-        this._dummyItem = this.shadowRoot.querySelector('#dummy-item');
-        this._dummyItem.shadowRoot.querySelector('ui-checkbox').style.display = 'none';
         if (this.name && !this.selected) this.textContent = null;
         this._listHolder.classList.remove('not-overflowing');
 
@@ -193,6 +201,9 @@ export default defineUIComponent({
           mouseon = this.isOpen;
         });
       });
+
+      if (!this.multiple) this.multiple = false;
+      if (!this.isOpen) this.isOpen = false;
 
       this.on('mouseenter', e => mouseon = true);
       this.on('mouseleave', e => {

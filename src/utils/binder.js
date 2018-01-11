@@ -62,10 +62,6 @@ export default superclass => class DataBinder extends superclass {
       }
     };
 
-    if (parent._isReady) {
-      bind();
-    } else {
-      parent.on('ui-component-ready', bind);
-    }
+    parent.isReady.then(bind);
   }
 };

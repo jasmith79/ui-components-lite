@@ -1,5 +1,4 @@
 import Floats from '../utils/float.js';
-import elementReady from '../utils/element-ready.js';
 
 import Card from './card.js';
 import './backdrop.js';
@@ -95,10 +94,10 @@ const Dialog = defineUIComponent({
     // Intercepts calls to appendChild so buttons can be appropriately used.
     appendChild (node) {
       if (node) {
-        elementReady(node).then(node => {
-          if (node.matches && node.matches('.ui-button')) {
-            incorporateButtonChild(this, node);
-            this.shadowRoot.appendChild(node);
+        Promise.resolve(node.isReady).then(el => {
+          if (el && el.matches && el.matches('.ui-button')) {
+            incorporateButtonChild(this, el);
+            this.shadowRoot.appendChild(el);
           } else {
             super.appendChild(node);
           }

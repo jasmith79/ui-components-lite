@@ -152,7 +152,7 @@ export const Form = (() => {
         super.init();
         this.attr('is-data-element', true);
 
-        this.on('ui-component-ready', _ => {
+        this.isReady.then(_ => {
           this._inputs = [
             ...new Set([
               ...this.selectAll('input[name]'),

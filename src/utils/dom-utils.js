@@ -10,6 +10,11 @@ export default superclass => class DOMutils extends superclass {
   constructor () {
     super();
     this._mutationObservers = [];
+    this._beforeReadyHandlers = [];
+  }
+
+  _beforeReady (...fs) {
+    this._beforeReadyHandlers.push.apply(this._beforeReadyHandlers, fs);
   }
 
   get isVisible () {

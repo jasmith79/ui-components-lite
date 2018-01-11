@@ -2,7 +2,6 @@ import UIBase from '../utils/ui-component-base.js';
 import Ripples from '../animations/rippler.js';
 import Checkbox from './checkbox.js';
 import { FormBehavior } from './form.js';
-import elementReady from '../utils/element-ready.js';
 import { defineUIComponent, document } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import extractType from '../../node_modules/extracttype/extracttype.js';
@@ -74,16 +73,31 @@ export const ListBehavior = superclass => defineUIComponent({
     }
 
     appendChild (node) {
-      if (node) {
-        elementReady(node).then(node => {
-          if (node.matches && node.matches('.ui-item')) {
-            node.on('click', e => {
-              this.selected = node;
-              node.isSelected = true;
-            });
-            super.appendChild(node);
-            this._items.push(node);
-          }
+      let pendingAdditions = [];
+      if (node && node.isReady) {
+        pendingAdditions.push(node);
+        this.isReady = this.isReady.then(_ => {
+          return new Promise(res => {
+            setTimeout(() => {
+              Promise.all(pendingAdditions.map(x => x.isReady)).then(_ => {
+                pendingAdditions = [];
+                res();
+              });
+            }, 0);
+          });
+        });
+
+        if (node instanceof Item) {
+          node.on('click', e => {
+            this.selected = node;
+            node.isSelected = true;
+          });
+          super.appendChild(node);
+          this._items.push(node);
+        }
+
+        node.isReady.then(node => {
+          if (node.isSelected) this.selected = node;
         });
       }
       return node;
@@ -91,28 +105,24 @@ export const ListBehavior = superclass => defineUIComponent({
 
     init () {
       super.init();
-
-      Promise.all([...this.children].map(elementReady)).then(els => {
-        els
-          .filter(el => el.matches && el.matches('.ui-item'))
-          .map(item => {
-            this._items.push(item);
-            if (item.isSelected) this.selected = item;
-            item.on('click', e => {
-              if (this.multiple) {
-                item.isSelected = !item.isSelected;
-                if (item.isSelected) {
-                  this.selected = item;
-                } else {
-                  this._selected = this._selected.filter(x => x !== item);
-                }
+      this._beforeReady(_ => {
+        this.selectAll('.ui-item').map(item => {
+          this._items.push(item);
+          if (item.isSelected) this.selected = item;
+          item.on('click', e => {
+            if (this.multiple) {
+              item.isSelected = !item.isSelected;
+              if (item.isSelected) {
+                this.selected = item;
               } else {
-                if (item !== this.selected) this.selected = item;
+                this._selected = this._selected.filter(x => x !== item);
               }
-            });
+            } else {
+              if (item !== this.selected) this.selected = item;
+            }
           });
+        });
       });
-
 
       this.on('attribute-change', ({ changed: { now, name } }) => {
         switch (name) {
@@ -212,22 +222,26 @@ export const Item = (() => {
 
       init () {
         super.init();
-        this._checkbox = this.shadowRoot.querySelector('ui-checkbox');
-        this._content = this.shadowRoot.querySelector('#content');
-        if (!this.value || this.value.toString() === 'true') this.value = this.textContent;
+        this._beforeReady(_ => {
+          this._checkbox = this.shadowRoot.querySelector('ui-checkbox');
+          this._content = this.shadowRoot.querySelector('#content');
+          if (!this.value || this.value.toString() === 'true') this.value = this.textContent;
+        });
 
         this.on('attribute-change', ({ changed: { now, name } }) => {
           switch (name) {
             case 'is-selected':
-              if (now) {
-                this.classList.add('selected');
-                this._checkbox.checked = true;
-                this.dispatchEvent(new CustomEvent('component-selected'));
-              } else {
-                this.classList.remove('selected');
-                this._checkbox.checked = false;
-                this.dispatchEvent(new CustomEvent('component-deselected'));
-              }
+              this.isReady.then(_ => {
+                if (now) {
+                  this.classList.add('selected');
+                  this._checkbox.checked = true;
+                  this.dispatchEvent(new CustomEvent('component-selected'));
+                } else {
+                  this.classList.remove('selected');
+                  this._checkbox.checked = false;
+                  this.dispatchEvent(new CustomEvent('component-deselected'));
+                }
+              });
               break;
           }
         });

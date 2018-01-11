@@ -2,17 +2,21 @@ import './styler.js';
 import DataBinder from './binder.js';
 import DOMutils from './dom-utils.js';
 import processHTMLAttr from './attribute-analyzer.js';
-import elementReady from './element-ready.js';
+import event2Promise from './promise-from-event.js';
 import { baseClass } from './dom.js';
 import { toSnakeCase } from '../../node_modules/jsstring/src/jsstring.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
-
+let flag = true;
 class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
   constructor () {
     super();
     this._listeners = [];
     this._isCentered = false;
-    this._isReady = false;
+    this.isReady = event2Promise({
+      element: this,
+      eventName: 'ui-component-ready',
+      callback: () => this
+    });
   }
 
   static get observedAttributes () {
@@ -29,7 +33,7 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
   }
 
   get _childrenUpgraded () {
-    return Promise.all([...this.children].map(elementReady));
+    return Promise.all([...this.children].map(ch => Promise.resolve(ch.isReady || ch)));
   }
 
   init () {
@@ -38,28 +42,38 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     // setup.
     setTimeout(() => {
       this.classList.add('is-ui-component');
-      this._childrenUpgraded.then(_ => {
-        this.constructor.observedAttributes.forEach(attr => {
-          if (this.attr(attr)) {
-            const evt = new CustomEvent('attribute-change');
-            evt.changed = { name: attr, now: this.attr(attr), was: null };
-            this.dispatchEvent(evt);
-          }
-        });
 
-        [...this.attributes].forEach(({ name: attr, value: val}) => {
-          const twoWay = val && val.match(/^\{\{\{(.+)\}\}\}$/);
-          const oneWay = val && val.match(/^\{\{(.+)\}\}$/);
-          const matched = twoWay ? twoWay[1] : oneWay ? oneWay[1] : null;
-          const attrToWatch = matched ? toSnakeCase(matched, '-') : null;
-          if (attrToWatch) {
-            this.bindAttribute(attr, attrToWatch, twoWay);
-          }
-        });
+      const children = this.shadowRoot ?
+        [this._childrenUpgraded, ...this.shadowRoot.children] :
+        this._childrenUpgraded;
 
-        this._isReady = true;
-        this.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: true }));
-      });
+      Promise.resolve(children)
+        .then(_ => {
+          this.constructor.observedAttributes.forEach(attr => {
+            if (this.attr(attr)) {
+              const evt = new CustomEvent('attribute-change');
+              evt.changed = { name: attr, now: this.attr(attr), was: null };
+              this.dispatchEvent(evt);
+            }
+          });
+
+          [...this.attributes].forEach(({ name: attr, value: val}) => {
+            const twoWay = val && val.match(/^\{\{\{(.+)\}\}\}$/);
+            const oneWay = val && val.match(/^\{\{(.+)\}\}$/);
+            const matched = twoWay ? twoWay[1] : oneWay ? oneWay[1] : null;
+            const attrToWatch = matched ? toSnakeCase(matched, '-') : null;
+            if (attrToWatch) {
+              this.bindAttribute(attr, attrToWatch, twoWay);
+            }
+          });
+
+          return this._beforeReadyHandlers.length ?
+            Promise.all(this._beforeReadyHandlers.map(f => f())) :
+            null;
+        })
+        .then(_ => {
+          this.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: true }));
+        });
     }, 0);
   }
 
@@ -76,7 +90,7 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     this._mutationObservers.forEach(([o, target, conf]) => o.observe(target, conf));
 
     // This avoids Chrome firing the event before DOM is ready
-    setTimeout(() => { this.init(); }, 10);
+    setTimeout(() => { this.init(); }, 10)
   }
 
   disconnectedCallback () {
