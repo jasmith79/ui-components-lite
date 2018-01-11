@@ -52,6 +52,29 @@ export default superclass => class DOMutils extends superclass {
     throw new Error('HTMLElement does not implement the matches method.');
   }
 
+  selectInternalElement (selector) {
+    if (!this.shadowRoot) {
+      console.warn(`Internal selector ${selector} called on ${this.identity} which has no shadowRoot.`);
+      return null;
+    }
+    return this.shadowRoot.querySelector(selector);
+  }
+
+  selectInternalAll (selector) {
+    if (!this.shadowRoot) {
+      console.warn(`Internal selector ${selector} called on ${this.identity} which has no shadowRoot.`);
+      return null;
+    }
+    return [...this.shadowRoot.querySelectorAll(selector)];
+  }
+
+  get identity () {
+    let id = this.id ? '#' + this.id : '';
+    let tag = this.tagName.toLowerCase();
+    let classes = '.' + this.attr('class').split(' ').filter(c => c !== tag).join('.');
+    return `${tag}${id}${classes}`;
+  }
+
   /**
    * on :: Event, (Event -> *) -> this
    *

@@ -56,7 +56,7 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
             this.bindAttribute(attr, attrToWatch, twoWay);
           }
         });
-        
+
         this._isReady = true;
         this.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: true }));
       });

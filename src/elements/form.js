@@ -55,11 +55,6 @@ export const Form = (() => {
       }
 
       get elements () {
-        // return [
-        //   ...this._inputs,
-        //   ...this._selects,
-        //   ...this._formElements
-        // ];
         return this.id ?
           [
             ...new Set([
@@ -71,12 +66,8 @@ export const Form = (() => {
       }
 
       get data () {
-        // return this._selects.reduce((acc, sel) => {
-        //   acc.append(sel.name, sel.options[sel.selectedIndex].value);
-        //   return acc;
-        // }, inputReducer(this._inputs, inputReducer(this._formElements, new FormData)));
         return this.elements.reduce((formdata, el) => {
-          if (el.name && !el.matches('[type="password"]')) formdata.append(el.name, el.value);
+          if (el.name) formdata.append(el.name, el.value || '');
           return formdata
         }, new FormData);
       }
@@ -90,11 +81,9 @@ export const Form = (() => {
               (val[i] || val[val.length - 1]) :
               val;
 
-            if (value === 'undefined' || value === 'null') value = null;
+            if (value === 'undefined' || value === 'null') value = '';
 
             switch (type) {
-              case 'input':
-                // debugger;
               case 'formElement':
                 if (el.value !== value) el.value = value;
                 break;
@@ -150,11 +139,11 @@ export const Form = (() => {
         evt.pendingResult = result;
         this.dispatchEvent(evt);
         switch ((responseType || this.responseType || '').toLowerCase()) {
-          case 'json': return result.then(resp => resp.json());
           case 'text':
           case 'html':
             return result.then(resp => resp.text());
 
+          case 'json': return result.then(resp => resp.json());
           default: return result;
         }
       }
