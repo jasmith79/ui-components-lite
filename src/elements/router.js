@@ -9,20 +9,12 @@ import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 export const Router = (() => {
   let historyManager = null;
-  let localNavigationCounter = -2;
+  let localNavigationCounter = -1;
+  let historyStack = [];
   const reflectedAttrs = [
     // updates-history: whether or not the router manages the navigation history. NOTE: can only be
     // set on one router element per page. Attempting to set more than one throws an error.
     'updates-history',
-
-    // current-path: the current path of the router.
-    'current-path',
-
-    // base-path: automatically prepended to all paths, i.e. use if the document root is not '/'.
-    // For example, if you have a test page at /tests/index.html and load up e.g.
-    // localhost:8080/tests then router elements on that page should have a base-path set to
-    // '/tests'.
-    // 'base-path',
 
     // renders-current: whether or not the router renders the child element associated with the
     // current path. Routers do not render their children by default.
@@ -47,19 +39,32 @@ export const Router = (() => {
         this._currentRoute = null;
         this._managingHistory = false;
         this._popstateListener = ({ state: data }) => {
-          // localNavigationCounter -= 2;
-          // const { path } = parseURL(window.location.href);
-          // const routePath = this.basePath ? path.replace(this.basePath, '') : path;
-          // this.route(routePath, data);
-          // if (!localNavigationCounter) {
-          //   window.removeEventListener('popstate', this._popstateListener);
-          //   this._managingHistory = false;
-          // }
+          // here we ignore querystring data, it may be stale
+          const { route } = parseURL(window.location.href);
+
+          // detect if it was back or forward button:
+          if (route === historyStack[historyStack.length - 2]) {
+            historyStack.pop();
+          }
+
+          this._updateRoute(route);
+          if (!historyStack.length || (historyStack.length === 1 && historyStack[0] === '/')) {
+            global.removeEventListener('popstate', this._popstateListener);
+            this._managingHistory = false;
+          }
         };
       }
 
       get currentRoute () {
         return this._currentRoute;
+      }
+
+      set currentRoute (route) {
+        if (route in this._routes) {
+          return this.route(route);
+        }
+
+        return null;
       }
 
       appendChild (node) {
@@ -69,16 +74,23 @@ export const Router = (() => {
         }
       }
 
-      _updatePath (val) {
-        let { data, path, route, queryString } = parseURL(val);
-
+      _updateRoute (route, data) {
         if (!route) {
           if ('/' in this._routes) route = '/';
           if (!route || !this._routes[route]) throw new Error(`Unknown route ${route || 'empty'}.`);
         }
 
+        console.log(`changing route to ${route}`);
+
         const elem = this._routes[route];
-        if (elem && elem !== this.selected) {
+        if (!elem && route !== '/') {
+          console.warn(`No element matches path ${route},
+            perhaps the ui-route has no path set?`);
+
+          return null;
+        }
+
+        if (elem !== this.selected) {
           if (this.selected) {
             this.selected.removeAttribute('is-selected');
             this.selected.removeAttribute('slot');
@@ -90,6 +102,7 @@ export const Router = (() => {
 
           this.selected = elem;
           this._currentRoute = route;
+          this.attr('current-route', route);
           if (data && Object.keys(data).length) elem.update(data);
           elem.setAttribute('is-selected', true);
 
@@ -99,22 +112,27 @@ export const Router = (() => {
           evt.targetComponent = elem;
 
           this.dispatchEvent(evt);
-          return [path, route, evt, queryString];
-        } else {
-          if (elem && route !== '/') console.warn(`No element matches path ${route},
-            perhaps the ui-route has no path set?`);
-          return [];
         }
+
+        return elem;
       }
 
-      route (val, data) {
+      route (val, outsidedata) {
+        let { data: urldata, path } = parseURL(window.location.href);
+        const data = outsidedata || urldata;
         const type = extractType(val);
-        let path = null;
-        if (type === 'String') path = val;
-        if (type.match(/HTML\w*Element/)) path = val.getAttribute('route-path');
-        if (path && path in this._routes) {
-          if (data) this._routes[path].update(data);
-          this.currentPath = path;
+        let route = null;
+        if (type === 'String') route = val;
+        if (type.match(/HTML\w*Element/)) route = val.getAttribute('route-path');
+        if (route && route in this._routes && route !== this.currentRoute) {
+          if (data && Object.keys(data).length) this._routes[route].update(data);
+          if (this.updatesHistory) {
+            const base = path.match(/\/$/) ? path : `${path}/`;
+            const url = this.hashBang ? `${base}#!${route}` : `${base}${route}`;
+            global.history.pushState(data, '', url);
+            historyStack.push(route);
+          }
+          return this._updateRoute(route, data);
         }
         return this;
       }
@@ -125,25 +143,6 @@ export const Router = (() => {
 
         this.on('attribute-change', ({ changed: { now, name, was } }) => {
           switch (name) {
-            case 'current-path':
-              if (now !== was) {
-                localNavigationCounter++;
-                if (this.updatesHistory && !this._managingHistory) {
-                  window.addEventListener('popstate', this._popstateListener);
-                }
-                const [path, route, evt, queryString] = this._updatePath(now);
-                const { protocol, fullDomain } = parseURL(window.location.href);
-                if (this.updatesHistory && route) {
-                  console.log(`${path}#!${route}`);
-                  history.pushState(this._routes[route].data, '', `${path}#!${route}`);
-                  window.dispatchEvent(evt);
-                }
-
-                // TODO: makes maps work, need to fix this
-                global.dispatchEvent(new Event('resize'));
-              }
-              break;
-
             case 'renders-current':
               if (this.selected) {
                 if (now) {
@@ -175,6 +174,8 @@ export const Router = (() => {
         });
 
         let selected = null;
+        let { route, data } = parseURL(window.location.href);
+        if (route) selected = route;
         this.selectAll('[route-path]').forEach((el, i) => {
           const path = el.getAttribute('route-path');
           this._routes[path] = el;
