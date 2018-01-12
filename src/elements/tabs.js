@@ -118,7 +118,7 @@ export const Tabs = (() => {
                       return acc;
                     }, null);
 
-                    if (matched) {
+                    if (matched && matched !== this.selected) {
                       this.selected = value;
                     } else {
                       this.selected = null;

@@ -35,6 +35,10 @@ const toObjectString = (o, n=0) => {
   return res.join('\n');
 };
 
+app.post('/data/login', function(request, response) {
+  response.end(JSON.stringify(true));
+});
+
 app.get('*', function(request, response, next) {
   console.log(`URL: ${request.url}`);
   if (request.url.match(/\.[0-9a-zA-Z]*$/)) {

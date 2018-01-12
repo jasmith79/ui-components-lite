@@ -38,6 +38,7 @@ export const Router = (() => {
         this._routes = {};
         this._currentRoute = null;
         this._managingHistory = false;
+        this._login = null;
         this._popstateListener = ({ state: data }) => {
           // here we ignore querystring data, it may be stale
           const { route } = parseURL(window.location.href);
@@ -74,13 +75,11 @@ export const Router = (() => {
         }
       }
 
-      _updateRoute (route, data) {
+      _internalRoute(route, data) {
         if (!route) {
           if ('/' in this._routes) route = '/';
           if (!route || !this._routes[route]) throw new Error(`Unknown route ${route || 'empty'}.`);
         }
-
-        console.log(`changing route to ${route}`);
 
         const elem = this._routes[route];
         if (!elem && route !== '/') {
@@ -105,7 +104,14 @@ export const Router = (() => {
           this.attr('current-route', route);
           if (data && Object.keys(data).length) elem.update(data);
           elem.setAttribute('is-selected', true);
+          return true;
+        }
+        return false;
+      }
 
+      _updateRoute (route, data) {
+        let changed = this._internalRoute(route, data);
+        if (changed) {
           const evt = new Event('change');
           evt.data = elem.data;
           evt.value = route;
@@ -113,8 +119,12 @@ export const Router = (() => {
 
           this.dispatchEvent(evt);
         }
-
         return elem;
+      }
+
+      _updateHistory(route, url, data={}) {
+        global.history.pushState(data, '', url);
+        historyStack.push(route);
       }
 
       route (val, outsidedata) {
@@ -124,22 +134,67 @@ export const Router = (() => {
         let route = null;
         if (type === 'String') route = val;
         if (type.match(/HTML\w*Element/)) route = val.getAttribute('route-path');
-        if (route && route in this._routes && route !== this.currentRoute) {
-          if (data && Object.keys(data).length) this._routes[route].update(data);
-          if (this.updatesHistory) {
-            const base = path.match(/\/$/) ? path : `${path}/`;
-            const url = this.hashBang ? `${base}#!${route}` : `${base}${route}`;
-            global.history.pushState(data, '', url);
-            historyStack.push(route);
+        const base = path.match(/\/$/) ? path : `${path}/`;
+        const url = this.hashBang ? `${base}#!${route}` : `${base}${route}`;
+
+        if (this._login && !this._login.isLoggedIn) {
+          if (this.updatesHistory) this._updateHistory(route, url, data);
+          this._internalRoute('/login');
+        } else {
+          if (route && route in this._routes) {
+            if (route === '/login') {
+              return this._updateRoute(route);
+            } else if (route !== this.currentRoute) {
+              if (data && Object.keys(data).length) this._routes[route].update(data);
+              if (this.updatesHistory) {
+                this._updateHistory(route, url, data);
+              }
+              return this._updateRoute(route, data);
+            }
           }
-          return this._updateRoute(route, data);
         }
-        return this;
+        return null;
       }
 
       init () {
         super.init();
-        this._contentSlot = this.shadowRoot.querySelector('slot');
+
+        this._beforeReady(_ => {
+          this._contentSlot = this.shadowRoot.querySelector('slot');
+          let selected = null;
+          let { route, data } = parseURL(window.location.href);
+          if (route) selected = route;
+
+          let flag = false;
+          this.selectAll('[route-path]').forEach((el, i) => {
+            const path = el.getAttribute('route-path');
+            this._routes[path] = el;
+            if (!i && !selected) selected = path;
+            if (el.matches && el.matches('[selected]')) selected = path;
+            if (path === '/login') {
+              flag = true;
+              el.isReady.then(_ => {
+                let login = el.querySelector('.ui-login');
+                this._login = login;
+                login.on('login', e => {
+                  const { route } = parseURL(window.location.href);
+                  this._updateRoute(route);
+                });
+
+                login.on('logout', e => {
+                  this.route('/login');
+                });
+                this.route(selected);
+              });
+            }
+          });
+
+          if (!flag) {
+            this.isReady.then(_ => {
+              this.route(selected);
+            });
+          }
+        });
 
         this.on('attribute-change', ({ changed: { now, name, was } }) => {
           switch (name) {
@@ -172,20 +227,6 @@ export const Router = (() => {
               }
           }
         });
-
-        let selected = null;
-        let { route, data } = parseURL(window.location.href);
-        if (route) selected = route;
-        this.selectAll('[route-path]').forEach((el, i) => {
-          const path = el.getAttribute('route-path');
-          this._routes[path] = el;
-          if (!i && !selected) selected = path;
-          if (el.matches && el.matches('[selected]')) selected = path;
-          el.on('component-selected', e => {
-            this.route(el);
-          });
-        });
-        this.route(selected);
       }
     }
   });
@@ -288,8 +329,10 @@ export const Route = (() => {
         this.on('attribute-change', ({ changed: { now, name } }) => {
           switch (name) {
             case 'is-selected':
-              const evtName = now ? 'component-selected' : 'component-deselected';
-              this.dispatchEvent(new CustomEvent(evtName));
+              if (!now || (now && !this.isSelected)) {
+                const evtName = now ? 'component-selected' : 'component-deselected';
+                this.dispatchEvent(new CustomEvent(evtName));
+              }
               break;
           }
         });

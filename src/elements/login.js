@@ -64,8 +64,8 @@ template.innerHTML = `
   <ui-card>
     <h2 id="heading">Login</h2>
     <ui-form>
-      <ui-input name="user" placeholder="User"></ui-input>
-      <ui-input name="pass" placeholder="Password" type="password"></ui-input>
+      <ui-input name="user" placeholder="User" required></ui-input>
+      <ui-input name="pass" placeholder="Password" type="password" required></ui-input>
     </ui-form>
     <ui-fab><div class="arrow"></div></ui-fab>
   </ui-card>
@@ -79,76 +79,115 @@ export default defineUIComponent({
     constructor () {
       super();
       this._alert = null;
+      this._form = null;
+      this._sessionTimeoutHandle = null;
     }
 
     get credentials () {
       return this.selectInternalElement('ui-form').serialize();
     }
 
+    login (resp) {
+      this.isLoggedIn = true;
+      const evt = new CustomEvent('login', { bubbles: true });
+      evt.credentials = this.credentials;
+      evt.response = resp;
+      this.dispatchEvent(evt);
+      this._sessionTimeoutHandle = this.countDown();
+    }
+
     logout () {
       this.isLoggedIn = null;
       this.selectInternalElement('[name="user"]').value = '';
       this.selectInternalElement('[name="pass"]').value = '';
+      global.sessionStorage.setItem('ui-credentials', '');
       this.dispatchEvent(new CustomEvent('logout', { bubbles: true }));
       return this;
+    }
+
+    userLogout () {
+      let { name } = this.credentials;
+      this.logout();
+      this._alert.alert(`User ${name} is now logged out. Please close this tab.`);
     }
 
     countDown (h) {
       global.clearTimeout(h);
       return global.setTimeout(() => {
         this.logout();
-        this._alert.alert(`Session timed out. Please login again.`);
+        this._alert.alert(`Session timed out. Please login again or close the tab.`);
       }, (this.sessionTimeout || 30 * 60 * 1000));
     }
 
     init () {
       super.init();
-      this._childrenUpgraded.then(_ => {
+      this._beforeReady(_ => {
+        this._form = this.selectInternalElement('ui-form');
         this._alert = document.querySelector('ui-alert');
         if (!this._alert) {
           this._alert = document.createElement('ui-alert');
           document.body.appendChild(this._alert);
         }
 
-        let handle;
         ['click', 'keydown'].forEach(evt => {
           document.addEventListener(evt, e => {
-            if (this.isLoggedIn) handle = this.countDown(handle);
+            if (this.isLoggedIn) this._sessionTimeoutHandle = this.countDown(this._sessionTimeoutHandle);
           });
         });
 
-        this.selectInternalElement('ui-fab').on('click', e => {
-          if (!this.dataUrl) {
-            throw new Error('No url for login, whatcha want me to do?');
+        this.selectInternalElement('ui-fab').on('click keydown', e => {
+          if (!this.isLoggedIn && (!e.keyCode || e.keyCode === 13)) {
+            if (!this.dataUrl) {
+              throw new Error('No url for login, whatcha want me to do?');
+            }
+
+            if (!this._form.isValid) {
+              this._alert.alert('Please supply a Username and Password.');
+              return;
+            }
+
+            this.selectInternalElement('ui-form')
+              .submit({ url: this.dataUrl, method: 'POST', responseType: 'json' })
+              .then(valid => {
+                if (valid) {
+                  sessionStorage.setItem('ui-credentials', JSON.stringify(this.credentials));
+                  this.login(valid);
+                } else {
+                  this._alert.alert(INVALID);
+                }
+              })
+              .catch(err => {
+                console.error(err);
+                this._alert.alert(FAILURE);
+              });
           }
-
-          const credentials = this.credentials;
-          if (!credentials.user || !credentials.pass) {
-            this._alert.alert('Please supply a Username and Password.');
-            return;
-          }
-
-          this.selectInternalElement('ui-form')
-            .submit({ url: this.dataUrl, method: 'POST', responseType: 'json' })
-            .then(valid => {
-              console.log('in then.');
-              if (valid) {
-                this.isLoggedIn = true;
-                const evt = new CustomEvent('login', { bubbles: true });
-                evt.credentials = this.credentials;
-                evt.response = valid;
-                this.dispatchEvent(evt);
-                handle = this.countDown();
-
-              } else {
-                this._alert.alert(INVALID);
-              }
-            })
-            .catch(err => {
-              console.error(err);
-              this._alert.alert(FAILURE);
-            });
         });
+
+        let cached = global.sessionStorage.getItem('ui-credentials');
+        if (cached) {
+          try {
+            let credentials = JSON.parse(cached);
+            if (credentials.user && credentials.pass) {
+              console.log('Logging in with session data...');
+              this._form.data = credentials;
+              this.login();
+            }
+          } catch (e) {
+            // no-op
+          }
+        }
+      });
+
+      this.isReady.then(_ => {
+        const bttn = document.querySelector('[logout-button]');
+        // If added later event handling needs to be done manually.
+        if (bttn) {
+          bttn.on('click keydown', e => {
+            if (!e.keyCode || e.keyCode === 13) {
+              this.userLogout();
+            }
+          });
+        }
       });
     }
   }

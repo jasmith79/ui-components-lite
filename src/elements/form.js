@@ -6,7 +6,6 @@ import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 // TODO external ui-input not getting cached data? input elements lose data sometimes
 // on multiple reloads?
 
-// const inputReducer = (ips, init) => ips.reduce((acc, ip) => (acc.append(ip.name, ip.value), acc), init);
 export const Form = (() => {
   const reflectedAttrs = ['action', 'method', 'autocomplete', 'response-type'];
   const template = document.createElement('template');
@@ -26,9 +25,10 @@ export const Form = (() => {
     definition: class Form extends UIBase {
       constructor () {
         super();
-        this._inputs = null;
-        this._selects = null;
-        this._formElements = null;
+        // this._inputs = null;
+        // this._selects = null;
+        this._form = null;
+        this._formUIComponents = null;
       }
 
       _isFormEligible (el) {
@@ -63,6 +63,10 @@ export const Form = (() => {
             ])
           ] :
           this.selectAll('input[name], select[name], .ui-form-behavior');
+      }
+
+      get isValid () {
+        return !this.querySelector(':invalid') && !this.querySelector('.invalid');
       }
 
       get data () {
@@ -104,7 +108,10 @@ export const Form = (() => {
         const isEligible = this._isFormEligible(node);
         if (isEligible) {
           super.appendChild(node);
-          this[`_${isEligible}s`].push(node);
+          if (node.isUIComponent) {
+            this._formUIComponents.push(node);
+          }
+          // this[`_${isEligible}s`].push(node);
         }
 
         return node;
@@ -152,25 +159,31 @@ export const Form = (() => {
         super.init();
         this.attr('is-data-element', true);
 
-        this.isReady.then(_ => {
-          this._inputs = [
-            ...new Set([
-              ...this.selectAll('input[name]'),
-              ...(document.querySelectorAll(`input[form="${this.id}"]`) || []),
-            ])
-          ];
+        this._beforeReady(_ => {
+          // this._inputs = [
+          //   ...new Set([
+          //     ...this.selectAll('input[name]'),
+          //     ...(document.querySelectorAll(`input[form="${this.id}"]`) || []),
+          //   ])
+          // ];
+          //
+          // this._selects = [...new Set([
+          //     ...this.selectAll('select[name]'),
+          //     ...(document.querySelectorAll(`select[form="${this.id}"]`) || []),
+          //   ])
+          // ];
 
-          this._selects = [...new Set([
-              ...this.selectAll('select[name]'),
-              ...(document.querySelectorAll(`select[form="${this.id}"]`) || []),
-            ])
-          ];
-
-          this._formElements = [...new Set([
+          this._formUIComponents = [...new Set([
               ...this.selectAll('.ui-form-behavior'),
               ...(document.querySelectorAll(`.ui-form-behavior[form="${this.id}"]`) || []),
             ])
           ];
+
+          this._formUIComponents.forEach(el => {
+            el.addEventListener('change', e => {
+
+            });
+          });
         });
       }
     }

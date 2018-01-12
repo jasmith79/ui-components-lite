@@ -27,6 +27,7 @@ const reflectedAttrs = [
   'form',
   'placeholder',
   'pattern',
+  'required',
 
    // NOTE: unlike placeholder which merely displays text to the user,
    // this is a true default value, i.e. it will be the value property/attribute
