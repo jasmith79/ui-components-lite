@@ -104,22 +104,22 @@ export const Router = (() => {
           this.attr('current-route', route);
           if (data && Object.keys(data).length) elem.update(data);
           elem.setAttribute('is-selected', true);
-          return true;
+          return elem;
         }
-        return false;
+        return null;
       }
 
       _updateRoute (route, data) {
         let changed = this._internalRoute(route, data);
         if (changed) {
           const evt = new Event('change');
-          evt.data = elem.data;
+          evt.data = changed.data;
           evt.value = route;
-          evt.targetComponent = elem;
+          evt.targetComponent = changed;
 
           this.dispatchEvent(evt);
         }
-        return elem;
+        return changed;
       }
 
       _updateHistory(route, url, data={}) {
