@@ -93,8 +93,8 @@ const Dialog = defineUIComponent({
 
     // Intercepts calls to appendChild so buttons can be appropriately used.
     appendChild (node) {
-      if (node) {
-        Promise.resolve(node.isReady).then(el => {
+      if (node && node.onReady) {
+        node.onReady(el => {
           if (el && el.matches && el.matches('.ui-button')) {
             incorporateButtonChild(this, el);
             this.shadowRoot.appendChild(el);

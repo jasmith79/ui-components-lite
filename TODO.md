@@ -25,3 +25,4 @@ init called, all the way up
   --data-bound
   --beforeReadyHandlers called
   --ui-ready-fires
+  --onReady handlers invoked

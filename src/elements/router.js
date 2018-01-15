@@ -173,7 +173,7 @@ export const Router = (() => {
             if (el.matches && el.matches('[selected]')) selected = path;
             if (path === '/login') {
               flag = true;
-              el.isReady.then(_ => {
+              el.onReady(_ => {
                 let login = el.querySelector('.ui-login');
                 this._login = login;
                 login.on('login', e => {
@@ -190,7 +190,7 @@ export const Router = (() => {
           });
 
           if (!flag) {
-            this.isReady.then(_ => {
+            this.onReady(_ => {
               this.route(selected);
             });
           }
@@ -296,7 +296,7 @@ export const Route = (() => {
       init () {
         super.init();
 
-        this.isReady.then(_ => {
+        this.onReady(_ => {
           this._dataElements = this.shadowRoot ?
             [
               ...this.shadowRoot.querySelectorAll('[is-data-element]'),

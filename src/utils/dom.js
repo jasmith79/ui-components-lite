@@ -40,6 +40,11 @@ const defineUIComponent = ({
     constructor (...args) {
       super(...args);
       if ((isShadowHost || template) && !this.shadowRoot) this.attachShadow({ mode: 'open' });
+
+      if (global._usingShady && this.shadowRoot && template) {
+        global.ShadyCSS.prepareTemplate(template, name);
+      }
+
       if (template) this.shadowRoot.appendChild(document.importNode(template.content, true));
       if (reflectedAttrs.length) {
         this.on('attribute-change', ({ changed: { name, now } }) => {
@@ -53,6 +58,11 @@ const defineUIComponent = ({
     init () {
       super.init();
       this.classList.add(name);
+      this._beforeReady(_ => {
+        if (global._usingShady && this.shadowRoot && this.shadowRoot.querySelector('style')) {
+          ShadyCSS.styleElement(this);
+        }
+      });
     }
   };
 

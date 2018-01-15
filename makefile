@@ -3,6 +3,8 @@ PATH  := node_modules/.bin:$(PATH)
 ES    := $(wildcard src/*.js)
 # JS    := $(ES:src/%.es=build/%.js)
 
+all: $(ES) build/loader.min.js build/es5.min.js build/concat.min.js
+
 clean:
 	rm -rf ./build
 
@@ -23,16 +25,40 @@ build/index.js:
 	import '../src/elements/tabs.js';\
 	import '../src/elements/toolbar.js';" > $@
 
-build/bundle.js: build/index.js
+# build/concat.js: build/index.js
+# 	@mkdir -p $(@D)
+# 	webpack
+#
+# build/backup.js: build/concat.js
+# 	@mkdir -p $(@D)
+# 	babel $< --presets env -o $@
+# 	rm build/concat.js
+#
+# build/nomodule.js: src/utils/loader.js build/backup.js
+# 	@mkdir -p $(@D)
+# 	babel src/utils/loader.js --presets env -o $@
+#
+# all: $(ES) build/nomodule.js
+
+build/concat.js: build/index.js
 	@mkdir -p $(@D)
 	webpack
 
-build/nomodule.js: src/utils/loader.js build/bundle.js
+build/concat.min.js: build/concat.js
 	@mkdir -p $(@D)
-	babel $^ --presets env -o $@
-	rm build/bundle.js
+	minify $< > $@
 
-all: $(ES) build/nomodule.js
+build/es5.js: build/concat.js
+	@mkdir -p $(@D)
+	babel $< --presets env -o $@
 
+build/es5.min.js: build/es5.js
+	@mkdir -p $(@D)
+	minify $< > $@
 
+build/loader.min.js: src/utils/loader.js
+	@mkdir -p $(@D)
+	minify $< > $@
+
+.PHONY: all clean
 

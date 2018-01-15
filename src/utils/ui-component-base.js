@@ -3,16 +3,18 @@ import DataBinder from './binder.js';
 import DOMutils from './dom-utils.js';
 import processHTMLAttr from './attribute-analyzer.js';
 import event2Promise from './promise-from-event.js';
-import { baseClass } from './dom.js';
+import { baseClass, global } from './dom.js';
 import { toSnakeCase } from '../../node_modules/jsstring/src/jsstring.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
+
 let flag = true;
 class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
   constructor () {
     super();
     this._listeners = [];
     this._isCentered = false;
-    this.isReady = event2Promise({
+    this._beforeReadyHandlers = [];
+    this._isReady = event2Promise({
       element: this,
       eventName: 'ui-component-ready',
       callback: () => this
@@ -33,7 +35,23 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
   }
 
   get _childrenUpgraded () {
-    return Promise.all([...this.children].map(ch => Promise.resolve(ch.isReady || ch)));
+    return Promise.all([...this.children].map(ch => Promise.resolve(ch._isReady || ch)));
+  }
+
+  _beforeReady (...fs) {
+    this._beforeReadyHandlers.push.apply(this._beforeReadyHandlers, fs);
+  }
+
+  onReady (...fs) {
+    this._isReady.then(_ => {
+      fs.forEach(f => f(this));
+    });
+
+    if (global._usingShady) {
+      global.ShadyCSS.styleSubtree(this);
+    }
+    
+    return this;
   }
 
   init () {
@@ -68,7 +86,7 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
           });
 
           return this._beforeReadyHandlers.length ?
-            Promise.all(this._beforeReadyHandlers.map(f => f())) :
+            Promise.all(this._beforeReadyHandlers.map(f => f(this))) :
             null;
         })
         .then(_ => {

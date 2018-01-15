@@ -27,7 +27,6 @@ template.innerHTML = `
 
     .content-wrapper {
       height: 30px;
-      width: 80px;
       left: 10%;
     }
 

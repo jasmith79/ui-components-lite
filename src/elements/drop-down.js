@@ -137,16 +137,6 @@ export default defineUIComponent({
 
     appendChild (node) {
       if (node) {
-        // Promise.resolve(node.isReady).then(node => {
-        //   if (node && node.matches && node.matches('.ui-item')) {
-        //     super.appendChild(node);
-        //     node.on('click', e => {
-        //       setTimeout(() => {
-        //         this.close();
-        //       }, 300);
-        //     });
-        //   }
-        // });
         super.appendChild(node);
         node.on('click', e => {
           setTimeout(() => {

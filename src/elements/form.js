@@ -3,6 +3,8 @@ import extractType from '../../node_modules/extracttype/extracttype.js';
 import { defineUIComponent, document } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
+import '../../node_modules/formdata-polyfill/formdata.min.js';
+
 // TODO external ui-input not getting cached data? input elements lose data sometimes
 // on multiple reloads?
 

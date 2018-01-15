@@ -73,31 +73,42 @@ export const ListBehavior = superclass => defineUIComponent({
     }
 
     appendChild (node) {
-      let pendingAdditions = [];
+      // let pendingAdditions = [];
       if (node && node.isReady) {
-        pendingAdditions.push(node);
-        this.isReady = this.isReady.then(_ => {
-          return new Promise(res => {
-            setTimeout(() => {
-              Promise.all(pendingAdditions.map(x => x.isReady)).then(_ => {
-                pendingAdditions = [];
-                res();
-              });
-            }, 0);
-          });
-        });
-
-        if (node instanceof Item) {
-          node.on('click', e => {
-            this.selected = node;
-            node.isSelected = true;
-          });
-          super.appendChild(node);
-          this._items.push(node);
-        }
-
-        node.isReady.then(node => {
-          if (node.isSelected) this.selected = node;
+      //   pendingAdditions.push(node);
+      //   this.isReady = this.isReady.then(_ => {
+      //     return new Promise(res => {
+      //       setTimeout(() => {
+      //         Promise.all(pendingAdditions.map(x => x.isReady)).then(_ => {
+      //           pendingAdditions = [];
+      //           res();
+      //         });
+      //       }, 0);
+      //     });
+      //   });
+      //
+      //   if (node instanceof Item) {
+      //     node.on('click', e => {
+      //       this.selected = node;
+      //       node.isSelected = true;
+      //     });
+      //     super.appendChild(node);
+      //     this._items.push(node);
+      //   }
+      //
+      //   node.isReady.then(node => {
+      //     if (node.isSelected) this.selected = node;
+      //   });
+        node.onReady(el => {
+          if (el instanceof Item) {
+            node.on('click', e => {
+              this.selected = node;
+              node.isSelected = true;
+            });
+            super.appendChild(node);
+            this._items.push(node);
+            if (el.isSelected) this.onReady(_ => this.selected = node);
+          }
         });
       }
       return node;
@@ -179,14 +190,14 @@ export const Item = (() => {
         border-bottom: 1px solid var(--ui-theme-primary-dark-color, rgb(0, 139, 163));
       }
 
-      ui-checkbox {
+      .ui-checkbox {
         display: none;
         height: 18px;
         width: 18px;
         float: left;
       }
 
-      ui-checkbox::before {
+      .ui-checkbox::before {
         top: 2px;
         height: 9px;
         left: 5px;
@@ -231,7 +242,7 @@ export const Item = (() => {
         this.on('attribute-change', ({ changed: { now, name } }) => {
           switch (name) {
             case 'is-selected':
-              this.isReady.then(_ => {
+              this.onReady(_ => {
                 if (now) {
                   this.classList.add('selected');
                   this._checkbox.checked = true;

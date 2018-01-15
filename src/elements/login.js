@@ -178,7 +178,7 @@ export default defineUIComponent({
         }
       });
 
-      this.isReady.then(_ => {
+      this.onReady(_ => {
         const bttn = document.querySelector('[logout-button]');
         // If added later event handling needs to be done manually.
         if (bttn) {

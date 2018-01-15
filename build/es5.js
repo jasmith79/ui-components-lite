@@ -1,43 +1,5 @@
 'use strict';
 
-/*
- *
- *
- * This uses `document.write`. While there are plenty of good reasons to avoid it, the WebComponents
- * polyfills *must* be loaded synchronously. Rather than try to suss out via polling for the other
- * polyfills I've loaded them synchronously as well.
- *
- * Obviously be sure if you include this that it's before the end of the document.
- */
-
-;(function (global) {
-  // Test for and include WebComponents polyfills.
-  var document = global.document;
-  if (!('HTMLElement' in global && 'attachShadow' in global.HTMLElement.prototype && 'customElements' in global)) {
-    console.log('No webcomponents support. Loading polyfill...');
-    document.write('<script src="../../node_modules/@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js"></script>');
-    document.write('<script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-lite.js"></script>');
-  } else {
-    console.log('Webcomponents supported. No polyfill needed');
-  }
-
-  // Need this for pretty much all older browsers.
-  // TODO: es6-collections is unmaintained. Need to replace this with a polyfill for WeakMap only.
-  // unfortunately a lot of them seem to be CJS only. Maybe just go core-js?
-  if (!('WeakMap' in global)) {
-    console.log('Loading WeakMap polyfill...');
-    document.write('<script src="../../node_modules/es6-collections/es6-collections.js"></script>');
-  }
-
-  // Need the following for Safari which supports everything else. Elements that use this (e.g.
-  // ui-form) should also import to be safe if using newer Safari.
-  if (!('entries' in global.FormData.prototype)) {
-    console.log('Loading FormData methods polyfill...');
-    document.write('<script src="../../node_modules/formdata-polyfill/formdata.min.js"></script>');
-  }
-})(new Function('return this;')());
-'use strict';
-
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -139,7 +101,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   "use strict";
   /* harmony export (binding) */
 
-  var _this2 = this;
+  var _this3 = this;
 
   __webpack_require__.d(__webpack_exports__, "c", function () {
     return document;
@@ -211,6 +173,11 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         var _this = _possibleConstructorReturn(this, (_ref2 = class_.__proto__ || Object.getPrototypeOf(class_)).call.apply(_ref2, [this].concat(args)));
 
         if ((isShadowHost || template) && !_this.shadowRoot) _this.attachShadow({ mode: 'open' });
+
+        if (global._usingShady && _this.shadowRoot && template) {
+          global.ShadyCSS.prepareTemplate(template, name);
+        }
+
         if (template) _this.shadowRoot.appendChild(document.importNode(template.content, true));
         if (reflectedAttrs.length) {
           _this.on('attribute-change', function (_ref3) {
@@ -229,8 +196,15 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       _createClass(class_, [{
         key: 'init',
         value: function init() {
+          var _this2 = this;
+
           _get(class_.prototype.__proto__ || Object.getPrototypeOf(class_.prototype), 'init', this).call(this);
           this.classList.add(name);
+          this._beforeReady(function (_) {
+            if (global._usingShady && _this2.shadowRoot && _this2.shadowRoot.querySelector('style')) {
+              ShadyCSS.styleElement(_this2);
+            }
+          });
         }
       }]);
 
@@ -240,7 +214,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
     // Override with original name for debugging/reflection.
     Object.defineProperty(class_, 'name', {
       get: function get() {
-        return _this2.name;
+        return _this3.name;
       }
     });
 
@@ -280,43 +254,74 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
     function UIBase() {
       _classCallCheck(this, UIBase);
 
-      var _this3 = _possibleConstructorReturn(this, (UIBase.__proto__ || Object.getPrototypeOf(UIBase)).call(this));
+      var _this4 = _possibleConstructorReturn(this, (UIBase.__proto__ || Object.getPrototypeOf(UIBase)).call(this));
 
-      _this3._listeners = [];
-      _this3._isCentered = false;
-      _this3.isReady = Object(__WEBPACK_IMPORTED_MODULE_4__promise_from_event_js__["a" /* default */])({
-        element: _this3,
+      _this4._listeners = [];
+      _this4._isCentered = false;
+      _this4._beforeReadyHandlers = [];
+      _this4._isReady = Object(__WEBPACK_IMPORTED_MODULE_4__promise_from_event_js__["a" /* default */])({
+        element: _this4,
         eventName: 'ui-component-ready',
         callback: function callback() {
-          return _this3;
+          return _this4;
         }
       });
-      return _this3;
+      return _this4;
     }
 
     _createClass(UIBase, [{
+      key: '_beforeReady',
+      value: function _beforeReady() {
+        for (var _len2 = arguments.length, fs = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+          fs[_key2] = arguments[_key2];
+        }
+
+        this._beforeReadyHandlers.push.apply(this._beforeReadyHandlers, fs);
+      }
+    }, {
+      key: 'onReady',
+      value: function onReady() {
+        var _this5 = this;
+
+        for (var _len3 = arguments.length, fs = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+          fs[_key3] = arguments[_key3];
+        }
+
+        this._isReady.then(function (_) {
+          fs.forEach(function (f) {
+            return f(_this5);
+          });
+        });
+
+        if (__WEBPACK_IMPORTED_MODULE_5__dom_js__["d" /* global */]._usingShady) {
+          __WEBPACK_IMPORTED_MODULE_5__dom_js__["d" /* global */].ShadyCSS.styleSubtree(this);
+        }
+
+        return this;
+      }
+    }, {
       key: 'init',
       value: function init() {
-        var _this4 = this;
+        var _this6 = this;
 
         // Should be called by extension elements via super. setTimeout is so that any initialization
         // and event handlers in the descendant classes can be attached before the reflected attribute
         // setup.
         setTimeout(function () {
-          _this4.classList.add('is-ui-component');
+          _this6.classList.add('is-ui-component');
 
-          var children = _this4.shadowRoot ? [_this4._childrenUpgraded].concat(_toConsumableArray(_this4.shadowRoot.children)) : _this4._childrenUpgraded;
+          var children = _this6.shadowRoot ? [_this6._childrenUpgraded].concat(_toConsumableArray(_this6.shadowRoot.children)) : _this6._childrenUpgraded;
 
           Promise.resolve(children).then(function (_) {
-            _this4.constructor.observedAttributes.forEach(function (attr) {
-              if (_this4.attr(attr)) {
+            _this6.constructor.observedAttributes.forEach(function (attr) {
+              if (_this6.attr(attr)) {
                 var evt = new CustomEvent('attribute-change');
-                evt.changed = { name: attr, now: _this4.attr(attr), was: null };
-                _this4.dispatchEvent(evt);
+                evt.changed = { name: attr, now: _this6.attr(attr), was: null };
+                _this6.dispatchEvent(evt);
               }
             });
 
-            [].concat(_toConsumableArray(_this4.attributes)).forEach(function (_ref4) {
+            [].concat(_toConsumableArray(_this6.attributes)).forEach(function (_ref4) {
               var attr = _ref4.name,
                   val = _ref4.value;
 
@@ -325,15 +330,15 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
               var matched = twoWay ? twoWay[1] : oneWay ? oneWay[1] : null;
               var attrToWatch = matched ? Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__["c" /* toSnakeCase */])(matched, '-') : null;
               if (attrToWatch) {
-                _this4.bindAttribute(attr, attrToWatch, twoWay);
+                _this6.bindAttribute(attr, attrToWatch, twoWay);
               }
             });
 
-            return _this4._beforeReadyHandlers.length ? Promise.all(_this4._beforeReadyHandlers.map(function (f) {
-              return f();
+            return _this6._beforeReadyHandlers.length ? Promise.all(_this6._beforeReadyHandlers.map(function (f) {
+              return f(_this6);
             })) : null;
           }).then(function (_) {
-            _this4.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: true }));
+            _this6.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: true }));
           });
         }, 0);
       }
@@ -344,7 +349,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
     }, {
       key: 'connectedCallback',
       value: function connectedCallback() {
-        var _this5 = this;
+        var _this7 = this;
 
         // This allows the elements to be detatched/reattached without losing
         // handlers.
@@ -353,7 +358,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
               evt = _ref6[0],
               f = _ref6[1];
 
-          return _this5.addEventListener(evt, f);
+          return _this7.addEventListener(evt, f);
         });
 
         // Allows element to be detatched and reattached while automatically cleaning up
@@ -369,13 +374,13 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
         // This avoids Chrome firing the event before DOM is ready
         setTimeout(function () {
-          _this5.init();
+          _this7.init();
         }, 10);
       }
     }, {
       key: 'disconnectedCallback',
       value: function disconnectedCallback() {
-        var _this6 = this;
+        var _this8 = this;
 
         this._isCentered = false;
         this._shadowElement = null;
@@ -384,7 +389,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
               evt = _ref10[0],
               f = _ref10[1];
 
-          return _this6.removeEventListener(evt, f);
+          return _this8.removeEventListener(evt, f);
         });
         this._mutationObservers.forEach(function (_ref11) {
           var _ref12 = _slicedToArray(_ref11, 1),
@@ -424,7 +429,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       key: '_childrenUpgraded',
       get: function get() {
         return Promise.all([].concat(_toConsumableArray(this.children)).map(function (ch) {
-          return Promise.resolve(ch.isReady || ch);
+          return Promise.resolve(ch._isReady || ch);
         }));
       }
     }], [{
@@ -727,7 +732,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         _createClass(Floating, [{
           key: 'init',
           value: function init() {
-            var _this8 = this;
+            var _this10 = this;
 
             _get(Floating.prototype.__proto__ || Object.getPrototypeOf(Floating.prototype), 'init', this).call(this);
             this.on('attribute-change', function (_ref15) {
@@ -737,23 +742,23 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
               switch (name) {
                 case 'floating-y':
-                  return now ? _this8.classList.add('float-y') : _this8.classList.remove('float-y');
+                  return now ? _this10.classList.add('float-y') : _this10.classList.remove('float-y');
 
                 case 'floating-x':
-                  var class_ = _this8.attr('right-oriented') ? 'right-x' : 'left-x';
-                  return now ? _this8.classList.add(class_) : _this8.classList.remove(class_);
+                  var class_ = _this10.attr('right-oriented') ? 'right-x' : 'left-x';
+                  return now ? _this10.classList.add(class_) : _this10.classList.remove(class_);
 
                 case 'right-oriented':
-                  if (_this8.classList.contains('left-x')) {
-                    _this8.classList.remove('left-x');
-                    _this8.classList.add('right-x');
+                  if (_this10.classList.contains('left-x')) {
+                    _this10.classList.remove('left-x');
+                    _this10.classList.add('right-x');
                   }
                   return;
 
                 case 'left-oriented':
-                  if (_this8.classList.contains('right-x')) {
-                    _this8.classList.remove('right-x');
-                    _this8.classList.add('left-x');
+                  if (_this10.classList.contains('right-x')) {
+                    _this10.classList.remove('right-x');
+                    _this10.classList.add('left-x');
                   }
                   return;
               }
@@ -782,6 +787,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__ = __webpack_require__(0);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_formdata_polyfill_formdata_min_js__ = __webpack_require__(22);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_formdata_polyfill_formdata_min_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4__node_modules_formdata_polyfill_formdata_min_js__);
 
   // TODO external ui-input not getting cached data? input elements lose data sometimes
   // on multiple reloads?
@@ -803,24 +810,24 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
           // this._inputs = null;
           // this._selects = null;
-          var _this9 = _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).call(this));
+          var _this11 = _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).call(this));
 
-          _this9._form = null;
-          _this9._formUIComponents = null;
-          return _this9;
+          _this11._form = null;
+          _this11._formUIComponents = null;
+          return _this11;
         }
 
         _createClass(Form, [{
           key: '_isFormEligible',
           value: function _isFormEligible(el) {
-            var _this10 = this;
+            var _this12 = this;
 
             return el && el.matches && function () {
-              if (el.matches('input[name]') || el.matches('input[form="' + _this10.id + '"]')) return 'input';
+              if (el.matches('input[name]') || el.matches('input[form="' + _this12.id + '"]')) return 'input';
 
-              if (el.matches('select[name]') || el.matches('select[form="' + _this10.id + '"]')) return 'select';
+              if (el.matches('select[name]') || el.matches('select[form="' + _this12.id + '"]')) return 'select';
 
-              if (el.matches('.ui-form-behavior') || el.matches('.ui-form-behavior[form="' + _this10.id + '"]')) return 'formElement';
+              if (el.matches('.ui-form-behavior') || el.matches('.ui-form-behavior[form="' + _this12.id + '"]')) return 'formElement';
 
               return false;
             }();
@@ -897,7 +904,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         }, {
           key: 'init',
           value: function init() {
-            var _this11 = this;
+            var _this13 = this;
 
             _get(Form.prototype.__proto__ || Object.getPrototypeOf(Form.prototype), 'init', this).call(this);
             this.attr('is-data-element', true);
@@ -916,9 +923,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
               //   ])
               // ];
 
-              _this11._formUIComponents = [].concat(_toConsumableArray(new Set([].concat(_toConsumableArray(_this11.selectAll('.ui-form-behavior')), _toConsumableArray(__WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].querySelectorAll('.ui-form-behavior[form="' + _this11.id + '"]') || [])))));
+              _this13._formUIComponents = [].concat(_toConsumableArray(new Set([].concat(_toConsumableArray(_this13.selectAll('.ui-form-behavior')), _toConsumableArray(__WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].querySelectorAll('.ui-form-behavior[form="' + _this13.id + '"]') || [])))));
 
-              _this11._formUIComponents.forEach(function (el) {
+              _this13._formUIComponents.forEach(function (el) {
                 el.addEventListener('change', function (e) {});
               });
             });
@@ -942,18 +949,18 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             }, new FormData());
           },
           set: function set(data) {
-            var _this12 = this;
+            var _this14 = this;
 
             Object.entries(data).forEach(function (_ref19) {
               var _ref20 = _slicedToArray(_ref19, 2),
                   name = _ref20[0],
                   val = _ref20[1];
 
-              var els = _this12.elements.filter(function (el) {
+              var els = _this14.elements.filter(function (el) {
                 return el.matches('[name="' + name + '"]');
               });
               els.forEach(function (el, i, arr) {
-                var type = _this12._isFormEligible(el);
+                var type = _this14._isFormEligible(el);
                 var value = Array.isArray(val) ? val[i] || val[val.length - 1] : val;
 
                 if (value === 'undefined' || value === 'null') value = '';
@@ -1001,16 +1008,16 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
           _createClass(definition, [{
             key: 'validate',
             value: function validate(validator) {
-              var _this14 = this;
+              var _this16 = this;
 
               return this.watchAttribute(this, 'value', function () {
-                for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-                  args[_key2] = arguments[_key2];
+                for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+                  args[_key4] = arguments[_key4];
                 }
 
-                _this14.isValid = validator.apply(_this14, args);
-                _this14.classList.remove(_this14.isValid ? 'invalid' : 'valid');
-                _this14.classList.add(_this14.isValid ? 'valid' : 'invalid');
+                _this16.isValid = validator.apply(_this16, args);
+                _this16.classList.remove(_this16.isValid ? 'invalid' : 'valid');
+                _this16.classList.add(_this16.isValid ? 'valid' : 'invalid');
               });
             }
           }]);
@@ -1248,8 +1255,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   // NOTE: does not support the full range of %[char] possiblities. If you need something more robust
   // use https://github.com/alexei/sprintf.js/blob/master/src/sprintf.js
   var sprintf = function sprintf(str) {
-    for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-      args[_key3 - 1] = arguments[_key3];
+    for (var _len5 = arguments.length, args = Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+      args[_key5 - 1] = arguments[_key5];
     }
 
     var count = -1;
@@ -1349,16 +1356,16 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
           // Here we want to intercept any handlers on events that trigger a ripple and delay them
           // to give the animation time to complete.
           value: function on(evts, f) {
-            var _this17 = this;
+            var _this19 = this;
 
             var events = evts.split(/\s+/g);
             events.forEach(function (evt) {
               if (rippleEvents.includes(evt)) {
                 // Here we'll want to cache a canonical version for later removal
                 var fn = registerHandler(f);
-                _get(Ripples.prototype.__proto__ || Object.getPrototypeOf(Ripples.prototype), 'on', _this17).call(_this17, evt, fn);
+                _get(Ripples.prototype.__proto__ || Object.getPrototypeOf(Ripples.prototype), 'on', _this19).call(_this19, evt, fn);
               } else {
-                _get(Ripples.prototype.__proto__ || Object.getPrototypeOf(Ripples.prototype), 'on', _this17).call(_this17, evt, f);
+                _get(Ripples.prototype.__proto__ || Object.getPrototypeOf(Ripples.prototype), 'on', _this19).call(_this19, evt, f);
               }
             });
           }
@@ -1370,8 +1377,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
           value: function remove() {
             var _get2;
 
-            for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-              args[_key4] = arguments[_key4];
+            for (var _len6 = arguments.length, args = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+              args[_key6] = arguments[_key6];
             }
 
             var correctArgs = args.reduce(function (acc, arg) {
@@ -1526,10 +1533,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
     var timer = null;
     return function () {
-      var _this18 = this;
+      var _this20 = this;
 
-      for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-        args[_key5] = arguments[_key5];
+      for (var _len7 = arguments.length, args = Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
+        args[_key7] = arguments[_key7];
       }
 
       if (timer === null && now) {
@@ -1537,7 +1544,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       }
       clearTimeout(timer);
       timer = setTimeout(function () {
-        return fn.apply(_this18, args);
+        return fn.apply(_this20, args);
       }, n);
       return timer;
     };
@@ -1553,16 +1560,16 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       function Input() {
         _classCallCheck(this, Input);
 
-        var _this19 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this));
+        var _this21 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this));
 
-        _this19._input = null;
-        return _this19;
+        _this21._input = null;
+        return _this21;
       }
 
       _createClass(Input, [{
         key: 'init',
         value: function init() {
-          var _this20 = this;
+          var _this22 = this;
 
           _get(Input.prototype.__proto__ || Object.getPrototypeOf(Input.prototype), 'init', this).call(this);
           this._input = this.shadowRoot.querySelector('#input');
@@ -1581,20 +1588,20 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
           }
 
           this._input.addEventListener('focus', function (e) {
-            _this20._before = _this20._input.value;
-            _this20.classList.add('focused');
+            _this22._before = _this22._input.value;
+            _this22.classList.add('focused');
           });
 
           this._input.addEventListener('blur', function (e) {
-            _this20.classList.remove('focused');
+            _this22.classList.remove('focused');
           });
 
           changeTriggers.forEach(function (evtName) {
-            return _this20._input.addEventListener(evtName, debounce(500, function (e) {
-              if (_this20._input.value !== _this20._before) {
-                _this20._before = _this20._input.value;
-                _this20.value = _this20._input.value;
-                _this20.dispatchEvent(new Event('change', { bubbles: true }));
+            return _this22._input.addEventListener(evtName, debounce(500, function (e) {
+              if (_this22._input.value !== _this22._before) {
+                _this22._before = _this22._input.value;
+                _this22.value = _this22._input.value;
+                _this22.dispatchEvent(new Event('change', { bubbles: true }));
               }
             }));
           });
@@ -1607,32 +1614,32 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
             switch (name) {
               case 'name':
-                _this20._input.name = now;
-                _this20.name = now;
+                _this22._input.name = now;
+                _this22.name = now;
                 break;
 
               case 'value':
                 var val = now === true ? '' : now;
                 if (val === '') {
                   setTimeout(function () {
-                    if (!_this20._input.value) {
-                      _this20._input.value = _this20.defaultValue || '';
-                      _this20.dispatchEvent(new Event('change', { bubbles: 'true' }));
+                    if (!_this22._input.value) {
+                      _this22._input.value = _this22.defaultValue || '';
+                      _this22.dispatchEvent(new Event('change', { bubbles: 'true' }));
                     }
                   }, 500);
-                } else if (_this20._input.value !== val) {
-                  _this20._input.value = now;
-                  _this20.dispatchEvent(new Event('change', { bubbles: 'true' }));
+                } else if (_this22._input.value !== val) {
+                  _this22._input.value = now;
+                  _this22.dispatchEvent(new Event('change', { bubbles: 'true' }));
                 }
                 break;
 
               case 'default-value':
-                if (!_this20.value) _this20.value = now;
+                if (!_this22.value) _this22.value = now;
                 break;
 
               case 'type':
                 if (now === 'hidden') {
-                  _this20.hide();
+                  _this22.hide();
                   return;
                 }
                 if (!['text', 'number', 'password', 'email'].includes(now)) return;
@@ -1641,9 +1648,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
               case 'placeholder':
               case 'required':
                 if (now == null) {
-                  _this20._input.removeAttribute(name);
+                  _this22._input.removeAttribute(name);
                 } else {
-                  _this20._input.setAttribute(name, now || true);
+                  _this22._input.setAttribute(name, now || true);
                 }
                 break;
             }
@@ -1793,10 +1800,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
         // Elements that use this element should set this property to themselves as a
         // debugging aid.
-        var _this24 = _possibleConstructorReturn(this, (Backdrop.__proto__ || Object.getPrototypeOf(Backdrop)).call(this));
+        var _this26 = _possibleConstructorReturn(this, (Backdrop.__proto__ || Object.getPrototypeOf(Backdrop)).call(this));
 
-        _this24.for = null;
-        return _this24;
+        _this26.for = null;
+        return _this26;
       }
 
       _createClass(Backdrop, [{
@@ -1821,7 +1828,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   /* harmony import */
   var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__animations_rippler_js__ = __webpack_require__(9);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__checkbox_js__ = __webpack_require__(25);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__checkbox_js__ = __webpack_require__(27);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__form_js__ = __webpack_require__(5);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__ = __webpack_require__(0);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
@@ -1838,45 +1845,56 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function definition() {
           _classCallCheck(this, definition);
 
-          var _this25 = _possibleConstructorReturn(this, (definition.__proto__ || Object.getPrototypeOf(definition)).call(this));
+          var _this27 = _possibleConstructorReturn(this, (definition.__proto__ || Object.getPrototypeOf(definition)).call(this));
 
-          _this25._items = [];
-          _this25._selected = null;
-          return _this25;
+          _this27._items = [];
+          _this27._selected = null;
+          return _this27;
         }
 
         _createClass(definition, [{
           key: 'appendChild',
           value: function appendChild(node) {
-            var _this26 = this;
+            var _this28 = this;
 
-            var pendingAdditions = [];
+            // let pendingAdditions = [];
             if (node && node.isReady) {
-              pendingAdditions.push(node);
-              this.isReady = this.isReady.then(function (_) {
-                return new Promise(function (res) {
-                  setTimeout(function () {
-                    Promise.all(pendingAdditions.map(function (x) {
-                      return x.isReady;
-                    })).then(function (_) {
-                      pendingAdditions = [];
-                      res();
-                    });
-                  }, 0);
-                });
-              });
-
-              if (node instanceof Item) {
-                node.on('click', function (e) {
-                  _this26.selected = node;
-                  node.isSelected = true;
-                });
-                _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'appendChild', this).call(this, node);
-                this._items.push(node);
-              }
-
-              node.isReady.then(function (node) {
-                if (node.isSelected) _this26.selected = node;
+              //   pendingAdditions.push(node);
+              //   this.isReady = this.isReady.then(_ => {
+              //     return new Promise(res => {
+              //       setTimeout(() => {
+              //         Promise.all(pendingAdditions.map(x => x.isReady)).then(_ => {
+              //           pendingAdditions = [];
+              //           res();
+              //         });
+              //       }, 0);
+              //     });
+              //   });
+              //
+              //   if (node instanceof Item) {
+              //     node.on('click', e => {
+              //       this.selected = node;
+              //       node.isSelected = true;
+              //     });
+              //     super.appendChild(node);
+              //     this._items.push(node);
+              //   }
+              //
+              //   node.isReady.then(node => {
+              //     if (node.isSelected) this.selected = node;
+              //   });
+              node.onReady(function (el) {
+                if (el instanceof Item) {
+                  node.on('click', function (e) {
+                    _this28.selected = node;
+                    node.isSelected = true;
+                  });
+                  _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'appendChild', _this28).call(_this28, node);
+                  _this28._items.push(node);
+                  if (el.isSelected) _this28.onReady(function (_) {
+                    return _this28.selected = node;
+                  });
+                }
               });
             }
             return node;
@@ -1884,25 +1902,25 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         }, {
           key: 'init',
           value: function init() {
-            var _this27 = this;
+            var _this29 = this;
 
             _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'init', this).call(this);
             this._beforeReady(function (_) {
-              _this27.selectAll('.ui-item').map(function (item) {
-                _this27._items.push(item);
-                if (item.isSelected) _this27.selected = item;
+              _this29.selectAll('.ui-item').map(function (item) {
+                _this29._items.push(item);
+                if (item.isSelected) _this29.selected = item;
                 item.on('click', function (e) {
-                  if (_this27.multiple) {
+                  if (_this29.multiple) {
                     item.isSelected = !item.isSelected;
                     if (item.isSelected) {
-                      _this27.selected = item;
+                      _this29.selected = item;
                     } else {
-                      _this27._selected = _this27._selected.filter(function (x) {
+                      _this29._selected = _this29._selected.filter(function (x) {
                         return x !== item;
                       });
                     }
                   } else {
-                    if (item !== _this27.selected) _this27.selected = item;
+                    if (item !== _this29.selected) _this29.selected = item;
                   }
                 });
               });
@@ -1916,22 +1934,22 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
               switch (name) {
                 case 'multiple':
                   if (now) {
-                    _this27.selectedIndex = -1;
-                    _this27._selected = [_this27.selected];
+                    _this29.selectedIndex = -1;
+                    _this29._selected = [_this29.selected];
                   } else {
-                    _this27.selected = _this27.selected == null ? null : _this27.selected[0];
+                    _this29.selected = _this29.selected == null ? null : _this29.selected[0];
                   }
                   break;
 
                 case 'selected-index':
-                  if (now === -1 || _this27.multiple) return;
-                  if (!_this27._items[now]) {
+                  if (now === -1 || _this29.multiple) return;
+                  if (!_this29._items[now]) {
                     console.warn('Attempted to set invalid index ' + now + ' for element.');
-                    _this27.attr('selected-index', was);
+                    _this29.attr('selected-index', was);
                     return;
                   }
 
-                  if (_this27._items[now] !== _this27.selected) _this27.selected = now;
+                  if (_this29._items[now] !== _this29.selected) _this29.selected = now;
                   break;
               }
             });
@@ -2004,7 +2022,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   var Item = function () {
     var template = __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["c" /* document */].createElement('template');
     var reflectedAttrs = ['is-selected', 'value'];
-    template.innerHTML = '\n    <style>\n      :host {\n        --ui-theme-ripple-color: var(--ui-theme-primary-dark-color, rgb(0, 139, 163));\n        display: block;\n        margin-top: 10px;\n        margin-bottom: 10px;\n        min-height: 20px;\n        background-color: inherit;\n        color: inherit;\n        border-radius: 0;\n        text-transform: capitalize;\n        width: 90%;\n        margin-left: 5%;\n        padding-top: 4px;\n      }\n\n      :host(:hover) {\n        color: var(--ui-theme-primary-dark-color, #999);\n      }\n\n      :host(.selected) {\n        border-bottom: 1px solid var(--ui-theme-primary-dark-color, rgb(0, 139, 163));\n      }\n\n      ui-checkbox {\n        display: none;\n        height: 18px;\n        width: 18px;\n        float: left;\n      }\n\n      ui-checkbox::before {\n        top: 2px;\n        height: 9px;\n        left: 5px;\n      }\n\n      :host-context([multiple="true"]) {\n        border-bottom: none;\n      }\n\n      :host-context([multiple="true"]) ui-checkbox {\n        display: inline-block;\n      }\n\n      :host-context([multiple="true"]) #content {\n        position: relative;\n        left: -10px; /* offsets checkbox */\n      }\n    </style>\n    <ui-checkbox></ui-checkbox>\n    <span id="content"><slot></slot></span>\n  ';
+    template.innerHTML = '\n    <style>\n      :host {\n        --ui-theme-ripple-color: var(--ui-theme-primary-dark-color, rgb(0, 139, 163));\n        display: block;\n        margin-top: 10px;\n        margin-bottom: 10px;\n        min-height: 20px;\n        background-color: inherit;\n        color: inherit;\n        border-radius: 0;\n        text-transform: capitalize;\n        width: 90%;\n        margin-left: 5%;\n        padding-top: 4px;\n      }\n\n      :host(:hover) {\n        color: var(--ui-theme-primary-dark-color, #999);\n      }\n\n      :host(.selected) {\n        border-bottom: 1px solid var(--ui-theme-primary-dark-color, rgb(0, 139, 163));\n      }\n\n      .ui-checkbox {\n        display: none;\n        height: 18px;\n        width: 18px;\n        float: left;\n      }\n\n      .ui-checkbox::before {\n        top: 2px;\n        height: 9px;\n        left: 5px;\n      }\n\n      :host-context([multiple="true"]) {\n        border-bottom: none;\n      }\n\n      :host-context([multiple="true"]) ui-checkbox {\n        display: inline-block;\n      }\n\n      :host-context([multiple="true"]) #content {\n        position: relative;\n        left: -10px; /* offsets checkbox */\n      }\n    </style>\n    <ui-checkbox></ui-checkbox>\n    <span id="content"><slot></slot></span>\n  ';
 
     return Object(__WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["b" /* defineUIComponent */])({
       name: 'ui-item',
@@ -2016,23 +2034,23 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function Item() {
           _classCallCheck(this, Item);
 
-          var _this28 = _possibleConstructorReturn(this, (Item.__proto__ || Object.getPrototypeOf(Item)).call(this));
+          var _this30 = _possibleConstructorReturn(this, (Item.__proto__ || Object.getPrototypeOf(Item)).call(this));
 
-          _this28._checkbox = null;
-          _this28._content = null;
-          return _this28;
+          _this30._checkbox = null;
+          _this30._content = null;
+          return _this30;
         }
 
         _createClass(Item, [{
           key: 'init',
           value: function init() {
-            var _this29 = this;
+            var _this31 = this;
 
             _get(Item.prototype.__proto__ || Object.getPrototypeOf(Item.prototype), 'init', this).call(this);
             this._beforeReady(function (_) {
-              _this29._checkbox = _this29.shadowRoot.querySelector('ui-checkbox');
-              _this29._content = _this29.shadowRoot.querySelector('#content');
-              if (!_this29.value || _this29.value.toString() === 'true') _this29.value = _this29.textContent;
+              _this31._checkbox = _this31.shadowRoot.querySelector('ui-checkbox');
+              _this31._content = _this31.shadowRoot.querySelector('#content');
+              if (!_this31.value || _this31.value.toString() === 'true') _this31.value = _this31.textContent;
             });
 
             this.on('attribute-change', function (_ref27) {
@@ -2042,15 +2060,15 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
               switch (name) {
                 case 'is-selected':
-                  _this29.isReady.then(function (_) {
+                  _this31.onReady(function (_) {
                     if (now) {
-                      _this29.classList.add('selected');
-                      _this29._checkbox.checked = true;
-                      _this29.dispatchEvent(new CustomEvent('component-selected'));
+                      _this31.classList.add('selected');
+                      _this31._checkbox.checked = true;
+                      _this31.dispatchEvent(new CustomEvent('component-selected'));
                     } else {
-                      _this29.classList.remove('selected');
-                      _this29._checkbox.checked = false;
-                      _this29.dispatchEvent(new CustomEvent('component-deselected'));
+                      _this31.classList.remove('selected');
+                      _this31._checkbox.checked = false;
+                      _this31.dispatchEvent(new CustomEvent('component-deselected'));
                     }
                   });
                   break;
@@ -2097,13 +2115,13 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__src_elements_login_js__ = __webpack_require__(18);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__src_elements_fab_js__ = __webpack_require__(13);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__src_elements_drop_down_js__ = __webpack_require__(24);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__src_elements_drawer_js__ = __webpack_require__(26);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__src_elements_hamburger_js__ = __webpack_require__(28);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__src_elements_drop_down_js__ = __webpack_require__(26);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__src_elements_drawer_js__ = __webpack_require__(28);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__src_elements_hamburger_js__ = __webpack_require__(30);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__src_elements_input_js__ = __webpack_require__(11);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__src_elements_router_js__ = __webpack_require__(29);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__src_elements_tabs_js__ = __webpack_require__(31);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_8__src_elements_toolbar_js__ = __webpack_require__(32);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__src_elements_router_js__ = __webpack_require__(31);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__src_elements_tabs_js__ = __webpack_require__(33);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_8__src_elements_toolbar_js__ = __webpack_require__(34);
 
   /***/
 },
@@ -2118,7 +2136,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__input_js__ = __webpack_require__(11);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__card_js__ = __webpack_require__(12);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__fab_js__ = __webpack_require__(13);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__alert_js__ = __webpack_require__(22);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__alert_js__ = __webpack_require__(24);
 
   var INVALID = 'Invalid login credentials. Please double-check your username and password.';
   var FAILURE = 'Could not connect to the server to verify your identity. Please check the console for details.';
@@ -2137,12 +2155,12 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       function Login() {
         _classCallCheck(this, Login);
 
-        var _this31 = _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).call(this));
+        var _this33 = _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).call(this));
 
-        _this31._alert = null;
-        _this31._form = null;
-        _this31._sessionTimeoutHandle = null;
-        return _this31;
+        _this33._alert = null;
+        _this33._form = null;
+        _this33._sessionTimeoutHandle = null;
+        return _this33;
       }
 
       _createClass(Login, [{
@@ -2176,55 +2194,55 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       }, {
         key: 'countDown',
         value: function countDown(h) {
-          var _this32 = this;
+          var _this34 = this;
 
           __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["d" /* global */].clearTimeout(h);
           return __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["d" /* global */].setTimeout(function () {
-            _this32.logout();
-            _this32._alert.alert('Session timed out. Please login again or close the tab.');
+            _this34.logout();
+            _this34._alert.alert('Session timed out. Please login again or close the tab.');
           }, this.sessionTimeout || 30 * 60 * 1000);
         }
       }, {
         key: 'init',
         value: function init() {
-          var _this33 = this;
+          var _this35 = this;
 
           _get(Login.prototype.__proto__ || Object.getPrototypeOf(Login.prototype), 'init', this).call(this);
           this._beforeReady(function (_) {
-            _this33._form = _this33.selectInternalElement('ui-form');
-            _this33._alert = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].querySelector('ui-alert');
-            if (!_this33._alert) {
-              _this33._alert = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].createElement('ui-alert');
-              __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].body.appendChild(_this33._alert);
+            _this35._form = _this35.selectInternalElement('ui-form');
+            _this35._alert = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].querySelector('ui-alert');
+            if (!_this35._alert) {
+              _this35._alert = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].createElement('ui-alert');
+              __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].body.appendChild(_this35._alert);
             }
 
             ['click', 'keydown'].forEach(function (evt) {
               __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].addEventListener(evt, function (e) {
-                if (_this33.isLoggedIn) _this33._sessionTimeoutHandle = _this33.countDown(_this33._sessionTimeoutHandle);
+                if (_this35.isLoggedIn) _this35._sessionTimeoutHandle = _this35.countDown(_this35._sessionTimeoutHandle);
               });
             });
 
-            _this33.selectInternalElement('ui-fab').on('click keydown', function (e) {
-              if (!_this33.isLoggedIn && (!e.keyCode || e.keyCode === 13)) {
-                if (!_this33.dataUrl) {
+            _this35.selectInternalElement('ui-fab').on('click keydown', function (e) {
+              if (!_this35.isLoggedIn && (!e.keyCode || e.keyCode === 13)) {
+                if (!_this35.dataUrl) {
                   throw new Error('No url for login, whatcha want me to do?');
                 }
 
-                if (!_this33._form.isValid) {
-                  _this33._alert.alert('Please supply a Username and Password.');
+                if (!_this35._form.isValid) {
+                  _this35._alert.alert('Please supply a Username and Password.');
                   return;
                 }
 
-                _this33.selectInternalElement('ui-form').submit({ url: _this33.dataUrl, method: 'POST', responseType: 'json' }).then(function (valid) {
+                _this35.selectInternalElement('ui-form').submit({ url: _this35.dataUrl, method: 'POST', responseType: 'json' }).then(function (valid) {
                   if (valid) {
-                    sessionStorage.setItem('ui-credentials', JSON.stringify(_this33.credentials));
-                    _this33.login(valid);
+                    sessionStorage.setItem('ui-credentials', JSON.stringify(_this35.credentials));
+                    _this35.login(valid);
                   } else {
-                    _this33._alert.alert(INVALID);
+                    _this35._alert.alert(INVALID);
                   }
                 }).catch(function (err) {
                   console.error(err);
-                  _this33._alert.alert(FAILURE);
+                  _this35._alert.alert(FAILURE);
                 });
               }
             });
@@ -2235,8 +2253,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 var credentials = JSON.parse(cached);
                 if (credentials.user && credentials.pass) {
                   console.log('Logging in with session data...');
-                  _this33._form.data = credentials;
-                  _this33.login();
+                  _this35._form.data = credentials;
+                  _this35.login();
                 }
               } catch (e) {
                 // no-op
@@ -2244,13 +2262,13 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             }
           });
 
-          this.isReady.then(function (_) {
+          this.onReady(function (_) {
             var bttn = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].querySelector('[logout-button]');
             // If added later event handling needs to be done manually.
             if (bttn) {
               bttn.on('click keydown', function (e) {
                 if (!e.keyCode || e.keyCode === 13) {
-                  _this33.userLogout();
+                  _this35.userLogout();
                 }
               });
             }
@@ -2282,12 +2300,12 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       function DataBinder() {
         _classCallCheck(this, DataBinder);
 
-        var _this34 = _possibleConstructorReturn(this, (DataBinder.__proto__ || Object.getPrototypeOf(DataBinder)).call(this));
+        var _this36 = _possibleConstructorReturn(this, (DataBinder.__proto__ || Object.getPrototypeOf(DataBinder)).call(this));
 
-        _this34._oneWayBoundAttrs = {};
-        _this34._twoWayBoundAttrs = {};
-        _this34._internalMutationFlag = false;
-        return _this34;
+        _this36._oneWayBoundAttrs = {};
+        _this36._twoWayBoundAttrs = {};
+        _this36._internalMutationFlag = false;
+        return _this36;
       }
 
       // Set up data-binding. Any element attributes with a value matching the binding syntax
@@ -2305,7 +2323,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       _createClass(DataBinder, [{
         key: 'bindAttribute',
         value: function bindAttribute(attribute, parentAttribute) {
-          var _this35 = this;
+          var _this37 = this;
 
           var twoWay = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
@@ -2330,29 +2348,29 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             }
 
             // Initial set
-            _this35.attr(attribute, parent.attr(parentAttribute));
+            _this37.attr(attribute, parent.attr(parentAttribute));
 
             // Watch changes.
-            _this35.watchAttribute(parent, parentAttribute, function (now, name, was) {
-              if (_this35.attr(attribute) !== now) {
-                _this35._internalMutationFlag = true;
-                _this35.attr(attribute, now);
+            _this37.watchAttribute(parent, parentAttribute, function (now, name, was) {
+              if (_this37.attr(attribute) !== now) {
+                _this37._internalMutationFlag = true;
+                _this37.attr(attribute, now);
               }
             });
 
             if (twoWay) {
-              _this35.watchAttribute(_this35, attribute, function (now, name, was) {
+              _this37.watchAttribute(_this37, attribute, function (now, name, was) {
                 if (parent.attr(parentAttribute) !== now) {
                   parent.attr(parentAttribute, now);
                 }
               });
-              _this35._twoWayBoundAttrs[attribute] = parentAttribute;
+              _this37._twoWayBoundAttrs[attribute] = parentAttribute;
             } else {
-              _this35._oneWayBoundAttrs[attribute] = parentAttribute;
+              _this37._oneWayBoundAttrs[attribute] = parentAttribute;
             }
           };
 
-          parent.isReady.then(bind);
+          parent.onReady(bind);
         }
       }]);
 
@@ -2384,33 +2402,23 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       function DOMutils() {
         _classCallCheck(this, DOMutils);
 
-        var _this36 = _possibleConstructorReturn(this, (DOMutils.__proto__ || Object.getPrototypeOf(DOMutils)).call(this));
+        var _this38 = _possibleConstructorReturn(this, (DOMutils.__proto__ || Object.getPrototypeOf(DOMutils)).call(this));
 
-        _this36._mutationObservers = [];
-        _this36._beforeReadyHandlers = [];
-        return _this36;
+        _this38._mutationObservers = [];
+        return _this38;
       }
 
       _createClass(DOMutils, [{
-        key: '_beforeReady',
-        value: function _beforeReady() {
-          for (var _len6 = arguments.length, fs = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-            fs[_key6] = arguments[_key6];
-          }
-
-          this._beforeReadyHandlers.push.apply(this._beforeReadyHandlers, fs);
-        }
-      }, {
         key: 'watchAttribute',
 
 
         // Observes changes to the given attribute on the given node.
         value: function watchAttribute(n, a, callb) {
-          var _this37 = this;
+          var _this39 = this;
 
           var _ref28 = function () {
             if (isHTMLElement(n)) return [n, a, callb];
-            return [_this37, n, a];
+            return [_this39, n, a];
           }(),
               _ref29 = _slicedToArray(_ref28, 3),
               node = _ref29[0],
@@ -2485,10 +2493,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
          * DOM.
          */
         value: function on(evts, fn) {
-          var _this38 = this;
+          var _this40 = this;
 
           evts.split(/\s+/g).forEach(function (evt) {
-            var isDupe = _this38._listeners.some(function (_ref33) {
+            var isDupe = _this40._listeners.some(function (_ref33) {
               var _ref34 = _slicedToArray(_ref33, 2),
                   e = _ref34[0],
                   f = _ref34[1];
@@ -2496,8 +2504,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
               return e === evt && fn === f;
             });
             if (!isDupe) {
-              _this38.addEventListener(evt, fn);
-              _this38._listeners.push([evt, fn]);
+              _this40.addEventListener(evt, fn);
+              _this40._listeners.push([evt, fn]);
             }
           });
           return this;
@@ -2519,16 +2527,16 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       }, {
         key: 'remove',
         value: function remove() {
-          var _this39 = this;
+          var _this41 = this;
 
-          for (var _len7 = arguments.length, args = Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
-            args[_key7] = arguments[_key7];
+          for (var _len8 = arguments.length, args = Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
+            args[_key8] = arguments[_key8];
           }
 
           var _ref35 = function (arr) {
             switch (arr.length) {
               case 0:
-                _this39.parentElement && _this39.parentElement.removeChild(_this39);
+                _this41.parentElement && _this41.parentElement.removeChild(_this41);
                 return [];
 
               case 1:
@@ -2571,7 +2579,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                   f = _ref40[1];
 
               if (f === fn && (evt === null || evt === e)) {
-                _this39.removeEventListener(e, f);
+                _this41.removeEventListener(e, f);
                 return false;
               }
               return true;
@@ -2580,7 +2588,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
           if (children) {
             children.forEach(function (child) {
-              return _this39.removeChild(child);
+              return _this41.removeChild(child);
             });
           }
 
@@ -2688,12 +2696,255 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   /***/
 },
 /* 22 */
+/***/function (module, exports, __webpack_require__) {
+
+  /* WEBPACK VAR INJECTION */(function (global) {
+    var g,
+        k = "function" == typeof Object.defineProperties ? Object.defineProperty : function (b, a, d) {
+      b != Array.prototype && b != Object.prototype && (b[a] = d.value);
+    },
+        l = "undefined" != typeof window && window === this ? this : "undefined" != typeof global && null != global ? global : this;function n() {
+      n = function n() {};l.Symbol || (l.Symbol = p);
+    }var p = function () {
+      var b = 0;return function (a) {
+        return "jscomp_symbol_" + (a || "") + b++;
+      };
+    }();
+    function q() {
+      n();var b = l.Symbol.iterator;b || (b = l.Symbol.iterator = l.Symbol("iterator"));"function" != typeof Array.prototype[b] && k(Array.prototype, b, { configurable: !0, writable: !0, value: function value() {
+          return u(this);
+        } });q = function q() {};
+    }function u(b) {
+      var a = 0;return v(function () {
+        return a < b.length ? { done: !1, value: b[a++] } : { done: !0 };
+      });
+    }function v(b) {
+      q();b = { next: b };b[l.Symbol.iterator] = function () {
+        return this;
+      };return b;
+    }function w(b) {
+      q();n();q();var a = b[Symbol.iterator];return a ? a.call(b) : u(b);
+    }
+    if (!window.FormData || !window.FormData.prototype.keys) {
+      var x = function x(b, a, d) {
+        if (2 > arguments.length) throw new TypeError("2 arguments required, but only " + arguments.length + " present.");return a instanceof Blob ? [b + "", a, void 0 !== d ? d + "" : "string" === typeof a.name ? a.name : "Blob"] : [b + "", a + ""];
+      },
+          y = function y(b) {
+        if (!arguments.length) throw new TypeError("1 argument required, but only 0 present.");return [b + ""];
+      },
+          A = function A(b) {
+        var a = w(b);b = a.next().value;a = a.next().value;b instanceof Blob && (b = new File([b], a, { type: b.type,
+          lastModified: b.lastModified }));return b;
+      },
+          B = window.FormData,
+          C = window.XMLHttpRequest.prototype.send,
+          D = window.Request && window.fetch;n();var E = window.Symbol && Symbol.toStringTag,
+          F = new WeakMap(),
+          G = Array.from || function (b) {
+        return [].slice.call(b);
+      };E && (Blob.prototype[E] || (Blob.prototype[E] = "Blob"), "File" in window && !File.prototype[E] && (File.prototype[E] = "File"));try {
+        new File([], "");
+      } catch (b) {
+        window.File = function (a, d, c) {
+          a = new Blob(a, c);c = c && void 0 !== c.lastModified ? new Date(c.lastModified) : new Date();Object.defineProperties(a, { name: { value: d }, lastModifiedDate: { value: c }, lastModified: { value: +c }, toString: { value: function value() {
+                return "[object File]";
+              } } });E && Object.defineProperty(a, E, { value: "File" });return a;
+        };
+      }var H = function H(b) {
+        F.set(this, Object.create(null));if (!b) return this;b = w(G(b.elements));for (var a = b.next(); !a.done; a = b.next()) {
+          if (a = a.value, a.name && !a.disabled) if ("file" === a.type) for (var d = w(a.files), c = d.next(); !c.done; c = d.next()) {
+            this.append(a.name, c.value);
+          } else if ("select-multiple" === a.type || "select-one" === a.type) for (d = w(G(a.options)), c = d.next(); !c.done; c = d.next()) {
+            c = c.value, c.selected && this.append(a.name, c.value);
+          } else "checkbox" === a.type || "radio" === a.type ? a.checked && this.append(a.name, a.value) : this.append(a.name, a.value);
+        }
+      };g = H.prototype;g.append = function (b, a, d) {
+        var c = F.get(this);c[b] || (c[b] = []);c[b].push([a, d]);
+      };g["delete"] = function (b) {
+        delete F.get(this)[b];
+      };g.entries = function () {
+        function b(b, t, I) {
+          for (;;) {
+            switch (a) {case 0:
+                z = F.get(J);h = [];m = z;for (f in m) {
+                  h.push(f);
+                }r = 0;case 1:
+                if (!(r < h.length)) {
+                  a = 3;break;
+                }f = h[r];if (f in m) {
+                  a = 4;break;
+                }a = 2;break;case 4:
+                e = w(z[f]), c = e.next();case 5:
+                if (c.done) {
+                  a = 7;break;
+                }d = c.value;a = 8;return { value: [f, A(d)], done: !1 };case 8:
+                if (1 != b) {
+                  a = 9;break;
+                }a = -1;throw I;case 9:case 6:
+                c = e.next();a = 5;break;case 7:case 2:
+                r++;a = 1;break;case 3:
+                a = -1;default:
+                return { value: void 0, done: !0 };}
+          }
+        }var a = 0,
+            d,
+            c,
+            e,
+            f,
+            m,
+            r,
+            h,
+            z,
+            J = this,
+            t = { next: function next(a) {
+            return b(0, a, void 0);
+          }, "throw": function _throw(a) {
+            return b(1, void 0, a);
+          }, "return": function _return() {
+            throw Error("Not yet implemented");
+          } };q();t[Symbol.iterator] = function () {
+          return this;
+        };return t;
+      };g.forEach = function (b, a) {
+        for (var d = w(this), c = d.next(); !c.done; c = d.next()) {
+          var e = w(c.value);c = e.next().value;e = e.next().value;b.call(a, e, c, this);
+        }
+      };g.get = function (b) {
+        var a = F.get(this);return a[b] ? A(a[b][0]) : null;
+      };g.getAll = function (b) {
+        return (F.get(this)[b] || []).map(A);
+      };g.has = function (b) {
+        return b in F.get(this);
+      };g.keys = function () {
+        function b(b, h, t) {
+          for (;;) {
+            switch (a) {case 0:
+                m = w(r), f = m.next();case 1:
+                if (f.done) {
+                  a = 3;break;
+                }e = f.value;c = w(e);d = c.next().value;a = 4;return { value: d, done: !1 };case 4:
+                if (1 != b) {
+                  a = 5;break;
+                }a = -1;throw t;
+              case 5:case 2:
+                f = m.next();a = 1;break;case 3:
+                a = -1;default:
+                return { value: void 0, done: !0 };}
+          }
+        }var a = 0,
+            d,
+            c,
+            e,
+            f,
+            m,
+            r = this,
+            h = { next: function next(a) {
+            return b(0, a, void 0);
+          }, "throw": function _throw(a) {
+            return b(1, void 0, a);
+          }, "return": function _return() {
+            throw Error("Not yet implemented");
+          } };q();h[Symbol.iterator] = function () {
+          return this;
+        };return h;
+      };g.set = function (b, a, d) {
+        F.get(this)[b] = [[a, d]];
+      };g.values = function () {
+        function b(b, h, t) {
+          for (;;) {
+            switch (a) {case 0:
+                m = w(r), f = m.next();case 1:
+                if (f.done) {
+                  a = 3;break;
+                }e = f.value;c = w(e);c.next();d = c.next().value;
+                a = 4;return { value: d, done: !1 };case 4:
+                if (1 != b) {
+                  a = 5;break;
+                }a = -1;throw t;case 5:case 2:
+                f = m.next();a = 1;break;case 3:
+                a = -1;default:
+                return { value: void 0, done: !0 };}
+          }
+        }var a = 0,
+            d,
+            c,
+            e,
+            f,
+            m,
+            r = this,
+            h = { next: function next(a) {
+            return b(0, a, void 0);
+          }, "throw": function _throw(a) {
+            return b(1, void 0, a);
+          }, "return": function _return() {
+            throw Error("Not yet implemented");
+          } };q();h[Symbol.iterator] = function () {
+          return this;
+        };return h;
+      };H.prototype._asNative = function () {
+        for (var b = new B(), a = w(this), d = a.next(); !d.done; d = a.next()) {
+          var c = w(d.value);d = c.next().value;c = c.next().value;b.append(d, c);
+        }return b;
+      };H.prototype._blob = function () {
+        for (var b = "----formdata-polyfill-" + Math.random(), a = [], d = w(this), c = d.next(); !c.done; c = d.next()) {
+          var e = w(c.value);c = e.next().value;e = e.next().value;a.push("--" + b + "\r\n");e instanceof Blob ? a.push('Content-Disposition: form-data; name="' + c + '"; filename="' + e.name + '"\r\n', "Content-Type: " + (e.type || "application/octet-stream") + "\r\n\r\n", e, "\r\n") : a.push('Content-Disposition: form-data; name="' + c + '"\r\n\r\n' + e + "\r\n");
+        }a.push("--" + b + "--");
+        return new Blob(a, { type: "multipart/form-data; boundary=" + b });
+      };n();q();H.prototype[Symbol.iterator] = function () {
+        return this.entries();
+      };H.prototype.toString = function () {
+        return "[object FormData]";
+      };E && (H.prototype[E] = "FormData");[["append", x], ["delete", y], ["get", y], ["getAll", y], ["has", y], ["set", x]].forEach(function (b) {
+        var a = H.prototype[b[0]];H.prototype[b[0]] = function () {
+          return a.apply(this, b[1].apply(this, G(arguments)));
+        };
+      });XMLHttpRequest.prototype.send = function (b) {
+        b instanceof H && (b = b._blob(), this.setRequestHeader("Content-Type", b.type));C.call(this, b);
+      };if (D) {
+        var K = window.fetch;window.fetch = function (b, a) {
+          a && a.body && a.body instanceof H && (a.body = a.body._blob());return K(b, a);
+        };
+      }window.FormData = H;
+    };
+
+    /* WEBPACK VAR INJECTION */
+  }).call(exports, __webpack_require__(23));
+
+  /***/
+},
+/* 23 */
+/***/function (module, exports) {
+
+  var g;
+
+  // This works in non-strict mode
+  g = function () {
+    return this;
+  }();
+
+  try {
+    // This works if eval is allowed (see CSP)
+    g = g || Function("return this")() || (1, eval)("this");
+  } catch (e) {
+    // This works if the window reference is available
+    if ((typeof window === 'undefined' ? 'undefined' : _typeof(window)) === "object") g = window;
+  }
+
+  // g can still be undefined, but nothing to do about it...
+  // We return undefined, instead of nothing here, so it's
+  // easier to handle this case. if(!global) { ...}
+
+  module.exports = g;
+
+  /***/
+},
+/* 24 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
   /* harmony import */
   var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(6);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__dialog_js__ = __webpack_require__(23);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__dialog_js__ = __webpack_require__(25);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__ = __webpack_require__(0);
 
   var template = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].createElement('template');
@@ -2714,17 +2965,17 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       _createClass(Alert, [{
         key: 'init',
         value: function init() {
-          var _this41 = this;
+          var _this43 = this;
 
           _get(Alert.prototype.__proto__ || Object.getPrototypeOf(Alert.prototype), 'init', this).call(this);
           this.scrollableDialog = false;
           this.smallDialog = true;
           this.watchAttribute(this, 'is-open', function (open) {
-            open ? _this41._backdrop.show() : _this41._backdrop.hide();
+            open ? _this43._backdrop.show() : _this43._backdrop.hide();
           });
 
           this.shadowRoot.querySelector('#closer').on('click', function (e) {
-            return _this41.close();
+            return _this43.close();
           });
         }
       }, {
@@ -2752,7 +3003,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 23 */
+/* 25 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -2809,11 +3060,11 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       function Dialog() {
         _classCallCheck(this, Dialog);
 
-        var _this42 = _possibleConstructorReturn(this, (Dialog.__proto__ || Object.getPrototypeOf(Dialog)).call(this));
+        var _this44 = _possibleConstructorReturn(this, (Dialog.__proto__ || Object.getPrototypeOf(Dialog)).call(this));
 
-        _this42.hide();
-        _this42._backdrop = null;
-        return _this42;
+        _this44.hide();
+        _this44._backdrop = null;
+        return _this44;
       }
 
       // Intercepts calls to appendChild so buttons can be appropriately used.
@@ -2822,15 +3073,15 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       _createClass(Dialog, [{
         key: 'appendChild',
         value: function appendChild(node) {
-          var _this43 = this;
+          var _this45 = this;
 
-          if (node) {
-            Promise.resolve(node.isReady).then(function (el) {
+          if (node && node.onReady) {
+            node.onReady(function (el) {
               if (el && el.matches && el.matches('.ui-button')) {
-                incorporateButtonChild(_this43, el);
-                _this43.shadowRoot.appendChild(el);
+                incorporateButtonChild(_this45, el);
+                _this45.shadowRoot.appendChild(el);
               } else {
-                _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'appendChild', _this43).call(_this43, node);
+                _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'appendChild', _this45).call(_this45, node);
               }
             });
           }
@@ -2852,7 +3103,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       }, {
         key: 'init',
         value: function init() {
-          var _this44 = this;
+          var _this46 = this;
 
           _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'init', this).call(this);
           this._backdrop = __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["c" /* document */].createElement('ui-backdrop');
@@ -2863,12 +3114,12 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             children.filter(function (el) {
               return el.matches && el.matches('.ui-button');
             }).forEach(function (el) {
-              return incorporateButtonChild(_this44, el);
+              return incorporateButtonChild(_this46, el);
             });
           });
 
           var closer = function closer(e) {
-            return _this44.close();
+            return _this46.close();
           };
 
           this.on('attribute-change', function (_ref42) {
@@ -2878,29 +3129,29 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
             switch (name) {
               case 'small-dialog':
-                return now ? (_this44.classList.add('small-dialog'), _this44.classList.remove('medium-dialog', 'large-dialog')) : _this44.classList.remove('small-dialog');
+                return now ? (_this46.classList.add('small-dialog'), _this46.classList.remove('medium-dialog', 'large-dialog')) : _this46.classList.remove('small-dialog');
 
               case 'medium-dialog':
-                return now ? (_this44.classList.add('medium-dialog'), _this44.classList.remove('small-dialog', 'large-dialog')) : _this44.classList.remove('medium-dialog');
+                return now ? (_this46.classList.add('medium-dialog'), _this46.classList.remove('small-dialog', 'large-dialog')) : _this46.classList.remove('medium-dialog');
 
               case 'large-dialog':
-                return now ? (_this44.classList.add('large-dialog'), _this44.classList.remove('small-dialog', 'medium-dialog')) : _this44.classList.remove('large-dialog');
+                return now ? (_this46.classList.add('large-dialog'), _this46.classList.remove('small-dialog', 'medium-dialog')) : _this46.classList.remove('large-dialog');
 
               case 'scrollable-dialog':
-                return now ? _this44.classList.add('scrollable-dialog') : _this44.classList.remove('scrollable-dialog');
+                return now ? _this46.classList.add('scrollable-dialog') : _this46.classList.remove('scrollable-dialog');
 
               case 'is-modal':
-                return now ? _this44._backdrop.on('click', closer) : _this44._backdrop.remove(closer);
+                return now ? _this46._backdrop.on('click', closer) : _this46._backdrop.remove(closer);
 
               case 'is-open':
                 if (now) {
-                  if (_this44.isModal) _this44._backdrop.show();
-                  _this44.show();
-                  _this44.dispatchEvent(new CustomEvent('dialog-opened'));
+                  if (_this46.isModal) _this46._backdrop.show();
+                  _this46.show();
+                  _this46.dispatchEvent(new CustomEvent('dialog-opened'));
                 } else {
-                  _this44._backdrop.hide();
-                  _this44.hide();
-                  _this44.dispatchEvent(new CustomEvent('dialog-closed'));
+                  _this46._backdrop.hide();
+                  _this46.hide();
+                  _this46.dispatchEvent(new CustomEvent('dialog-closed'));
                 }
             }
           });
@@ -2915,7 +3166,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 24 */
+/* 26 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -2940,35 +3191,25 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       function DropDown() {
         _classCallCheck(this, DropDown);
 
-        var _this45 = _possibleConstructorReturn(this, (DropDown.__proto__ || Object.getPrototypeOf(DropDown)).call(this));
+        var _this47 = _possibleConstructorReturn(this, (DropDown.__proto__ || Object.getPrototypeOf(DropDown)).call(this));
 
-        _this45._list = null;
-        _this45._listHolder = null;
-        _this45._dummyItem = null;
-        _this45._textContent = '';
-        return _this45;
+        _this47._list = null;
+        _this47._listHolder = null;
+        _this47._dummyItem = null;
+        _this47._textContent = '';
+        return _this47;
       }
 
       _createClass(DropDown, [{
         key: 'appendChild',
         value: function appendChild(node) {
-          var _this46 = this;
+          var _this48 = this;
 
           if (node) {
-            // Promise.resolve(node.isReady).then(node => {
-            //   if (node && node.matches && node.matches('.ui-item')) {
-            //     super.appendChild(node);
-            //     node.on('click', e => {
-            //       setTimeout(() => {
-            //         this.close();
-            //       }, 300);
-            //     });
-            //   }
-            // });
             _get(DropDown.prototype.__proto__ || Object.getPrototypeOf(DropDown.prototype), 'appendChild', this).call(this, node);
             node.on('click', function (e) {
               setTimeout(function () {
-                _this46.close();
+                _this48.close();
               }, 300);
             });
           }
@@ -2996,33 +3237,33 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       }, {
         key: 'init',
         value: function init() {
-          var _this47 = this;
+          var _this49 = this;
 
           var mouseon = false;
           _get(DropDown.prototype.__proto__ || Object.getPrototypeOf(DropDown.prototype), 'init', this).call(this);
           this._beforeReady(function (_) {
-            _this47._list = _this47.shadowRoot.querySelector('ui-list');
-            _this47._listHolder = _this47.shadowRoot.querySelector('#list-holder');
-            _this47._dummyItem = _this47.shadowRoot.querySelector('#dummy-item');
-            _this47._dummyItem.shadowRoot.querySelector('ui-checkbox').style.display = 'none';
+            _this49._list = _this49.shadowRoot.querySelector('ui-list');
+            _this49._listHolder = _this49.shadowRoot.querySelector('#list-holder');
+            _this49._dummyItem = _this49.shadowRoot.querySelector('#dummy-item');
+            _this49._dummyItem.shadowRoot.querySelector('ui-checkbox').style.display = 'none';
 
-            _this47._items.forEach(function (item) {
-              if (item.isSelected) _this47.selected = item;
+            _this49._items.forEach(function (item) {
+              if (item.isSelected) _this49.selected = item;
               item.on('click', function (e) {
-                if (!_this47.multiple) {
+                if (!_this49.multiple) {
                   setTimeout(function () {
-                    _this47.close();
+                    _this49.close();
                   }, 300);
                 }
               });
             });
 
-            if (_this47.name && !_this47.selected) _this47.textContent = null;
-            _this47._listHolder.classList.remove('not-overflowing');
+            if (_this49.name && !_this49.selected) _this49.textContent = null;
+            _this49._listHolder.classList.remove('not-overflowing');
 
-            _this47._dummyItem.on('click', function (e) {
-              _this47.toggle();
-              mouseon = _this47.isOpen;
+            _this49._dummyItem.on('click', function (e) {
+              _this49.toggle();
+              mouseon = _this49.isOpen;
             });
           });
 
@@ -3035,7 +3276,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
           this.on('mouseleave', function (e) {
             mouseon = false;
             setTimeout(function () {
-              if (!mouseon) _this47.isOpen = false;
+              if (!mouseon) _this49.isOpen = false;
             }, 1000);
           });
 
@@ -3046,10 +3287,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
             switch (name) {
               case 'selected-index':
-                if (_this47.selected && !_this47.multiple) {
-                  _this47.textContent = _this47.selected.textContent;
+                if (_this49.selected && !_this49.multiple) {
+                  _this49.textContent = _this49.selected.textContent;
                 } else {
-                  _this47.textContent = ''; // default
+                  _this49.textContent = ''; // default
                 }
                 break;
             }
@@ -3082,7 +3323,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 25 */
+/* 27 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -3114,26 +3355,26 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       function Checkbox() {
         _classCallCheck(this, Checkbox);
 
-        var _this48 = _possibleConstructorReturn(this, (Checkbox.__proto__ || Object.getPrototypeOf(Checkbox)).call(this));
+        var _this50 = _possibleConstructorReturn(this, (Checkbox.__proto__ || Object.getPrototypeOf(Checkbox)).call(this));
 
-        _this48._formElement = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].createElement('input');
-        _this48._formElement.style.opacity = 0;
-        _this48._formElement.type = 'checkbox';
-        return _this48;
+        _this50._formElement = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].createElement('input');
+        _this50._formElement.style.opacity = 0;
+        _this50._formElement.type = 'checkbox';
+        return _this50;
       }
 
       _createClass(Checkbox, [{
         key: 'init',
         value: function init() {
-          var _this49 = this;
+          var _this51 = this;
 
           _get(Checkbox.prototype.__proto__ || Object.getPrototypeOf(Checkbox.prototype), 'init', this).call(this);
           this.watchAttribute(this, 'checked', function (now) {
-            now ? _this49.classList.add('checked') : _this49.classList.remove('checked');
+            now ? _this51.classList.add('checked') : _this51.classList.remove('checked');
           });
 
           this.on('click', function (e) {
-            _this49.checked = !_this49.checked;
+            _this51.checked = !_this51.checked;
           });
         }
       }]);
@@ -3146,14 +3387,14 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 26 */
+/* 28 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
   /* harmony import */
   var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_float_js__ = __webpack_require__(4);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__animations_easer_js__ = __webpack_require__(27);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__animations_easer_js__ = __webpack_require__(29);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__ = __webpack_require__(0);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__backdrop_js__ = __webpack_require__(15);
@@ -3173,32 +3414,32 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       function Drawer() {
         _classCallCheck(this, Drawer);
 
-        var _this50 = _possibleConstructorReturn(this, (Drawer.__proto__ || Object.getPrototypeOf(Drawer)).call(this));
+        var _this52 = _possibleConstructorReturn(this, (Drawer.__proto__ || Object.getPrototypeOf(Drawer)).call(this));
 
-        _this50._backdrop = __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__["c" /* document */].createElement('ui-backdrop');
-        _this50._backdrop.for = _this50;
-        _this50._backdrop.style.zIndex = '9000';
-        _this50._toggleElem = null;
-        _this50._isOpen = false;
-        _this50._rightAnimator = null;
-        _this50._leftAnimator = null;
-        return _this50;
+        _this52._backdrop = __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__["c" /* document */].createElement('ui-backdrop');
+        _this52._backdrop.for = _this52;
+        _this52._backdrop.style.zIndex = '9000';
+        _this52._toggleElem = null;
+        _this52._isOpen = false;
+        _this52._rightAnimator = null;
+        _this52._leftAnimator = null;
+        return _this52;
       }
 
       _createClass(Drawer, [{
         key: 'toggledBy',
         value: function toggledBy(elem) {
-          var _this51 = this;
+          var _this53 = this;
 
           if (elem) {
             this._toggleElem = elem;
             if (this._toggleElem.on) {
               this._toggleElem.on('click', function (e) {
-                _this51.toggleState();
+                _this53.toggleState();
               });
             } else {
               this._toggleElem.addEventListener('click', function (e) {
-                _this51.toggleState();
+                _this53.toggleState();
               });
             }
           }
@@ -3225,7 +3466,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       }, {
         key: 'init',
         value: function init() {
-          var _this52 = this;
+          var _this54 = this;
 
           _get(Drawer.prototype.__proto__ || Object.getPrototypeOf(Drawer.prototype), 'init', this).call(this);
           if (!this.rightOriented) this.leftOriented = true;
@@ -3233,7 +3474,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
           __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__["c" /* document */].body.appendChild(this._backdrop);
           this._backdrop.on('click', function (e) {
-            return _this52.close();
+            return _this54.close();
           });
 
           // Check for the drawer toggle in the DOM. If not, you'll need to use the toggledBy method
@@ -3248,16 +3489,16 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 now = _ref44$changed.now,
                 name = _ref44$changed.name;
 
-            var orient = _this52.rightOriented ? 'right' : 'left';
-            var animator = _this52['_' + orient + 'Animator'];
+            var orient = _this54.rightOriented ? 'right' : 'left';
+            var animator = _this54['_' + orient + 'Animator'];
             switch (name) {
               case 'is-open':
                 if (now) {
-                  if (_this52.isModal) _this52._backdrop.show();
+                  if (_this54.isModal) _this54._backdrop.show();
                   animator.easeIn();
                 } else {
                   animator.easeOut().then(function (_) {
-                    return _this52._backdrop.hide();
+                    return _this54._backdrop.hide();
                   });
                 }
                 break;
@@ -3272,7 +3513,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 27 */
+/* 29 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -3297,10 +3538,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function Easer() {
           _classCallCheck(this, Easer);
 
-          var _this53 = _possibleConstructorReturn(this, (Easer.__proto__ || Object.getPrototypeOf(Easer)).call(this));
+          var _this55 = _possibleConstructorReturn(this, (Easer.__proto__ || Object.getPrototypeOf(Easer)).call(this));
 
-          _this53._animations = [];
-          return _this53;
+          _this55._animations = [];
+          return _this55;
         }
 
         _createClass(Easer, [{
@@ -3332,21 +3573,37 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
               _isIn: false,
 
               easeIn: function easeIn() {
+                var _this56 = this;
+
                 this._isIn = true;
                 self.classList.add(inClass);
+                if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) {
+                  ShadyCSS.styleSubtree(this);
+                }
                 return new Promise(function (res) {
                   setTimeout(function () {
                     self.classList.remove(outClass);
+                    if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) {
+                      ShadyCSS.styleSubtree(_this56);
+                    }
                     res(true);
                   }, timing);
                 });
               },
               easeOut: function easeOut() {
+                var _this57 = this;
+
                 this._isIn = false;
                 self.classList.add(outClass);
+                if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) {
+                  ShadyCSS.styleSubtree(this);
+                }
                 return new Promise(function (res) {
                   setTimeout(function () {
                     self.classList.remove(inClass);
+                    if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) {
+                      ShadyCSS.styleSubtree(_this57);
+                    }
                     res(true);
                   }, timing);
                 });
@@ -3373,7 +3630,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 28 */
+/* 30 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -3383,7 +3640,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   var reflectedAttrs = ['line-color'];
   var template = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].createElement('template');
-  template.innerHTML = '\n  <style>\n    .line {\n      height: 5px;\n      width: 100%;\n      background-color: var(--ui-theme-dark-text-color, #000);\n      position: relative;\n      padding: 0;\n    }\n\n    .top-line {\n      top: 0px;\n    }\n\n    .middle-line {\n      top: 7px;\n    }\n\n    .bottom-line {\n      top: 15px;\n    }\n\n    .content-wrapper {\n      height: 30px;\n      width: 80px;\n      left: 10%;\n    }\n\n    :host {\n      background: transparent;\n      width: 48px;\n      height: 48px;\n    }\n  </style>\n';
+  template.innerHTML = '\n  <style>\n    .line {\n      height: 5px;\n      width: 100%;\n      background-color: var(--ui-theme-dark-text-color, #000);\n      position: relative;\n      padding: 0;\n    }\n\n    .top-line {\n      top: 0px;\n    }\n\n    .middle-line {\n      top: 7px;\n    }\n\n    .bottom-line {\n      top: 15px;\n    }\n\n    .content-wrapper {\n      height: 30px;\n      left: 10%;\n    }\n\n    :host {\n      background: transparent;\n      width: 48px;\n      height: 48px;\n    }\n  </style>\n';
 
   var lineDivTemplate = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].createElement('template');
   lineDivTemplate.innerHTML = '\n  <div>\n    <div class="line top-line"></div>\n    <div class="line middle-line"></div>\n    <div class="line bottom-line"></div>\n  </div>\n';
@@ -3404,13 +3661,13 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       _createClass(Hamburger, [{
         key: 'init',
         value: function init() {
-          var _this55 = this;
+          var _this59 = this;
 
           _get(Hamburger.prototype.__proto__ || Object.getPrototypeOf(Hamburger.prototype), 'init', this).call(this);
           this.shadowRoot.querySelector('.content-wrapper').appendChild(__WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].importNode(lineDivTemplate.content, true));
 
           this.watchAttribute(this, 'line-color', function (now) {
-            [].concat(_toConsumableArray(_this55.shadowRoot.querySelectorAll('.line'))).forEach(function (el) {
+            [].concat(_toConsumableArray(_this59.shadowRoot.querySelectorAll('.line'))).forEach(function (el) {
               el.style.backgroundColor = now;
             });
           });
@@ -3423,7 +3680,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 29 */
+/* 31 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -3431,7 +3688,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__ = __webpack_require__(0);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__utils_url_js__ = __webpack_require__(30);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__utils_url_js__ = __webpack_require__(32);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
 
   // TODO ui-component-ready handler being called more than once on each route?
@@ -3466,14 +3723,14 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function Router() {
           _classCallCheck(this, Router);
 
-          var _this56 = _possibleConstructorReturn(this, (Router.__proto__ || Object.getPrototypeOf(Router)).call(this));
+          var _this60 = _possibleConstructorReturn(this, (Router.__proto__ || Object.getPrototypeOf(Router)).call(this));
 
-          _this56._contentSlot = null;
-          _this56._routes = {};
-          _this56._currentRoute = null;
-          _this56._managingHistory = false;
-          _this56._login = null;
-          _this56._popstateListener = function (_ref46) {
+          _this60._contentSlot = null;
+          _this60._routes = {};
+          _this60._currentRoute = null;
+          _this60._managingHistory = false;
+          _this60._login = null;
+          _this60._popstateListener = function (_ref46) {
             var data = _ref46.state;
 
             // here we ignore querystring data, it may be stale
@@ -3487,13 +3744,13 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
               historyStack.pop();
             }
 
-            _this56._updateRoute(route);
+            _this60._updateRoute(route);
             if (!historyStack.length || historyStack.length === 1 && historyStack[0] === '/') {
-              __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["d" /* global */].removeEventListener('popstate', _this56._popstateListener);
-              _this56._managingHistory = false;
+              __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["d" /* global */].removeEventListener('popstate', _this60._popstateListener);
+              _this60._managingHistory = false;
             }
           };
-          return _this56;
+          return _this60;
         }
 
         _createClass(Router, [{
@@ -3596,12 +3853,12 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         }, {
           key: 'init',
           value: function init() {
-            var _this57 = this;
+            var _this61 = this;
 
             _get(Router.prototype.__proto__ || Object.getPrototypeOf(Router.prototype), 'init', this).call(this);
 
             this._beforeReady(function (_) {
-              _this57._contentSlot = _this57.shadowRoot.querySelector('slot');
+              _this61._contentSlot = _this61.shadowRoot.querySelector('slot');
               var selected = null;
 
               var _Object3 = Object(__WEBPACK_IMPORTED_MODULE_3__utils_url_js__["a" /* parseURL */])(window.location.href),
@@ -3611,34 +3868,34 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
               if (route) selected = route;
 
               var flag = false;
-              _this57.selectAll('[route-path]').forEach(function (el, i) {
+              _this61.selectAll('[route-path]').forEach(function (el, i) {
                 var path = el.getAttribute('route-path');
-                _this57._routes[path] = el;
+                _this61._routes[path] = el;
                 if (!i && !selected) selected = path;
                 if (el.matches && el.matches('[selected]')) selected = path;
                 if (path === '/login') {
                   flag = true;
-                  el.isReady.then(function (_) {
+                  el.onReady(function (_) {
                     var login = el.querySelector('.ui-login');
-                    _this57._login = login;
+                    _this61._login = login;
                     login.on('login', function (e) {
                       var _Object4 = Object(__WEBPACK_IMPORTED_MODULE_3__utils_url_js__["a" /* parseURL */])(window.location.href),
                           route = _Object4.route;
 
-                      _this57._updateRoute(route);
+                      _this61._updateRoute(route);
                     });
 
                     login.on('logout', function (e) {
-                      _this57.route('/login');
+                      _this61.route('/login');
                     });
-                    _this57.route(selected);
+                    _this61.route(selected);
                   });
                 }
               });
 
               if (!flag) {
-                _this57.isReady.then(function (_) {
-                  _this57.route(selected);
+                _this61.onReady(function (_) {
+                  _this61.route(selected);
                 });
               }
             });
@@ -3651,11 +3908,11 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
               switch (name) {
                 case 'renders-current':
-                  if (_this57.selected) {
+                  if (_this61.selected) {
                     if (now) {
-                      _this57.selected.setAttribute('slot', 'router-content');
+                      _this61.selected.setAttribute('slot', 'router-content');
                     } else {
-                      _this57.selected.removeAttribute('slot');
+                      _this61.selected.removeAttribute('slot');
                     }
                   }
                   break;
@@ -3665,13 +3922,13 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                     if (historyManager) {
                       throw new Error('Only one router per page can manage the navigation history\n                     at a time. Please listen for that router\'s route-changed\n                     event to update other elements.');
                     }
-                    historyManager = _this57;
-                    _this57._managingHistory = true;
-                    window.addEventListener('popstate', _this57._popstateListener);
+                    historyManager = _this61;
+                    _this61._managingHistory = true;
+                    window.addEventListener('popstate', _this61._popstateListener);
                   } else {
                     historyManager = null;
-                    _this57._managingHistory = false;
-                    window.removeEventListener('popstate', _this57._popstateListener);
+                    _this61._managingHistory = false;
+                    window.removeEventListener('popstate', _this61._popstateListener);
                   }
               }
             });
@@ -3721,15 +3978,15 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function Route() {
           _classCallCheck(this, Route);
 
-          var _this58 = _possibleConstructorReturn(this, (Route.__proto__ || Object.getPrototypeOf(Route)).call(this));
+          var _this62 = _possibleConstructorReturn(this, (Route.__proto__ || Object.getPrototypeOf(Route)).call(this));
 
-          _this58._data = null;
-          _this58._dataElements = [];
-          _this58._fromChangeHandler = false;
-          _this58._unloadListener = function (e) {
-            if (_this58.data) localStorage.setItem(_this58.routePath, JSON.stringify(elem.data));
+          _this62._data = null;
+          _this62._dataElements = [];
+          _this62._fromChangeHandler = false;
+          _this62._unloadListener = function (e) {
+            if (_this62.data) localStorage.setItem(_this62.routePath, JSON.stringify(elem.data));
           };
-          return _this58;
+          return _this62;
         }
 
         _createClass(Route, [{
@@ -3765,17 +4022,17 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         }, {
           key: 'init',
           value: function init() {
-            var _this59 = this;
+            var _this63 = this;
 
             _get(Route.prototype.__proto__ || Object.getPrototypeOf(Route.prototype), 'init', this).call(this);
 
-            this.isReady.then(function (_) {
-              _this59._dataElements = _this59.shadowRoot ? [].concat(_toConsumableArray(_this59.shadowRoot.querySelectorAll('[is-data-element]')), _toConsumableArray(_this59.selectAll('[is-data-element]'))) : _this59.selectAll('[is-data-element]');
+            this.onReady(function (_) {
+              _this63._dataElements = _this63.shadowRoot ? [].concat(_toConsumableArray(_this63.shadowRoot.querySelectorAll('[is-data-element]')), _toConsumableArray(_this63.selectAll('[is-data-element]'))) : _this63.selectAll('[is-data-element]');
 
-              _this59._dataElements.forEach(function (el) {
+              _this63._dataElements.forEach(function (el) {
                 el.on('change', function (_) {
-                  _this59._fromChangeHandler = true;
-                  _this59.update(_this59._dataElements.reduce(function (acc, el) {
+                  _this63._fromChangeHandler = true;
+                  _this63.update(_this63._dataElements.reduce(function (acc, el) {
                     var data = el.serialize();
                     Object.entries(data).forEach(function (_ref48) {
                       var _ref49 = _slicedToArray(_ref48, 2),
@@ -3792,10 +4049,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 });
               });
 
-              var data = localStorage.getItem(_this59.routePath);
+              var data = localStorage.getItem(_this63.routePath);
 
               // Check to see if it was written from query string first.
-              if (!_this59.data && data != null) _this59.update(JSON.parse(data));
+              if (!_this63.data && data != null) _this63.update(JSON.parse(data));
             });
 
             this.on('attribute-change', function (_ref50) {
@@ -3805,9 +4062,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
               switch (name) {
                 case 'is-selected':
-                  if (!now || now && !_this59.isSelected) {
+                  if (!now || now && !_this63.isSelected) {
                     var evtName = now ? 'component-selected' : 'component-deselected';
-                    _this59.dispatchEvent(new CustomEvent(evtName));
+                    _this63.dispatchEvent(new CustomEvent(evtName));
                   }
                   break;
               }
@@ -3828,7 +4085,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 30 */
+/* 32 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -3936,7 +4193,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 31 */
+/* 33 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -3966,18 +4223,18 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         _createClass(Tab, [{
           key: 'init',
           value: function init() {
-            var _this61 = this;
+            var _this65 = this;
 
             _get(Tab.prototype.__proto__ || Object.getPrototypeOf(Tab.prototype), 'init', this).call(this);
             this.on('click', function (e) {
-              _this61.isSelected = true;
+              _this65.isSelected = true;
             });
 
             this.watchAttribute(this, 'is-selected', function (now) {
               if (now) {
-                _this61.dispatchEvent(new CustomEvent('component-selected'));
+                _this65.dispatchEvent(new CustomEvent('component-selected'));
               } else {
-                _this61.dispatchEvent(new CustomEvent('component-deselected'));
+                _this65.dispatchEvent(new CustomEvent('component-deselected'));
               }
             });
           }
@@ -4005,10 +4262,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function Tabs() {
           _classCallCheck(this, Tabs);
 
-          var _this62 = _possibleConstructorReturn(this, (Tabs.__proto__ || Object.getPrototypeOf(Tabs)).call(this));
+          var _this66 = _possibleConstructorReturn(this, (Tabs.__proto__ || Object.getPrototypeOf(Tabs)).call(this));
 
-          _this62._for = null;
-          return _this62;
+          _this66._for = null;
+          return _this66;
         }
 
         _createClass(Tabs, [{
@@ -4021,7 +4278,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         }, {
           key: 'init',
           value: function init() {
-            var _this63 = this;
+            var _this67 = this;
 
             _get(Tabs.prototype.__proto__ || Object.getPrototypeOf(Tabs.prototype), 'init', this).call(this);
             this.on('attribute-change', function (_ref53) {
@@ -4032,34 +4289,34 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
               switch (name) {
                 case 'for':
                   if (now) {
-                    _this63._for = now;
-                    var _elem = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].querySelector(_this63._for);
+                    _this67._for = now;
+                    var _elem = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].querySelector(_this67._for);
                     if (_elem) {
                       var method = _elem.on ? 'on' : 'addEventListener';
                       _elem[method]('change', function (_ref54) {
                         var value = _ref54.value;
 
-                        var matched = _this63._items.reduce(function (acc, item) {
+                        var matched = _this67._items.reduce(function (acc, item) {
                           if (acc) return acc;
                           if (item.value === value) return item;
                           return acc;
                         }, null);
 
-                        if (matched && matched !== _this63.selected) {
-                          _this63.selected = value;
+                        if (matched && matched !== _this67.selected) {
+                          _this67.selected = value;
                         } else {
-                          _this63.selected = null;
+                          _this67.selected = null;
                         }
                       });
                     }
                   } else {
-                    _this63._for = null;
+                    _this67._for = null;
                   }
                   break;
 
                 case 'selected-index':
-                  if (now > -1 && _this63._for) {
-                    __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].querySelector(_this63._for).route(_this63.selected.value);
+                  if (now > -1 && _this67._for) {
+                    __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].querySelector(_this67._for).route(_this67.selected.value);
                   }
                   break;
               }
@@ -4075,7 +4332,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 32 */
+/* 34 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -4102,16 +4359,16 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       function Toolbar() {
         _classCallCheck(this, Toolbar);
 
-        var _this64 = _possibleConstructorReturn(this, (Toolbar.__proto__ || Object.getPrototypeOf(Toolbar)).call(this));
+        var _this68 = _possibleConstructorReturn(this, (Toolbar.__proto__ || Object.getPrototypeOf(Toolbar)).call(this));
 
-        _this64._secondaryToolbar = null;
-        return _this64;
+        _this68._secondaryToolbar = null;
+        return _this68;
       }
 
       _createClass(Toolbar, [{
         key: 'init',
         value: function init() {
-          var _this65 = this;
+          var _this69 = this;
 
           _get(Toolbar.prototype.__proto__ || Object.getPrototypeOf(Toolbar.prototype), 'init', this).call(this);
           var secondarySlot = this.shadowRoot.querySelector('[name="secondary-toolbar-slot"]');
@@ -4122,8 +4379,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
           }
 
           secondarySlot.addEventListener('slotchange', function (e) {
-            _this65._secondaryToolbar = _this65.querySelector('[slot="secondary-toolbar-slot"]');
-            if (_this65._secondaryToolbar) _this65.classList.add('has-secondary');
+            _this69._secondaryToolbar = _this69.querySelector('[slot="secondary-toolbar-slot"]');
+            if (_this69._secondaryToolbar) _this69.classList.add('has-secondary');
           });
 
           this.on('attribute-change', function (_ref55) {
@@ -4133,14 +4390,14 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
             if (name === 'is-tall') {
               if (now == null) {
-                if (_this65._secondaryToolbar) {
-                  _this65._secondaryToolbar.classList.add('tabs-centered');
+                if (_this69._secondaryToolbar) {
+                  _this69._secondaryToolbar.classList.add('tabs-centered');
                 }
               } else if (!now || now === "false") {
-                _this65.isTall = null;
+                _this69.isTall = null;
               } else {
-                if (_this65._secondaryToolbar) {
-                  _this65._secondaryToolbar.classList.remove('tabs-centered');
+                if (_this69._secondaryToolbar) {
+                  _this69._secondaryToolbar.classList.remove('tabs-centered');
                 }
               }
             }

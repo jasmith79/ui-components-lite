@@ -62,6 +62,6 @@ export default superclass => class DataBinder extends superclass {
       }
     };
 
-    parent.isReady.then(bind);
+    parent.onReady(bind);
   }
 };

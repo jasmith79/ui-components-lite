@@ -1,4 +1,4 @@
-import { defineUIComponent, document } from '../utils/dom.js';
+import { defineUIComponent, document, global } from '../utils/dom.js';
 import { generateCSSClassName } from '../utils/styler.js';
 
 const orientations = {
@@ -48,9 +48,15 @@ export default superclass => defineUIComponent({
         easeIn () {
           this._isIn = true;
           self.classList.add(inClass);
+          if (global._usingShady) {
+            ShadyCSS.styleSubtree(this);
+          }
           return new Promise(res => {
             setTimeout(() => {
               self.classList.remove(outClass);
+              if (global._usingShady) {
+                ShadyCSS.styleSubtree(this);
+              }
               res(true);
             }, timing);
           });
@@ -59,9 +65,15 @@ export default superclass => defineUIComponent({
         easeOut () {
           this._isIn = false;
           self.classList.add(outClass);
+          if (global._usingShady) {
+            ShadyCSS.styleSubtree(this);
+          }
           return new Promise(res => {
             setTimeout(() => {
               self.classList.remove(inClass);
+              if (global._usingShady) {
+                ShadyCSS.styleSubtree(this);
+              }
               res(true);
             }, timing);
           });
