@@ -13,7 +13,13 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     super();
     this._listeners = [];
     this._isCentered = false;
-    this._beforeReadyHandlers = [];
+    this._beforeReadyHandlers = [
+      el => el.on('attribute-change', e => {
+        if ((e.name === 'class' || e.name === 'style') && global._usingShady) {
+          global.ShadyCSS.styleSubtree(this);
+        }
+      })
+    ];
     this._isReady = event2Promise({
       element: this,
       eventName: 'ui-component-ready',
@@ -50,7 +56,7 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     if (global._usingShady) {
       global.ShadyCSS.styleSubtree(this);
     }
-    
+
     return this;
   }
 

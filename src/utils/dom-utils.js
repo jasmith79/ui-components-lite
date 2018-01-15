@@ -164,11 +164,17 @@ export default superclass => class DOMutils extends superclass {
 
   hide () {
     this.style.display = 'none';
+    if (global._usingShady) {
+      global.ShadyCSS.styleSubtree(this);
+    }
     return this;
   }
 
   show () {
     this.style.display = '';
+    if (global._usingShady) {
+      global.ShadyCSS.styleSubtree(this);
+    }
     return this;
   }
 

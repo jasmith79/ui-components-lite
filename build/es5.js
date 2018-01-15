@@ -90,7 +90,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   /******/__webpack_require__.p = "";
   /******/
   /******/ // Load entry module and return exports
-  /******/return __webpack_require__(__webpack_require__.s = 17);
+  /******/return __webpack_require__(__webpack_require__.s = 18);
   /******/
 })(
 /************************************************************************/
@@ -238,10 +238,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   "use strict";
   /* harmony import */
   var __WEBPACK_IMPORTED_MODULE_0__styler_js__ = __webpack_require__(10);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__binder_js__ = __webpack_require__(19);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__dom_utils_js__ = __webpack_require__(20);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__binder_js__ = __webpack_require__(20);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__dom_utils_js__ = __webpack_require__(21);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__attribute_analyzer_js__ = __webpack_require__(8);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__promise_from_event_js__ = __webpack_require__(21);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__promise_from_event_js__ = __webpack_require__(22);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__dom_js__ = __webpack_require__(0);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(7);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
@@ -258,7 +258,13 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
       _this4._listeners = [];
       _this4._isCentered = false;
-      _this4._beforeReadyHandlers = [];
+      _this4._beforeReadyHandlers = [function (el) {
+        return el.on('attribute-change', function (e) {
+          if ((e.name === 'class' || e.name === 'style') && __WEBPACK_IMPORTED_MODULE_5__dom_js__["d" /* global */]._usingShady) {
+            __WEBPACK_IMPORTED_MODULE_5__dom_js__["d" /* global */].ShadyCSS.styleSubtree(_this4);
+          }
+        });
+      }];
       _this4._isReady = Object(__WEBPACK_IMPORTED_MODULE_4__promise_from_event_js__["a" /* default */])({
         element: _this4,
         eventName: 'ui-component-ready',
@@ -787,7 +793,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__ = __webpack_require__(0);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_formdata_polyfill_formdata_min_js__ = __webpack_require__(22);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_formdata_polyfill_formdata_min_js__ = __webpack_require__(23);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_formdata_polyfill_formdata_min_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4__node_modules_formdata_polyfill_formdata_min_js__);
 
   // TODO external ui-input not getting cached data? input elements lose data sometimes
@@ -1039,7 +1045,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__animations_rippler_js__ = __webpack_require__(9);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_float_js__ = __webpack_require__(4);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__utils_centerer_js__ = __webpack_require__(14);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__utils_centerer_js__ = __webpack_require__(15);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__ = __webpack_require__(0);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
 
@@ -1481,6 +1487,32 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   /***/
 },
 /* 11 */
+/***/function (module, exports) {
+
+  var g;
+
+  // This works in non-strict mode
+  g = function () {
+    return this;
+  }();
+
+  try {
+    // This works if eval is allowed (see CSP)
+    g = g || Function("return this")() || (1, eval)("this");
+  } catch (e) {
+    // This works if the window reference is available
+    if ((typeof window === 'undefined' ? 'undefined' : _typeof(window)) === "object") g = window;
+  }
+
+  // g can still be undefined, but nothing to do about it...
+  // We return undefined, instead of nothing here, so it's
+  // easier to handle this case. if(!global) { ...}
+
+  module.exports = g;
+
+  /***/
+},
+/* 12 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -1664,7 +1696,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 12 */
+/* 13 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -1705,7 +1737,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 13 */
+/* 14 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -1742,7 +1774,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 14 */
+/* 15 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -1778,7 +1810,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 15 */
+/* 16 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -1821,7 +1853,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 16 */
+/* 17 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -2107,25 +2139,25 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 17 */
+/* 18 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
 
   Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__src_elements_login_js__ = __webpack_require__(18);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__src_elements_fab_js__ = __webpack_require__(13);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__src_elements_login_js__ = __webpack_require__(19);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__src_elements_fab_js__ = __webpack_require__(14);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__src_elements_drop_down_js__ = __webpack_require__(26);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__src_elements_drawer_js__ = __webpack_require__(28);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__src_elements_hamburger_js__ = __webpack_require__(30);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__src_elements_input_js__ = __webpack_require__(11);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__src_elements_input_js__ = __webpack_require__(12);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__src_elements_router_js__ = __webpack_require__(31);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__src_elements_tabs_js__ = __webpack_require__(33);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_8__src_elements_toolbar_js__ = __webpack_require__(34);
 
   /***/
 },
-/* 18 */
+/* 19 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -2133,9 +2165,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__ = __webpack_require__(0);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__form_js__ = __webpack_require__(5);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__input_js__ = __webpack_require__(11);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__card_js__ = __webpack_require__(12);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__fab_js__ = __webpack_require__(13);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__input_js__ = __webpack_require__(12);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__card_js__ = __webpack_require__(13);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__fab_js__ = __webpack_require__(14);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__alert_js__ = __webpack_require__(24);
 
   var INVALID = 'Invalid login credentials. Please double-check your username and password.';
@@ -2287,7 +2319,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 19 */
+/* 20 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -2380,286 +2412,296 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 20 */
+/* 21 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
-  /* harmony import */
-  var __WEBPACK_IMPORTED_MODULE_0__attribute_analyzer_js__ = __webpack_require__(8);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__dom_js__ = __webpack_require__(0);
+  /* WEBPACK VAR INJECTION */
+  (function (global) {
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__attribute_analyzer_js__ = __webpack_require__(8);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__dom_js__ = __webpack_require__(0);
 
-  var attrConf = { attributes: true };
+    var attrConf = { attributes: true };
 
-  var isHTMLElement = function isHTMLElement(arg) {
-    return Boolean(Object(__WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__["a" /* default */])(arg).match(/HTML[a-zA-Z]*Element/));
-  };
+    var isHTMLElement = function isHTMLElement(arg) {
+      return Boolean(Object(__WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__["a" /* default */])(arg).match(/HTML[a-zA-Z]*Element/));
+    };
 
-  /* harmony default export */__webpack_exports__["a"] = function (superclass) {
-    return function (_superclass6) {
-      _inherits(DOMutils, _superclass6);
+    /* harmony default export */__webpack_exports__["a"] = function (superclass) {
+      return function (_superclass6) {
+        _inherits(DOMutils, _superclass6);
 
-      function DOMutils() {
-        _classCallCheck(this, DOMutils);
+        function DOMutils() {
+          _classCallCheck(this, DOMutils);
 
-        var _this38 = _possibleConstructorReturn(this, (DOMutils.__proto__ || Object.getPrototypeOf(DOMutils)).call(this));
+          var _this38 = _possibleConstructorReturn(this, (DOMutils.__proto__ || Object.getPrototypeOf(DOMutils)).call(this));
 
-        _this38._mutationObservers = [];
-        return _this38;
-      }
+          _this38._mutationObservers = [];
+          return _this38;
+        }
 
-      _createClass(DOMutils, [{
-        key: 'watchAttribute',
+        _createClass(DOMutils, [{
+          key: 'watchAttribute',
 
 
-        // Observes changes to the given attribute on the given node.
-        value: function watchAttribute(n, a, callb) {
-          var _this39 = this;
+          // Observes changes to the given attribute on the given node.
+          value: function watchAttribute(n, a, callb) {
+            var _this39 = this;
 
-          var _ref28 = function () {
-            if (isHTMLElement(n)) return [n, a, callb];
-            return [_this39, n, a];
-          }(),
-              _ref29 = _slicedToArray(_ref28, 3),
-              node = _ref29[0],
-              attr = _ref29[1],
-              cb = _ref29[2];
+            var _ref28 = function () {
+              if (isHTMLElement(n)) return [n, a, callb];
+              return [_this39, n, a];
+            }(),
+                _ref29 = _slicedToArray(_ref28, 3),
+                node = _ref29[0],
+                attr = _ref29[1],
+                cb = _ref29[2];
 
-          if ((node.constructor.observedAttributes || []).includes(attr)) {
-            node.on('attribute-change', function (_ref30) {
-              var _ref30$changed = _ref30.changed,
-                  now = _ref30$changed.now,
-                  name = _ref30$changed.name,
-                  was = _ref30$changed.was;
+            if ((node.constructor.observedAttributes || []).includes(attr)) {
+              node.on('attribute-change', function (_ref30) {
+                var _ref30$changed = _ref30.changed,
+                    now = _ref30$changed.now,
+                    name = _ref30$changed.name,
+                    was = _ref30$changed.was;
 
-              if (name === attr) cb(now, name, was);
-            });
-          } else {
-            var observer = new MutationObserver(function (_ref31) {
-              var _ref32 = _slicedToArray(_ref31, 1),
-                  mutation = _ref32[0];
+                if (name === attr) cb(now, name, was);
+              });
+            } else {
+              var observer = new MutationObserver(function (_ref31) {
+                var _ref32 = _slicedToArray(_ref31, 1),
+                    mutation = _ref32[0];
 
-              if (mutation.attributeName === attr) {
-                cb(node.attr(mutation.attributeName), mutation.attributeName, mutation.oldValue);
+                if (mutation.attributeName === attr) {
+                  cb(node.attr(mutation.attributeName), mutation.attributeName, mutation.oldValue);
+                }
+              });
+
+              observer.observe(node, attrConf);
+              this._mutationObservers.push([observer, node, attrConf]);
+            }
+
+            return this;
+          }
+        }, {
+          key: 'selectAll',
+          value: function selectAll(selector) {
+            var nodeList = this.querySelectorAll(selector);
+            return nodeList ? [].concat(_toConsumableArray(nodeList)) : [];
+          }
+        }, {
+          key: 'matches',
+          value: function matches(selector) {
+            if (_get(DOMutils.prototype.__proto__ || Object.getPrototypeOf(DOMutils.prototype), 'matches', this)) return _get(DOMutils.prototype.__proto__ || Object.getPrototypeOf(DOMutils.prototype), 'matches', this).call(this, selector);
+            if (_get(DOMutils.prototype.__proto__ || Object.getPrototypeOf(DOMutils.prototype), 'msMatchesSelector', this)) return _get(DOMutils.prototype.__proto__ || Object.getPrototypeOf(DOMutils.prototype), 'msMatchesSelector', this).call(this, selector);
+            throw new Error('HTMLElement does not implement the matches method.');
+          }
+        }, {
+          key: 'selectInternalElement',
+          value: function selectInternalElement(selector) {
+            if (!this.shadowRoot) {
+              console.warn('Internal selector ' + selector + ' called on ' + this.identity + ' which has no shadowRoot.');
+              return null;
+            }
+            return this.shadowRoot.querySelector(selector);
+          }
+        }, {
+          key: 'selectInternalAll',
+          value: function selectInternalAll(selector) {
+            if (!this.shadowRoot) {
+              console.warn('Internal selector ' + selector + ' called on ' + this.identity + ' which has no shadowRoot.');
+              return null;
+            }
+            return [].concat(_toConsumableArray(this.shadowRoot.querySelectorAll(selector)));
+          }
+        }, {
+          key: 'on',
+
+
+          /**
+           * on :: Event, (Event -> *) -> this
+           *
+           * Registers an event listener. Listeners added via this method are
+           * automatically removed and reattached on being removed from/added to the
+           * DOM.
+           */
+          value: function on(evts, fn) {
+            var _this40 = this;
+
+            evts.split(/\s+/g).forEach(function (evt) {
+              var isDupe = _this40._listeners.some(function (_ref33) {
+                var _ref34 = _slicedToArray(_ref33, 2),
+                    e = _ref34[0],
+                    f = _ref34[1];
+
+                return e === evt && fn === f;
+              });
+              if (!isDupe) {
+                _this40.addEventListener(evt, fn);
+                _this40._listeners.push([evt, fn]);
               }
             });
-
-            observer.observe(node, attrConf);
-            this._mutationObservers.push([observer, node, attrConf]);
+            return this;
           }
 
-          return this;
-        }
-      }, {
-        key: 'selectAll',
-        value: function selectAll(selector) {
-          var nodeList = this.querySelectorAll(selector);
-          return nodeList ? [].concat(_toConsumableArray(nodeList)) : [];
-        }
-      }, {
-        key: 'matches',
-        value: function matches(selector) {
-          if (_get(DOMutils.prototype.__proto__ || Object.getPrototypeOf(DOMutils.prototype), 'matches', this)) return _get(DOMutils.prototype.__proto__ || Object.getPrototypeOf(DOMutils.prototype), 'matches', this).call(this, selector);
-          if (_get(DOMutils.prototype.__proto__ || Object.getPrototypeOf(DOMutils.prototype), 'msMatchesSelector', this)) return _get(DOMutils.prototype.__proto__ || Object.getPrototypeOf(DOMutils.prototype), 'msMatchesSelector', this).call(this, selector);
-          throw new Error('HTMLElement does not implement the matches method.');
-        }
-      }, {
-        key: 'selectInternalElement',
-        value: function selectInternalElement(selector) {
-          if (!this.shadowRoot) {
-            console.warn('Internal selector ' + selector + ' called on ' + this.identity + ' which has no shadowRoot.');
-            return null;
-          }
-          return this.shadowRoot.querySelector(selector);
-        }
-      }, {
-        key: 'selectInternalAll',
-        value: function selectInternalAll(selector) {
-          if (!this.shadowRoot) {
-            console.warn('Internal selector ' + selector + ' called on ' + this.identity + ' which has no shadowRoot.');
-            return null;
-          }
-          return [].concat(_toConsumableArray(this.shadowRoot.querySelectorAll(selector)));
-        }
-      }, {
-        key: 'on',
+          /**
+           * remove :: Void -> this      -- removes this from parent
+           * remove :: Node -> this      -- removes child from this
+           * remove :: [Node] -> this    -- removes children from this
+           * remove :: (* -> *) -> this  -- removes listener for all events from this
+           * remove :: String, (* -> *) -> this -- removes listener for specified event
+           *
+           * Removes a child node(s) or event listener. If no event name is provided, it removes that
+           * listener function for all events for which it is bound to the element. If no arguments arguments
+           * provided the method removes the element from its parent element. So this method
+           * responds to the following signatures and ignores all others:
+           */
 
+        }, {
+          key: 'remove',
+          value: function remove() {
+            var _this41 = this;
 
-        /**
-         * on :: Event, (Event -> *) -> this
-         *
-         * Registers an event listener. Listeners added via this method are
-         * automatically removed and reattached on being removed from/added to the
-         * DOM.
-         */
-        value: function on(evts, fn) {
-          var _this40 = this;
-
-          evts.split(/\s+/g).forEach(function (evt) {
-            var isDupe = _this40._listeners.some(function (_ref33) {
-              var _ref34 = _slicedToArray(_ref33, 2),
-                  e = _ref34[0],
-                  f = _ref34[1];
-
-              return e === evt && fn === f;
-            });
-            if (!isDupe) {
-              _this40.addEventListener(evt, fn);
-              _this40._listeners.push([evt, fn]);
+            for (var _len8 = arguments.length, args = Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
+              args[_key8] = arguments[_key8];
             }
-          });
-          return this;
-        }
 
-        /**
-         * remove :: Void -> this      -- removes this from parent
-         * remove :: Node -> this      -- removes child from this
-         * remove :: [Node] -> this    -- removes children from this
-         * remove :: (* -> *) -> this  -- removes listener for all events from this
-         * remove :: String, (* -> *) -> this -- removes listener for specified event
-         *
-         * Removes a child node(s) or event listener. If no event name is provided, it removes that
-         * listener function for all events for which it is bound to the element. If no arguments arguments
-         * provided the method removes the element from its parent element. So this method
-         * responds to the following signatures and ignores all others:
-         */
+            var _ref35 = function (arr) {
+              switch (arr.length) {
+                case 0:
+                  _this41.parentElement && _this41.parentElement.removeChild(_this41);
+                  return [];
 
-      }, {
-        key: 'remove',
-        value: function remove() {
-          var _this41 = this;
+                case 1:
+                  return function (_ref37) {
+                    var _ref38 = _slicedToArray(_ref37, 1),
+                        item = _ref38[0];
 
-          for (var _len8 = arguments.length, args = Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
-            args[_key8] = arguments[_key8];
-          }
+                    var type = Object(__WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__["a" /* default */])(item);
+                    // leaving this as a switch in case I think of more options later
+                    switch (type) {
+                      case 'Function':
+                        return [null, item];
+                      default:
+                        if (isHTMLElement(item) || type === 'Text') return [null, null, [item]];
+                        return [];
+                    }
+                  }(arr);
 
-          var _ref35 = function (arr) {
-            switch (arr.length) {
-              case 0:
-                _this41.parentElement && _this41.parentElement.removeChild(_this41);
-                return [];
+                default:
+                  return function (args) {
+                    var _args = _slicedToArray(args, 1),
+                        first = _args[0];
 
-              case 1:
-                return function (_ref37) {
-                  var _ref38 = _slicedToArray(_ref37, 1),
-                      item = _ref38[0];
-
-                  var type = Object(__WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__["a" /* default */])(item);
-                  // leaving this as a switch in case I think of more options later
-                  switch (type) {
-                    case 'Function':
-                      return [null, item];
-                    default:
-                      if (isHTMLElement(item) || type === 'Text') return [null, null, [item]];
-                      return [];
-                  }
-                }(arr);
-
-              default:
-                return function (args) {
-                  var _args = _slicedToArray(args, 1),
-                      first = _args[0];
-
-                  if (isHTMLElement(first) || Object(__WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__["a" /* default */])(first) === 'Text') {
-                    return [null, null, args];
-                  }
-                  return args.slice(0, 2);
-                }(arr);
-            }
-          }(args),
-              _ref36 = _slicedToArray(_ref35, 3),
-              evt = _ref36[0],
-              fn = _ref36[1],
-              children = _ref36[2];
-
-          if (fn && Object(__WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__["a" /* default */])(fn) === 'Function') {
-            this._listeners = this._listeners.filter(function (_ref39) {
-              var _ref40 = _slicedToArray(_ref39, 2),
-                  e = _ref40[0],
-                  f = _ref40[1];
-
-              if (f === fn && (evt === null || evt === e)) {
-                _this41.removeEventListener(e, f);
-                return false;
+                    if (isHTMLElement(first) || Object(__WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__["a" /* default */])(first) === 'Text') {
+                      return [null, null, args];
+                    }
+                    return args.slice(0, 2);
+                  }(arr);
               }
-              return true;
-            });
+            }(args),
+                _ref36 = _slicedToArray(_ref35, 3),
+                evt = _ref36[0],
+                fn = _ref36[1],
+                children = _ref36[2];
+
+            if (fn && Object(__WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__["a" /* default */])(fn) === 'Function') {
+              this._listeners = this._listeners.filter(function (_ref39) {
+                var _ref40 = _slicedToArray(_ref39, 2),
+                    e = _ref40[0],
+                    f = _ref40[1];
+
+                if (f === fn && (evt === null || evt === e)) {
+                  _this41.removeEventListener(e, f);
+                  return false;
+                }
+                return true;
+              });
+            }
+
+            if (children) {
+              children.forEach(function (child) {
+                return _this41.removeChild(child);
+              });
+            }
+
+            return this;
           }
 
-          if (children) {
-            children.forEach(function (child) {
-              return _this41.removeChild(child);
-            });
-          }
+          // // Alias for the .on method. Intercepts addEventListener.
+          // addEventListener(...args) {
+          //   return this.on(...args);
+          // }
+          //
+          // // Ditto for removal
+          // removeEventListener(...args) {
+          //   return this.remove(...args);
+          // }
 
-          return this;
-        }
-
-        // // Alias for the .on method. Intercepts addEventListener.
-        // addEventListener(...args) {
-        //   return this.on(...args);
-        // }
-        //
-        // // Ditto for removal
-        // removeEventListener(...args) {
-        //   return this.remove(...args);
-        // }
-
-      }, {
-        key: 'hide',
-        value: function hide() {
-          this.style.display = 'none';
-          return this;
-        }
-      }, {
-        key: 'show',
-        value: function show() {
-          this.style.display = '';
-          return this;
-        }
-      }, {
-        key: 'attr',
-        value: function attr(name, value) {
-          if (value === undefined) {
-            return Object(__WEBPACK_IMPORTED_MODULE_0__attribute_analyzer_js__["a" /* default */])(this.getAttribute(name));
-          } else {
-            switch (Object(__WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__["a" /* default */])(value)) {
-              case 'Null':
-                this.removeAttribute(name);
-                break;
-
-              default:
-                this.setAttribute(name, value);
-                break;
+        }, {
+          key: 'hide',
+          value: function hide() {
+            this.style.display = 'none';
+            if (global._usingShady) {
+              global.ShadyCSS.styleSubtree(this);
             }
             return this;
           }
-        }
-      }, {
-        key: 'isVisible',
-        get: function get() {
-          var style = __WEBPACK_IMPORTED_MODULE_2__dom_js__["d" /* global */].getComputedStyle(this);
-          return style.display !== 'none' && style.visibility !== 'hidden';
-        }
-      }, {
-        key: 'identity',
-        get: function get() {
-          var id = this.id ? '#' + this.id : '';
-          var tag = this.tagName.toLowerCase();
-          var classes = '.' + this.attr('class').split(' ').filter(function (c) {
-            return c !== tag;
-          }).join('.');
-          return '' + tag + id + classes;
-        }
-      }]);
+        }, {
+          key: 'show',
+          value: function show() {
+            this.style.display = '';
+            if (global._usingShady) {
+              global.ShadyCSS.styleSubtree(this);
+            }
+            return this;
+          }
+        }, {
+          key: 'attr',
+          value: function attr(name, value) {
+            if (value === undefined) {
+              return Object(__WEBPACK_IMPORTED_MODULE_0__attribute_analyzer_js__["a" /* default */])(this.getAttribute(name));
+            } else {
+              switch (Object(__WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__["a" /* default */])(value)) {
+                case 'Null':
+                  this.removeAttribute(name);
+                  break;
 
-      return DOMutils;
-    }(superclass);
-  };
+                default:
+                  this.setAttribute(name, value);
+                  break;
+              }
+              return this;
+            }
+          }
+        }, {
+          key: 'isVisible',
+          get: function get() {
+            var style = __WEBPACK_IMPORTED_MODULE_2__dom_js__["d" /* global */].getComputedStyle(this);
+            return style.display !== 'none' && style.visibility !== 'hidden';
+          }
+        }, {
+          key: 'identity',
+          get: function get() {
+            var id = this.id ? '#' + this.id : '';
+            var tag = this.tagName.toLowerCase();
+            var classes = '.' + this.attr('class').split(' ').filter(function (c) {
+              return c !== tag;
+            }).join('.');
+            return '' + tag + id + classes;
+          }
+        }]);
+
+        return DOMutils;
+      }(superclass);
+    };
+
+    /* WEBPACK VAR INJECTION */
+  }).call(__webpack_exports__, __webpack_require__(11));
 
   /***/
 },
-/* 21 */
+/* 22 */
 /***/function (module, __webpack_exports__, __webpack_require__) {
 
   "use strict";
@@ -2695,7 +2737,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
   /***/
 },
-/* 22 */
+/* 23 */
 /***/function (module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function (global) {
@@ -2908,33 +2950,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
     };
 
     /* WEBPACK VAR INJECTION */
-  }).call(exports, __webpack_require__(23));
-
-  /***/
-},
-/* 23 */
-/***/function (module, exports) {
-
-  var g;
-
-  // This works in non-strict mode
-  g = function () {
-    return this;
-  }();
-
-  try {
-    // This works if eval is allowed (see CSP)
-    g = g || Function("return this")() || (1, eval)("this");
-  } catch (e) {
-    // This works if the window reference is available
-    if ((typeof window === 'undefined' ? 'undefined' : _typeof(window)) === "object") g = window;
-  }
-
-  // g can still be undefined, but nothing to do about it...
-  // We return undefined, instead of nothing here, so it's
-  // easier to handle this case. if(!global) { ...}
-
-  module.exports = g;
+  }).call(exports, __webpack_require__(11));
 
   /***/
 },
@@ -3009,8 +3025,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   "use strict";
   /* harmony import */
   var __WEBPACK_IMPORTED_MODULE_0__utils_float_js__ = __webpack_require__(4);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__card_js__ = __webpack_require__(12);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__backdrop_js__ = __webpack_require__(15);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__card_js__ = __webpack_require__(13);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__backdrop_js__ = __webpack_require__(16);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__button_js__ = __webpack_require__(6);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__ = __webpack_require__(0);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
@@ -3172,7 +3188,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   "use strict";
   /* harmony import */
   var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__list_js__ = __webpack_require__(16);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__list_js__ = __webpack_require__(17);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__ = __webpack_require__(0);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
@@ -3397,7 +3413,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__animations_easer_js__ = __webpack_require__(29);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__ = __webpack_require__(0);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__backdrop_js__ = __webpack_require__(15);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__backdrop_js__ = __webpack_require__(16);
 
   var template = __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__["c" /* document */].createElement('template');
   template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      position: absolute;\n      top: 0;\n      height: 100vh;\n      z-index: 9001;\n      max-width: 90vw;\n      width: 320px;\n      padding: 10px;\n      background-color: #fff;\n    }\n\n    :host([left-oriented]) {\n      left: -350px;\n      border-right: solid 1px var(--ui-theme-dark-text-color, #000);\n    }\n\n    :host([right-oriented]) {\n      left: 100vw;\n      border-left: solid 1px var(--ui-theme-dark-text-color, #000);\n    }\n  </style>\n  <slot></slot>\n';
@@ -4199,7 +4215,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   "use strict";
   /* harmony import */
   var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__list_js__ = __webpack_require__(16);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__list_js__ = __webpack_require__(17);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__ = __webpack_require__(0);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
@@ -4339,7 +4355,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   /* harmony import */
   var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_float_js__ = __webpack_require__(4);
-  /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_centerer_js__ = __webpack_require__(14);
+  /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_centerer_js__ = __webpack_require__(15);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__ = __webpack_require__(0);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__utils_attribute_analyzer_js__ = __webpack_require__(8);
   /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
