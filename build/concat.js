@@ -1,3 +1,4 @@
+var __run=function(){
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -107,27 +108,49 @@ const defineUIComponent = ({
   if (!name) throw new Error('ui-components must have a name.');
   if (!definition) throw new Error('ui-components must have a defining class');
   if (name in registry) throw new Error(`ui-component named ${name} already registered.`);
+
+  let tmpl = null;
+  if (definition._template || template) tmpl = document.createElement('template');
+  if (definition._template) tmpl.innerHTML += definition._template.innerHTML;
+  if (template) tmpl.innerHTML += template.innerHTML;
+
   const class_ = class extends definition {
     static get observedAttributes () {
       return [...super.observedAttributes, ...reflectedAttrs];
     }
 
+    static get _template () {
+      return tmpl;
+    }
+
+    _stamp () {
+      // no call to super
+      let temp = tmpl ? tmpl.cloneNode(true) : null;
+      if (temp && global._usingShady) global.ShadyCSS.prepareTemplate(temp, name);
+      return temp;
+    }
+
+    get _reflectedAttrs () {
+      let rfs = super._reflectedAttrs || [];
+      return [...rfs, ...reflectedAttrs];
+    }
+
     constructor (...args) {
       super(...args);
-      if ((isShadowHost || template) && !this.shadowRoot) this.attachShadow({ mode: 'open' });
-
-      if (global._usingShady && this.shadowRoot && template) {
-        global.ShadyCSS.prepareTemplate(template, name);
-      }
-
-      if (template) this.shadowRoot.appendChild(document.importNode(template.content, true));
-      if (reflectedAttrs.length) {
-        this.on('attribute-change', ({ changed: { name, now } }) => {
-          if (reflectedAttrs.includes(name)) {
-            this[Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_jsstring_src_jsstring_js__["b" /* toCamelCase */])(name)] = now;
-          }
-        });
-      }
+      // if ((isShadowHost || template) && !this.shadowRoot) this.attachShadow({ mode: 'open' });
+      //
+      // if (global._usingShady && this.shadowRoot && template) {
+      //   global.ShadyCSS.prepareTemplate(template, name);
+      // }
+      //
+      // if (template) this.shadowRoot.appendChild(document.importNode(template.content, true));
+      // if (reflectedAttrs.length) {
+      //   this.on('attribute-change', ({ changed: { name, now } }) => {
+      //     if (reflectedAttrs.includes(name)) {
+      //       this[toCamelCase(name)] = now;
+      //     }
+      //   });
+      // }
     }
 
     init () {
@@ -150,6 +173,7 @@ const defineUIComponent = ({
   // actions to occur when these are set, use a handler for the 'attribute-change' event or the
   // watchAttribute shorthand method.
   Object.defineProperties(class_.prototype, toPropertyObj(reflectedAttrs));
+
   if (registerElement) {
     global.customElements.define(name, class_);
     registry[name] = class_;
@@ -195,6 +219,11 @@ class UIBase extends Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_sr
       eventName: 'ui-component-ready',
       callback: () => this
     });
+
+    // This is because the spec doesn't allow attribute changes in an element constructor.
+    setTimeout(() => {
+      this.init();
+    }, 0);
   }
 
   static get observedAttributes () {
@@ -226,7 +255,7 @@ class UIBase extends Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_sr
     if (__WEBPACK_IMPORTED_MODULE_5__dom_js__["d" /* global */]._usingShady) {
       __WEBPACK_IMPORTED_MODULE_5__dom_js__["d" /* global */].ShadyCSS.styleSubtree(this);
     }
-    
+
     return this;
   }
 
@@ -234,41 +263,61 @@ class UIBase extends Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_sr
     // Should be called by extension elements via super. setTimeout is so that any initialization
     // and event handlers in the descendant classes can be attached before the reflected attribute
     // setup.
-    setTimeout(() => {
-      this.classList.add('is-ui-component');
+    this.classList.add('is-ui-component');
 
-      const children = this.shadowRoot ?
-        [this._childrenUpgraded, ...this.shadowRoot.children] :
-        this._childrenUpgraded;
+    let tmpl = this._stamp();
+    if (tmpl) {
+      this.attachShadow({ mode: 'open' });
+      this.shadowRoot.appendChild(__WEBPACK_IMPORTED_MODULE_5__dom_js__["d" /* global */].document.importNode(tmpl.content, true));
+    }
 
-      Promise.resolve(children)
-        .then(_ => {
-          this.constructor.observedAttributes.forEach(attr => {
-            if (this.attr(attr)) {
-              const evt = new CustomEvent('attribute-change');
-              evt.changed = { name: attr, now: this.attr(attr), was: null };
-              this.dispatchEvent(evt);
+    // if (this.tagName.toLowerCase() === 'ui-drop-down') {
+    //   debugger;
+    // }
+
+    // const children = this.shadowRoot ?
+    //   [this._childrenUpgraded, ...this.shadowRoot.children] :
+    //   this._childrenUpgraded;
+
+    const elReady = el => el._isReady || Promise.resolve(el);
+    const children = [...[...this.children].map(elReady)];
+    if (this.shadowRoot) children.push.apply(children, [...this.shadowRoot.children].map(elReady));
+
+    Promise.all(children)
+      .then(_ => {
+        if (this._reflectedAttrs.length) {
+          this.on('attribute-change', ({ changed: { name, now } }) => {
+            if (this._reflectedAttrs.includes(name)) {
+              this[Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__["b" /* toCamelCase */])(name)] = now;
             }
           });
+        }
 
-          [...this.attributes].forEach(({ name: attr, value: val}) => {
-            const twoWay = val && val.match(/^\{\{\{(.+)\}\}\}$/);
-            const oneWay = val && val.match(/^\{\{(.+)\}\}$/);
-            const matched = twoWay ? twoWay[1] : oneWay ? oneWay[1] : null;
-            const attrToWatch = matched ? Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__["c" /* toSnakeCase */])(matched, '-') : null;
-            if (attrToWatch) {
-              this.bindAttribute(attr, attrToWatch, twoWay);
-            }
-          });
-
-          return this._beforeReadyHandlers.length ?
-            Promise.all(this._beforeReadyHandlers.map(f => f(this))) :
-            null;
-        })
-        .then(_ => {
-          this.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: true }));
+        this.constructor.observedAttributes.forEach(attr => {
+          if (this.attr(attr)) {
+            const evt = new CustomEvent('attribute-change');
+            evt.changed = { name: attr, now: this.attr(attr), was: null };
+            this.dispatchEvent(evt);
+          }
         });
-    }, 0);
+
+        [...this.attributes].forEach(({ name: attr, value: val}) => {
+          const twoWay = val && val.match(/^\{\{\{(.+)\}\}\}$/);
+          const oneWay = val && val.match(/^\{\{(.+)\}\}$/);
+          const matched = twoWay ? twoWay[1] : oneWay ? oneWay[1] : null;
+          const attrToWatch = matched ? Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__["c" /* toSnakeCase */])(matched, '-') : null;
+          if (attrToWatch) {
+            this.bindAttribute(attr, attrToWatch, twoWay);
+          }
+        });
+
+        return this._beforeReadyHandlers.length ?
+          Promise.all(this._beforeReadyHandlers.map(f => f(this))) :
+          null;
+      })
+      .then(_ => {
+        this.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: true }));
+      });
   }
 
   // If extension elements override the default connected and disconnected
@@ -284,7 +333,7 @@ class UIBase extends Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_sr
     this._mutationObservers.forEach(([o, target, conf]) => o.observe(target, conf));
 
     // This avoids Chrome firing the event before DOM is ready
-    setTimeout(() => { this.init(); }, 10)
+    // setTimeout(() => { this.init(); }, 10)
   }
 
   disconnectedCallback () {
@@ -3683,7 +3732,7 @@ const Router = (() => {
               break;
 
             case 'updates-history':
-              if (now) {
+              if (now && historyManager !== this) {
                 if (historyManager) {
                   throw new Error(
                     `Only one router per page can manage the navigation history
@@ -4201,4 +4250,4 @@ template.innerHTML = `
 
 
 /***/ })
-/******/ ]);
+/******/ ]);};if(window.customElements){__run();}else{var __listener=function(){window.removeEventListener('WebComponentsReady',__listener);__run();};window.addEventListener('WebComponentsReady',__listener);}

@@ -4,7 +4,7 @@ import DOMutils from './dom-utils.js';
 import processHTMLAttr from './attribute-analyzer.js';
 import event2Promise from './promise-from-event.js';
 import { baseClass, global } from './dom.js';
-import { toSnakeCase } from '../../node_modules/jsstring/src/jsstring.js';
+import { toSnakeCase, toCamelCase } from '../../node_modules/jsstring/src/jsstring.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 let flag = true;
@@ -19,6 +19,11 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
       eventName: 'ui-component-ready',
       callback: () => this
     });
+
+    // This is because the spec doesn't allow attribute changes in an element constructor.
+    setTimeout(() => {
+      this.init();
+    }, 0);
   }
 
   static get observedAttributes () {
@@ -50,7 +55,7 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     if (global._usingShady) {
       global.ShadyCSS.styleSubtree(this);
     }
-    
+
     return this;
   }
 
@@ -58,41 +63,61 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     // Should be called by extension elements via super. setTimeout is so that any initialization
     // and event handlers in the descendant classes can be attached before the reflected attribute
     // setup.
-    setTimeout(() => {
-      this.classList.add('is-ui-component');
+    this.classList.add('is-ui-component');
 
-      const children = this.shadowRoot ?
-        [this._childrenUpgraded, ...this.shadowRoot.children] :
-        this._childrenUpgraded;
+    let tmpl = this._stamp();
+    if (tmpl) {
+      this.attachShadow({ mode: 'open' });
+      this.shadowRoot.appendChild(global.document.importNode(tmpl.content, true));
+    }
 
-      Promise.resolve(children)
-        .then(_ => {
-          this.constructor.observedAttributes.forEach(attr => {
-            if (this.attr(attr)) {
-              const evt = new CustomEvent('attribute-change');
-              evt.changed = { name: attr, now: this.attr(attr), was: null };
-              this.dispatchEvent(evt);
+    // if (this.tagName.toLowerCase() === 'ui-drop-down') {
+    //   debugger;
+    // }
+
+    // const children = this.shadowRoot ?
+    //   [this._childrenUpgraded, ...this.shadowRoot.children] :
+    //   this._childrenUpgraded;
+
+    const elReady = el => el._isReady || Promise.resolve(el);
+    const children = [...[...this.children].map(elReady)];
+    if (this.shadowRoot) children.push.apply(children, [...this.shadowRoot.children].map(elReady));
+
+    Promise.all(children)
+      .then(_ => {
+        if (this._reflectedAttrs.length) {
+          this.on('attribute-change', ({ changed: { name, now } }) => {
+            if (this._reflectedAttrs.includes(name)) {
+              this[toCamelCase(name)] = now;
             }
           });
+        }
 
-          [...this.attributes].forEach(({ name: attr, value: val}) => {
-            const twoWay = val && val.match(/^\{\{\{(.+)\}\}\}$/);
-            const oneWay = val && val.match(/^\{\{(.+)\}\}$/);
-            const matched = twoWay ? twoWay[1] : oneWay ? oneWay[1] : null;
-            const attrToWatch = matched ? toSnakeCase(matched, '-') : null;
-            if (attrToWatch) {
-              this.bindAttribute(attr, attrToWatch, twoWay);
-            }
-          });
-
-          return this._beforeReadyHandlers.length ?
-            Promise.all(this._beforeReadyHandlers.map(f => f(this))) :
-            null;
-        })
-        .then(_ => {
-          this.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: true }));
+        this.constructor.observedAttributes.forEach(attr => {
+          if (this.attr(attr)) {
+            const evt = new CustomEvent('attribute-change');
+            evt.changed = { name: attr, now: this.attr(attr), was: null };
+            this.dispatchEvent(evt);
+          }
         });
-    }, 0);
+
+        [...this.attributes].forEach(({ name: attr, value: val}) => {
+          const twoWay = val && val.match(/^\{\{\{(.+)\}\}\}$/);
+          const oneWay = val && val.match(/^\{\{(.+)\}\}$/);
+          const matched = twoWay ? twoWay[1] : oneWay ? oneWay[1] : null;
+          const attrToWatch = matched ? toSnakeCase(matched, '-') : null;
+          if (attrToWatch) {
+            this.bindAttribute(attr, attrToWatch, twoWay);
+          }
+        });
+
+        return this._beforeReadyHandlers.length ?
+          Promise.all(this._beforeReadyHandlers.map(f => f(this))) :
+          null;
+      })
+      .then(_ => {
+        this.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: true }));
+      });
   }
 
   // If extension elements override the default connected and disconnected
@@ -108,7 +133,7 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     this._mutationObservers.forEach(([o, target, conf]) => o.observe(target, conf));
 
     // This avoids Chrome firing the event before DOM is ready
-    setTimeout(() => { this.init(); }, 10)
+    // setTimeout(() => { this.init(); }, 10)
   }
 
   disconnectedCallback () {

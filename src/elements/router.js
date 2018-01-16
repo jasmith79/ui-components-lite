@@ -213,7 +213,7 @@ export const Router = (() => {
               break;
 
             case 'updates-history':
-              if (now) {
+              if (now && historyManager !== this) {
                 if (historyManager) {
                   throw new Error(
                     `Only one router per page can manage the navigation history
