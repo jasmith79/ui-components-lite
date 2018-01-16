@@ -3574,6 +3574,10 @@ const Router = (() => {
           this.attr('current-route', route);
           if (data && Object.keys(data).length) elem.update(data);
           elem.setAttribute('is-selected', true);
+
+          // TODO: this makes maps work. Fix this.
+          setTimeout(() => { __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["d" /* global */].dispatchEvent(new Event('resize')); }, 0);
+
           return elem;
         }
         return null;
