@@ -4,7 +4,7 @@ import DOMutils from './dom-utils.js';
 import processHTMLAttr from './attribute-analyzer.js';
 import event2Promise from './promise-from-event.js';
 import { baseClass, global } from './dom.js';
-import { toSnakeCase } from '../../node_modules/jsstring/src/jsstring.js';
+import { toSnakeCase, toCamelCase } from '../../node_modules/jsstring/src/jsstring.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 let flag = true;
@@ -65,12 +65,34 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     // setup.
     this.classList.add('is-ui-component');
 
-    const children = this.shadowRoot ?
-      [this._childrenUpgraded, ...this.shadowRoot.children] :
-      this._childrenUpgraded;
+    let tmpl = this._stamp();
+    if (tmpl) {
+      this.attachShadow({ mode: 'open' });
+      this.shadowRoot.appendChild(global.document.importNode(tmpl.content, true));
+    }
 
-    Promise.resolve(children)
+    // if (this.tagName.toLowerCase() === 'ui-drop-down') {
+    //   debugger;
+    // }
+
+    // const children = this.shadowRoot ?
+    //   [this._childrenUpgraded, ...this.shadowRoot.children] :
+    //   this._childrenUpgraded;
+
+    const elReady = el => el._isReady || Promise.resolve(el);
+    const children = [...[...this.children].map(elReady)];
+    if (this.shadowRoot) children.push.apply(children, [...this.shadowRoot.children].map(elReady));
+
+    Promise.all(children)
       .then(_ => {
+        if (this._reflectedAttrs.length) {
+          this.on('attribute-change', ({ changed: { name, now } }) => {
+            if (this._reflectedAttrs.includes(name)) {
+              this[toCamelCase(name)] = now;
+            }
+          });
+        }
+
         this.constructor.observedAttributes.forEach(attr => {
           if (this.attr(attr)) {
             const evt = new CustomEvent('attribute-change');

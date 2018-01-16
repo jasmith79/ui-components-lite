@@ -3,6 +3,9 @@ PATH  := node_modules/.bin:$(PATH)
 ES    := $(wildcard src/*.js)
 # JS    := $(ES:src/%.es=build/%.js)
 
+CONCAT_PREFIX := "var __run=function(){"
+CONCAT_SUFFIX := "};if(window.customElements){__run();}else{var __listener=function(){window.removeEventListener('WebComponentsReady',__listener);__run();};window.addEventListener('WebComponentsReady',__listener);}"
+
 all: $(ES) build/loader.min.js build/es5.min.js build/concat.min.js
 
 clean:
@@ -43,6 +46,12 @@ build/index.js:
 build/concat.js: build/index.js
 	@mkdir -p $(@D)
 	webpack
+	echo $(CONCAT_PREFIX) > build/temp1.js
+	echo $(CONCAT_SUFFIX) > build/temp2.js
+	cat build/temp1.js build/temp.js build/temp2.js > $@
+	rm -f build/temp.js
+	rm -f build/temp1.js
+	rm -f build/temp2.js
 
 build/concat.min.js: build/concat.js
 	@mkdir -p $(@D)
@@ -61,4 +70,3 @@ build/loader.min.js: src/utils/loader.js
 	minify $< > $@
 
 .PHONY: all clean
-
