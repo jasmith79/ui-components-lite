@@ -21,8 +21,10 @@
   } else {
 
     // Figure out if we're somewhere other than the root
-    var match = global.document.currentScript.outerHTML.match(/['"]{1}(\.+[\.\/]+)/);
+    var match = global.document.currentScript.outerHTML.match(/['"]{1}([\.\w\/\-]+\/)loader/);
     var prefix = match ? match[1] : './';
+    console.log(prefix);
+    console.log(global.document.currentScript.outerHTML);
 
     var transpiled = prefix + 'build/es5.js';
     var corejs = '<script src="' +
@@ -136,7 +138,7 @@
     if (module) {
       var modulescript = global.document.createElement('script');
       modulescript.type = 'module';
-      modulescript.src = prefix + 'build/index.js';
+      modulescript.src = prefix + 'index.js';
       modulescript.setAttribute('async', true);
       document.head.appendChild(modulescript);
     }
@@ -146,7 +148,7 @@
       nomodule.setAttribute('nomodule', true);
       nomodule.setAttribute('defer', true);
       nomodule.setAttribute('async', true);
-      nomodule.src = prefix + (needsTranspiled ? 'build/es5.js' : 'build/concat.js');
+      nomodule.src = prefix + (needsTranspiled ? 'es5.js' : 'concat.js');
       document.head.appendChild(nomodule);
     }
   }

@@ -83,6 +83,19 @@ export const GoogleMap = defineUIComponent({
       return this._mapObj;
     }
 
+    setCenter (...args) {
+      const latlng = (() => {
+        switch (args.length) {
+          case 1: return args[0];
+          case 2: return new global.google.maps.LatLng(...args);
+          default: throw new TypeError(`Unrecognized arguments ${args} to ui-google-map's setCenter.`);
+        }
+      })();
+
+      this._center = latlng;
+      return this;
+    }
+
     init () {
       this._mapContainer = this.shadowRoot.querySelector('#map-container');
       mapsAPILoaded.then(_ => {
@@ -110,7 +123,13 @@ export const GoogleMap = defineUIComponent({
         // tiles won't render until a resize event is triggered on window. So we'll track center
         // changes and set it manually. Currently the parent element responsible for rendering
         // this element needs to trigger resize on visibility changes, which I'm hoping to fix.
-        this._mapObj.addListener('center_changed', e => {
+        // Currently, if setting the center programmatically, use the element's method rather
+        // than the underlying map object's.
+        this._mapObj.addListener('zoom_changed', e => {
+          this._center = this.map.getCenter();
+        });
+
+        this._mapObj.addListener('dragend', e => {
           this._center = this.map.getCenter();
         });
 
