@@ -59,24 +59,6 @@ const defineUIComponent = ({
       return [...rfs, ...reflectedAttrs];
     }
 
-    constructor (...args) {
-      super(...args);
-      // if ((isShadowHost || template) && !this.shadowRoot) this.attachShadow({ mode: 'open' });
-      //
-      // if (global._usingShady && this.shadowRoot && template) {
-      //   global.ShadyCSS.prepareTemplate(template, name);
-      // }
-      //
-      // if (template) this.shadowRoot.appendChild(document.importNode(template.content, true));
-      // if (reflectedAttrs.length) {
-      //   this.on('attribute-change', ({ changed: { name, now } }) => {
-      //     if (reflectedAttrs.includes(name)) {
-      //       this[toCamelCase(name)] = now;
-      //     }
-      //   });
-      // }
-    }
-
     init () {
       super.init();
       this.classList.add(name);
