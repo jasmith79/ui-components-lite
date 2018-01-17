@@ -10,8 +10,8 @@ const tests = {
         let div = document.createElement('div');
         div.innerHTML = `
           <ui-drop-down id="ddinnerhtml">
-            <ui-item>Foo</ui-item>
-            <ui-item value="passed" is-selected>Bar</ui-item>
+            <ui-item id="item-1">Foo</ui-item>
+            <ui-item id="item-2" value="passed" is-selected>Bar</ui-item>
           </ui-drop-down>
         `;
 
@@ -19,7 +19,7 @@ const tests = {
         output.innerHTML += `<p class="ok">Appended ${name} OK.</p>`;
         let dd = document.querySelector('#ddinnerhtml');
 
-        return dd.isReady.then(_ => {
+        return dd.onReady(_ => {
           if (dd.value === 'passed') {
             output.innerHTML += `<p class="ok">${name} has correct value</p>`;
           } else {
@@ -48,11 +48,13 @@ const tests = {
 
         let item1 = document.createElement('ui-item');
         item1.textContent = 'Foo';
+        item1.id = 'item-3';
 
         let item2 = document.createElement('ui-item');
         item2.textContent = 'Bar';
         item2.value = 'passed';
         item2.setAttribute('is-selected', true);
+        item2.id = 'item-4';
 
         dd.appendChild(item1);
         dd.appendChild(item2);
@@ -64,7 +66,7 @@ const tests = {
         output.innerHTML += `<p class="ok">Appended ${name} OK.</p>`;
         dd = document.querySelector('#createElement');
 
-        return dd.isReady.then(_ => {
+        return dd.onReady(_ => {
           if (dd.value === 'passed') {
             output.innerHTML += `<p class="ok">${name} has correct value</p>`;
           } else {
@@ -139,6 +141,12 @@ const tests = {
           output.innerHTML += `<p class="fail">date1 has unexpected value ${date1.value} for Dt obj.</p>`;
         }
 
+        if (!date1.classList.contains('empty')) {
+          output.innerHTML += `<p class="ok">date1 has no class 'empty' after value set.</p>`;
+        } else {
+          output.innerHTML += `<p class="fail">date1 has unexpected class 'empty' after value set.</p>`;
+        }
+
         date1.value = '2015-02-10';
         if (date1.value.getTime() === new Date(2015, 1, 10).getTime()) {
           output.innerHTML += `<p class="ok">date1 has expected value for Dt string.</p>`;
@@ -146,11 +154,30 @@ const tests = {
           output.innerHTML += `<p class="fail">date1 has unexpected value ${date1.value} for Dt string.</p>`;
         }
 
+        date1.value = null;
+        if (date1.classList.contains('empty')) {
+          output.innerHTML += `<p class="ok">date1 has expected class 'empty' after reset.</p>`;
+        } else {
+          output.innerHTML += `<p class="fail">date1 missing expected class 'empty' after reset.</p>`;
+        }
+
         date1.value = new Date(2014, 3, 1).toISOString();
         if (date1.value.getTime() === new Date(2014, 3, 1).getTime()) {
           output.innerHTML += `<p class="ok">date1 has expected value for ISO string.</p>`;
         } else {
           output.innerHTML += `<p class="fail">date1 has unexpected value ${date1.value} for ISO string.</p>`;
+        }
+
+        date1.value = new Date('foo');
+        if (date1.classList.contains('empty')) {
+          output.innerHTML += `<p class="ok">date1 has expected class 'empty' after invalid value.</p>`;
+        } else {
+          output.innerHTML += `<p class="fail">date1 missing expected class 'empty' after invalid value.</p>`;
+        }
+        if (date1.value === null) {
+          output.innerHTML += `<p class="ok">date1 has expected null value.</p>`;
+        } else {
+          output.innerHTML += `<p class="fail">date1 has unexpected value ${date1.value} after null set.</p>`;
         }
         document.body.removeChild(div);
       });
@@ -164,6 +191,12 @@ const tests = {
           output.innerHTML += `<p class="fail">date2 has unexpected value ${date2.value} for Dt obj.</p>`;
         }
 
+        if (!date2.classList.contains('empty')) {
+          output.innerHTML += `<p class="ok">date2 has no class 'empty' after value set.</p>`;
+        } else {
+          output.innerHTML += `<p class="fail">date2 has unexpected class 'empty' after value set.</p>`;
+        }
+
         date2.value = '2015-02-10';
         if (date2.value.getTime() === new Date(2015, 1, 10).getTime()) {
           output.innerHTML += `<p class="ok">date2 has expected value for Dt string.</p>`;
@@ -171,11 +204,30 @@ const tests = {
           output.innerHTML += `<p class="fail">date2 has unexpected value ${date2.value} for Dt string.</p>`;
         }
 
+        date2.value = null;
+        if (date2.classList.contains('empty')) {
+          output.innerHTML += `<p class="ok">date2 has expected class 'empty' after reset.</p>`;
+        } else {
+          output.innerHTML += `<p class="fail">date2 missing expected class 'empty' after reset.</p>`;
+        }
+
         date2.value = new Date(2014, 3, 1).toISOString();
         if (date2.value.getTime() === new Date(2014, 3, 1).getTime()) {
           output.innerHTML += `<p class="ok">date2 has expected value for ISO string.</p>`;
         } else {
           output.innerHTML += `<p class="fail">date2 has unexpected value ${date2.value} for ISO string.</p>`;
+        }
+
+        date2.value = new Date('foo');
+        if (date2.classList.contains('empty')) {
+          output.innerHTML += `<p class="ok">date2 has expected class 'empty' after invalid value.</p>`;
+        } else {
+          output.innerHTML += `<p class="fail">date2 missing expected class 'empty' after invalid value.</p>`;
+        }
+        if (date2.value === null) {
+          output.innerHTML += `<p class="ok">date2 has expected null value.</p>`;
+        } else {
+          output.innerHTML += `<p class="fail">date2 has unexpected value ${date2.value} after null set.</p>`;
         }
         document.body.removeChild(date2);
       });

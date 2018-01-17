@@ -107,11 +107,13 @@ const destructureDateObj = date => {
 
 const formatAsDateInputValue = date => {
   const [yr, mn, dy] = destructureDateObj(date);
+  if ([yr, mn, dy].some(n => n == null || Number.isNaN(n))) return null;
   return `${pad4(yr)}-${pad2(mn + 1)}-${pad2(dy)}`;
 };
 
 const formatAsDateInputDisplay = date => {
   const [yr, mn, dy] = destructureDateObj(date);
+  if ([yr, mn, dy].some(n => n == null || Number.isNaN(n))) return null;
   return `${pad2(mn + 1)}/${pad2(dy)}-${pad4(yr)}`;
 };
 
@@ -119,11 +121,13 @@ const formatAsTimeInputValue = date => {
   // Currently, the step attribute needed for seconds is not supported in iOS Safari so for now
   // limiting to just minutes and hours.
   const [,,,hr, min] = destructureDateObj(date);
+  if ([hr, min].some(n => n == null || Number.isNaN(n))) return null;
   return `${pad2(hr)}:${pad2(min)}`;
 };
 
 const formatAsTimeInputDisplay = date => {
   const [,,,hr, min] = destructureDateObj(date);
+  if ([hr, min].some(n => n == null || Number.isNaN(n))) return null;
   const afternoon = hr > 11;
   const meridian = afternoon ? 'PM' : 'AM';
   const hour = '' + (afternoon ? hr - 12 : hr);
@@ -131,7 +135,7 @@ const formatAsTimeInputDisplay = date => {
 };
 
 const input2Date = s => {
-  if (!s.trim()) return '';
+  if (!s.trim()) return null;
   let yr, mn, dy;
   if (s.includes('/')) {
     ([mn, dy, yr] = s.split('/').map(Number));
@@ -216,6 +220,11 @@ export const Input = defineUIComponent({
       switch (this.attr('type').toLowerCase()) {
         case 'date':
           switch (extractType(val)) {
+            case 'Null':
+            case 'Undefined':
+              value = null;
+              break;
+
             case 'Date':
               value = DATE_TYPE_SUPPORTED ?
                 formatAsDateInputValue(val) :
@@ -236,7 +245,7 @@ export const Input = defineUIComponent({
         case 'time':
           switch (extractType(val)) {
             case 'Array':
-              value = val.map(pad2).join(':');
+              value = val.length ? val.map(pad2).join(':') : '';
               break;
 
             case 'String':
@@ -268,12 +277,12 @@ export const Input = defineUIComponent({
       })();
 
       if (empty) {
-        this.classList.remove('empty');
-      } else {
         this.classList.add('empty');
+      } else {
+        this.classList.remove('empty');
       }
 
-      return (super.value = value);
+      return (super.value = value == null ? '' : value);
     }
 
     init () {
@@ -339,15 +348,8 @@ export const Input = defineUIComponent({
 
           case 'value':
             let val = now === true ? '' : now;
-            if (val === '') {
-              setTimeout(() => {
-                if (!this._input.value) {
-                  this._input.value = this.defaultValue || '';
-                  this.dispatchEvent(new Event('change', { bubbles: 'true' }));
-                }
-              }, 500);
-            } else if (this._input.value !== val) {
-              this._input.value = now;
+            if (this._input.value !== val) {
+              this._input.value = val;
               this.dispatchEvent(new Event('change', { bubbles: 'true' }));
             }
             break;

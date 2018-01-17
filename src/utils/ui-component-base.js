@@ -69,20 +69,13 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
       this.shadowRoot.appendChild(global.document.importNode(tmpl.content, true));
     }
 
-    // if (this.tagName.toLowerCase() === 'ui-drop-down') {
-    //   debugger;
-    // }
-
-    // const children = this.shadowRoot ?
-    //   [this._childrenUpgraded, ...this.shadowRoot.children] :
-    //   this._childrenUpgraded;
-
     const elReady = el => el._isReady || Promise.resolve(el);
     const children = [...[...this.children].map(elReady)];
     if (this.shadowRoot) children.push.apply(children, [...this.shadowRoot.children].map(elReady));
 
     Promise.all(children)
-      .then(_ => {
+      .then(chlds => {
+        let tg = this.tagName.toLowerCase();
         if (this._reflectedAttrs.length) {
           this.on('attribute-change', ({ changed: { name, now } }) => {
             if (this._reflectedAttrs.includes(name)) {
@@ -114,7 +107,7 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
           null;
       })
       .then(_ => {
-        this.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: true }));
+        this.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: false }));
       });
   }
 
