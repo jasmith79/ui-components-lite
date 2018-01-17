@@ -52,6 +52,13 @@ ui-list {
   </ui-drawer>
   <ui-router updates-history renders-current hash-bang>
     <ui-route route-path="/login">
+      <ui-input type="date" name="date1"></ui-input>
+      <ui-input type="date" name="date2"></ui-input>
+      <ui-input type="date" name="date3" value=""></ui-input>
+      <ui-input type="time" name="time1"></ui-input>
+      <ui-input type="time" name="time2"></ui-input>
+      <ui-input type="time" name="time3" value=""></ui-input>
+      <ui-input type="time" name="time4"></ui-input>
       <ui-login data-url="/data/login" session-timeout="5000"></ui-login>
     </ui-route>
     <ui-route route-path="/beer">

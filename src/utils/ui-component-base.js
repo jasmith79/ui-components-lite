@@ -48,15 +48,13 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
   }
 
   onReady (...fs) {
-    this._isReady.then(_ => {
-      fs.forEach(f => f(this));
-    });
+    let p = this._isReady.then(_ => Promise.all(fs.map(f => f(this))));
 
     if (global._usingShady) {
       global.ShadyCSS.styleSubtree(this);
     }
 
-    return this;
+    return p;
   }
 
   init () {
