@@ -37,37 +37,6 @@ const reflectedAttrs = [
   'default-value',
 ];
 
-const template = document.createElement('template');
-template.innerHTML = `
-  <style>
-    :host {
-      display: block;
-      border-bottom: solid 1px;
-      border-bottom-color: #999;
-      min-height: 25px;
-      margin-bottom: 10px;
-      margin-top: 10px;
-      max-width: 200px;
-    }
-
-    :host(.focused) {
-      border-bottom-color: var(--ui-theme-primary-dark-color, blue);
-      box-shadow: 0px 4px 4px -4px;
-    }
-
-    #input {
-      border: none;
-      outline: none;
-      width: 90%;
-      margin-left: 5%;
-      margin-bottom: 3px;
-      height: 25px;
-      font-size: 16px;
-    }
-  </style>
-  <input id="input"/>
-`;
-
 const debounce = (n, immed, f) => {
   let [fn, now] = (() => {
     switch(extractType(immed)) {
@@ -91,7 +60,137 @@ const debounce = (n, immed, f) => {
   }
 };
 
-export default defineUIComponent({
+const pad = n => val => {
+  const s = '' + val;
+  if (Number.isNaN(+s)) {
+    console.warn(`Attempted to pad non-numeric argument ${s}.`);
+    return '';
+  }
+  return s.length >= n ? s : '0'.repeat(n - s.length) + s;
+};
+const pad2 = pad(2);
+const pad4 = pad(4);
+
+// Not foolproof, but good quick-and-dirty check.
+const VALID_INPUT_DATE = /^\d{4}\-[0-1][1-9]\-[1-3][1-9]$/;
+const VALID_INPUT_TIME = /^[0-2][0-9]:[0-5][0-9]$/;
+
+export const DATE_TYPE_SUPPORTED = (() => {
+  const input = document.createElement('input');
+  const notDate = 'not-a-date';
+  input.setAttribute('type', 'date');
+  input.setAttribute('value', notDate);
+  return input.value !== notDate;
+})();
+
+// Need this because Edge supports date but not time
+export const TIME_TYPE_SUPPORTED = (() => {
+  const input = document.createElement('input');
+  const notTime = 'not-a-time';
+  input.setAttribute('type', 'time');
+  input.setAttribute('value', notTime);
+  return input.value !== notTime;
+})();
+
+const destructureDateObj = date => {
+  return Number.isNaN(date.getTime()) ?
+    [] :
+    [
+      date.getFullYear(),
+      date.getMonth(), //no +1
+      date.getDate(),
+      date.getHours(),
+      date.getMinutes(),
+      date.getSeconds(),
+    ];
+};
+
+const formatAsDateInputValue = date => {
+  const [yr, mn, dy] = destructureDateObj(date);
+  if ([yr, mn, dy].some(n => n == null || Number.isNaN(n))) return null;
+  return `${pad4(yr)}-${pad2(mn + 1)}-${pad2(dy)}`;
+};
+
+const formatAsDateInputDisplay = date => {
+  const [yr, mn, dy] = destructureDateObj(date);
+  if ([yr, mn, dy].some(n => n == null || Number.isNaN(n))) return null;
+  return `${pad2(mn + 1)}/${pad2(dy)}-${pad4(yr)}`;
+};
+
+const formatAsTimeInputValue = date => {
+  // Currently, the step attribute needed for seconds is not supported in iOS Safari so for now
+  // limiting to just minutes and hours.
+  const [,,,hr, min] = destructureDateObj(date);
+  if ([hr, min].some(n => n == null || Number.isNaN(n))) return null;
+  return `${pad2(hr)}:${pad2(min)}`;
+};
+
+const formatAsTimeInputDisplay = date => {
+  const [,,,hr, min] = destructureDateObj(date);
+  if ([hr, min].some(n => n == null || Number.isNaN(n))) return null;
+  const afternoon = hr > 11;
+  const meridian = afternoon ? 'PM' : 'AM';
+  const hour = '' + (afternoon ? hr - 12 : hr);
+  return `${pad2(hour)}:${pad2(min)} ${meridian}`;
+};
+
+const input2Date = s => {
+  if (!s.trim()) return null;
+  let yr, mn, dy;
+  if (s.includes('/')) {
+    ([mn, dy, yr] = s.split('/').map(Number));
+  } else {
+    ([yr, mn, dy] = s.split('-').map(Number));
+  }
+  return new Date(yr, mn - 1, dy);
+};
+
+const parseTimeString = s => {
+  if (!s) return [];
+  let [t, meridian] = s.split(' ');
+  let [h, m] = t.split(':').map(Number);
+  let hr = meridian.toLowerCase() === 'pm' ? 12 + h : h;
+  return [hr, m];
+};
+
+const template = document.createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: block;
+      border-bottom: solid 1px;
+      border-bottom-color: #999;
+      min-height: 25px;
+      margin-bottom: 10px;
+      margin-top: 10px;
+      max-width: 200px;
+      color: var(--ui-theme-dark-text-color, #333);
+    }
+
+    :host(.focused) {
+      border-bottom-color: var(--ui-theme-primary-dark-color, blue);
+      box-shadow: 0px 4px 4px -4px;
+    }
+
+    :host(.empty) {
+      color: #999;
+    }
+
+    #input {
+      border: none;
+      outline: none;
+      width: 90%;
+      margin-left: 5%;
+      margin-bottom: 3px;
+      height: 25px;
+      font-size: 16px;
+      color: inherit;
+    }
+  </style>
+  <input id="input"/>
+`;
+
+export const Input = defineUIComponent({
   name: 'ui-input',
   template,
   reflectedAttrs,
@@ -101,24 +200,126 @@ export default defineUIComponent({
       this._input = null;
     }
 
+    get value () {
+      switch (this.attr('type').toLowerCase()) {
+        case 'date':
+          return input2Date(this._input.value);
+          break;
+
+        case 'time':
+          let value = super.value;
+          return parseTimeString(value);
+
+        default: return super.value;
+
+      }
+    }
+
+    set value (val) {
+      let value = '';
+      switch (this.attr('type').toLowerCase()) {
+        case 'date':
+          switch (extractType(val)) {
+            case 'Null':
+            case 'Undefined':
+              value = null;
+              break;
+
+            case 'Date':
+              value = DATE_TYPE_SUPPORTED ?
+                formatAsDateInputValue(val) :
+                formatAsDateInputDisplay(val);
+
+              break;
+
+            case 'String':
+              if (!DATE_TYPE_SUPPORTED && !val.match(VALID_INPUT_DATE)) {
+                console.warn(`The specified value "${val}" does not conform to the required format, "yyyy-MM-dd".`);
+              } else {
+                value = val.includes('T') ? val.split('T')[0] : val;
+              }
+              break;
+          }
+          break;
+
+        case 'time':
+          switch (extractType(val)) {
+            case 'Array':
+              value = val.length ? val.map(pad2).join(':') : '';
+              break;
+
+            case 'String':
+              value = val;
+              break;
+
+            case 'Date':
+              value = destructureDateObj(val).slice(3, 5).map(pad2).join(':');
+              break;
+          }
+
+          if (!TIME_TYPE_SUPPORTED && !value.match(VALID_INPUT_TIME)) {
+            console.warn(`VM71763:1 The specified value "${val}" does not conform to the required format.  The format is "HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS" where HH is 00-23, mm is 00-59, ss is 00-59, and SSS is 000-999.`);
+          }
+
+        default: value = val;
+      }
+
+      const empty = (() => {
+        switch (extractType(value)) {
+          case 'Array':
+          case 'String':
+            return value.length === 0;
+          case 'Null':
+          case 'Undefined':
+            return true;
+          default: return false;
+        }
+      })();
+
+      if (empty) {
+        this.classList.add('empty');
+      } else {
+        this.classList.remove('empty');
+      }
+
+      return (super.value = value == null ? '' : value);
+    }
+
     init () {
       super.init();
       this._input = this.shadowRoot.querySelector('#input');
-      const placeholder = this.placeholder ||
-        this.name ||
-        this.defaultValue ||
+      const placeholder = this.attr('placeholder') ||
+        this.attr('name') ||
+        this.attr('default-value') ||
         null;
 
       if (placeholder) this.placeholder = placeholder;
+      if (!this.attr('type')) this.type = 'text';
+      if (!((this.value && this.value.length) || this.attr('value'))) this.classList.add('empty');
 
-      if (!this.type) this.type = 'text';
-      switch (this.type.toLowerCase()) {
+      switch (this.attr('type').toLowerCase()) {
+        // TODO: replace these two with cross-platform date and time pickers?
+        case 'date':
+        case 'time':
+
         case 'text':
         case 'number':
         case 'password':
         case 'email':
-          this._input.setAttribute('type', this.type);
+        case 'tel':
+        case 'url':
+          this._input.setAttribute('type', this.attr('type'));
           break;
+      }
+
+      if (this.attr('type').toLowerCase() === 'date' && !DATE_TYPE_SUPPORTED) {
+        this.attr('placeholder', 'mm/dd/yyyy');
+        this.attr('pattern', '^[0-1][1-9]\/[1-3][1-9]\/\d{4}$');
+      }
+
+      if (this.attr('type').toLowerCase() === 'time' && !TIME_TYPE_SUPPORTED) {
+        this.attr('placeholder', '00:00 AM/PM');
+        this.attr('pattern', '^[0-2][0-9]:[0-5][0-9] [AP]M$');
       }
 
       this._input.addEventListener('focus', e => {
@@ -134,7 +335,6 @@ export default defineUIComponent({
         if (this._input.value !== this._before) {
           this._before = this._input.value;
           this.value = this._input.value;
-          this.dispatchEvent(new Event('change', { bubbles: true }));
         }
       })));
 
@@ -143,20 +343,13 @@ export default defineUIComponent({
           case 'name':
             this._input.name = now;
             this.name = now;
+            if (!this.attr('placeholder')) this._input.setAttribute('placeholder', now);
             break;
 
           case 'value':
-            const val = now === true ? '' : now;
-            if (val === '') {
-              setTimeout(() => {
-                if (!this._input.value) {
-                  this._input.value = this.defaultValue || '';
-                  this.dispatchEvent(new Event('change', { bubbles: 'true' }));
-                }
-              }, 500);
-            } else if (this._input.value !== val) {
-              this._input.value = now;
-              this.dispatchEvent(new Event('change', { bubbles: 'true' }));
+            let val = now === true ? '' : now;
+            if (this._input.value !== val) {
+              this._input.value = !val && this.defaultValue ? this.defaultValue : val;
             }
             break;
 

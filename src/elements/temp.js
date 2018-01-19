@@ -1,10 +1,16 @@
 import UIBase from '../utils/ui-component-base.js';
-import { ListBehavior } from './list.js';
+import Centerer from '../utils/centerer.js';
+import Ripples from '../animations/rippler.js';
+import Easer from '../animations/easer.js';
+import { FormBehavior } from './form.js';
 import { defineUIComponent, document } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import { extractType } from '../../node_modules/extracttype/extracttype.js';
 
-const reflectedAttrs = ['selected-index', 'is-open', 'multiple'];
+import './text.js';
+import './list.js';
+
+const reflectedAttrs = ['selected-index', 'is-open', 'multiple', 'placeholder-text'];
 const template = document.createElement('template');
 template.innerHTML = `
   <style>
@@ -15,8 +21,6 @@ template.innerHTML = `
       left: -5px;
       z-index: 1000;
       width: 100%;
-      max-height: 225px;
-      overflow-y: scroll;
     }
 
     .arrow {
@@ -50,10 +54,6 @@ template.innerHTML = `
       position: relative;
       top: -10px;
       border-top: 1px solid #999;
-    }
-
-    slot::slotted(.ui-item) {
-      border: none;
     }
 
     :host {
@@ -94,7 +94,7 @@ template.innerHTML = `
     <div class="arrow down"></div>
   </ui-item>
   <div id="list-holder" class="not-overflowing">
-    <ui-list multiple="{{multiple}}">
+    <ui-list multiple="{{multiple}}" class="initial-list">
       <slot></slot>
     </ui-list>
   </div>
@@ -104,47 +104,56 @@ export default defineUIComponent({
   name: 'ui-drop-down',
   reflectedAttrs,
   template,
-  definition: class DropDown extends mix(UIBase).with(ListBehavior) {
+  definition: class DropDown extends mix(UIBase).with(FormBehavior) {
     constructor () {
       super();
       this._list = null;
       this._listHolder = null;
       this._dummyItem = null;
-      this._textContent = '';
+      this._selected = null;
+      this._items = null;
+    }
+
+    get items () {
+      return this._items;
+    }
+
+    get selected () {
+      return this._selected;
+    }
+
+    set selected (val) {
+      this._selected = val;
+      if (this.selected && !this.multiple) {
+        this.textContent = this.selected.value;
+        this._dummyItem.classList.remove('default');
+      } else {
+        this.textContent = '...';
+        this._dummyItem.classList.add('default');
+      }
     }
 
     get textContent () {
-      return (this._dummyItem && this._dummyItem.textContent) || this._textContent;
+      return (this._dummyItem && this._dummyItem.textContent) || '';
     }
 
     set textContent (val) {
-      const txt = val ||
-        this.placeholder ||
-        this.name ||
-        '...';
-
-      this._textContent = txt;
-      if (!this._dummyItem) this._dummyItem = this.selectInternalElement('#dummy-item');
-      this._dummyItem.querySelector('#dummy-item-content').textContent = txt;
-      if (txt === '...') {
-        this._dummyItem.classList.add('default');
-      } else {
-        this._dummyItem.classList.remove('default');
-      }
-
+      this._dummyItem.querySelector('#dummy-item-content').textContent = val;
       return this;
     }
 
     appendChild (node) {
-      if (node) {
+      if (node.matches && node.matches('.ui-item')) {
         super.appendChild(node);
+        this._items.push(node);
         node.on('click', e => {
+          this.selected = node;
+          node.isSelected = true;
           setTimeout(() => {
             this.close();
           }, 300);
         });
       }
-
       return node;
     }
 
@@ -164,53 +173,46 @@ export default defineUIComponent({
     }
 
     init () {
-      let mouseon = false;
       super.init();
-      this._beforeReady(_ => {
-        this._list = this.shadowRoot.querySelector('ui-list');
-        this._listHolder = this.shadowRoot.querySelector('#list-holder');
-        this._dummyItem = this.shadowRoot.querySelector('#dummy-item');
-        this._dummyItem.shadowRoot.querySelector('ui-checkbox').style.display = 'none';
+      if (!this.multiple) this.multiple = false;
+      if (!this.isOpen) this.isOpen = false;
 
-        this._items.forEach(item => {
-          if (item.isSelected) this.selected = item;
-          item.on('click', e => {
-            if (!this.multiple) {
-              setTimeout(() => {
-                this.close();
-              }, 300);
-            }
-          });
-        });
+      this._items = this.selectAll('.ui-item');
+      this._list = this.shadowRoot.querySelector('ui-list');
+      this._listHolder = this.shadowRoot.querySelector('#list-holder');
+      this._dummyItem = this.shadowRoot.querySelector('#dummy-item');
 
-        if (this.name && !this.selected) this.textContent = null;
-        this._listHolder.classList.remove('not-overflowing');
+      this._dummyItem._checkbox.style.display = 'none';
+      this._list.classList.remove('initial-list');
+      this._list.on('change', ({ selection }) => {
+        this.selected = selection
+      });
 
-        this._dummyItem.on('click', e => {
-          this.toggle();
-          mouseon = this.isOpen;
+      this._items.forEach(item => {
+        item.on('click', e => {
+          this.selected = item;
+          item.isSelected = true;
+          if (!this.multiple) {
+            setTimeout(() => {
+              this.close();
+            }, 300);
+          }
         });
       });
 
-      if (!this.multiple) this.multiple = false;
-      if (!this.isOpen) this.isOpen = false;
+      this._listHolder.classList.remove('not-overflowing');
+
+      let mouseon = false;
+
+      this._dummyItem.on('click', e => {
+        this.toggle();
+        mouseon = this.isOpen;
+      });
 
       this.on('mouseenter', e => mouseon = true);
       this.on('mouseleave', e => {
         mouseon = false;
         setTimeout(() => { if (!mouseon) this.isOpen = false; }, 1000);
-      });
-
-      this.on('attribute-change', ({ changed: { now, name } }) => {
-        switch (name) {
-          case 'selected-index':
-            if (this.selected && !this.multiple) {
-              this.textContent = this.selected.textContent;
-            } else {
-              this.textContent = ''; // default
-            }
-            break;
-        }
       });
     }
   }

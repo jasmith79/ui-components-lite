@@ -63,54 +63,24 @@ export const ListBehavior = superclass => defineUIComponent({
             if (item !== selection) item.isSelected = false;
           });
         }
-        const evt = new Event('change', { bubbles: true });
-        evt.selection = this._selected;
-        evt.value = this.value;
-        this.dispatchEvent(evt);
       }
 
       return selection;
     }
 
     appendChild (node) {
-      // let pendingAdditions = [];
-      if (node && node.isReady) {
-      //   pendingAdditions.push(node);
-      //   this.isReady = this.isReady.then(_ => {
-      //     return new Promise(res => {
-      //       setTimeout(() => {
-      //         Promise.all(pendingAdditions.map(x => x.isReady)).then(_ => {
-      //           pendingAdditions = [];
-      //           res();
-      //         });
-      //       }, 0);
-      //     });
-      //   });
-      //
-      //   if (node instanceof Item) {
-      //     node.on('click', e => {
-      //       this.selected = node;
-      //       node.isSelected = true;
-      //     });
-      //     super.appendChild(node);
-      //     this._items.push(node);
-      //   }
-      //
-      //   node.isReady.then(node => {
-      //     if (node.isSelected) this.selected = node;
-      //   });
-        node.onReady(el => {
-          if (el instanceof Item) {
-            node.on('click', e => {
-              this.selected = node;
-              node.isSelected = true;
-            });
-            super.appendChild(node);
-            this._items.push(node);
-            if (el.isSelected) this.onReady(_ => this.selected = node);
-          }
-        });
-      }
+      let p = node.onReady(el => {
+        if (el.matches && el.matches('.ui-item')) {
+          node.on('click', e => {
+            this.selected = node;
+            node.isSelected = true;
+          });
+          super.appendChild(node);
+          this._items.push(node);
+          if (el.isSelected) this.selected = node;
+        }
+      });
+      if (this._pendingDOM) this._pendingDOM.push(p);
       return node;
     }
 

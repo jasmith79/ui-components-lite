@@ -32,27 +32,31 @@ const defineUIComponent = ({
   if (!name) throw new Error('ui-components must have a name.');
   if (!definition) throw new Error('ui-components must have a defining class');
   if (name in registry) throw new Error(`ui-component named ${name} already registered.`);
+
+  let tmpl = null;
+  if (definition._template || template) tmpl = document.createElement('template');
+  if (definition._template) tmpl.innerHTML += definition._template.innerHTML;
+  if (template) tmpl.innerHTML += template.innerHTML;
+
   const class_ = class extends definition {
     static get observedAttributes () {
       return [...super.observedAttributes, ...reflectedAttrs];
     }
 
-    constructor (...args) {
-      super(...args);
-      if ((isShadowHost || template) && !this.shadowRoot) this.attachShadow({ mode: 'open' });
+    static get _template () {
+      return tmpl;
+    }
 
-      if (global._usingShady && this.shadowRoot && template) {
-        global.ShadyCSS.prepareTemplate(template, name);
-      }
+    _stamp () {
+      // no call to super
+      let temp = tmpl ? tmpl.cloneNode(true) : null;
+      if (temp && global._usingShady) global.ShadyCSS.prepareTemplate(temp, name);
+      return temp;
+    }
 
-      if (template) this.shadowRoot.appendChild(document.importNode(template.content, true));
-      if (reflectedAttrs.length) {
-        this.on('attribute-change', ({ changed: { name, now } }) => {
-          if (reflectedAttrs.includes(name)) {
-            this[toCamelCase(name)] = now;
-          }
-        });
-      }
+    get _reflectedAttrs () {
+      let rfs = super._reflectedAttrs || [];
+      return [...rfs, ...reflectedAttrs];
     }
 
     init () {
@@ -75,6 +79,7 @@ const defineUIComponent = ({
   // actions to occur when these are set, use a handler for the 'attribute-change' event or the
   // watchAttribute shorthand method.
   Object.defineProperties(class_.prototype, toPropertyObj(reflectedAttrs));
+
   if (registerElement) {
     global.customElements.define(name, class_);
     registry[name] = class_;

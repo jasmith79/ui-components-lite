@@ -8,7 +8,7 @@ const defaultThemeObj = {
   primaryColor: '#00bcd4',
   primaryDarkColor: '#008ba3',
   primaryLightColor: '#62efff',
-  darkTextColor: '#000',
+  darkTextColor: '#333',
   secondaryColor: '#ab47bc',
   secondaryDarkColor: '#79e08b',
   secondaryLightColor: '#df78ef',

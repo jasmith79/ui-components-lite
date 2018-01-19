@@ -4,7 +4,7 @@ import DOMutils from './dom-utils.js';
 import processHTMLAttr from './attribute-analyzer.js';
 import event2Promise from './promise-from-event.js';
 import { baseClass, global } from './dom.js';
-import { toSnakeCase } from '../../node_modules/jsstring/src/jsstring.js';
+import { toSnakeCase, toCamelCase } from '../../node_modules/jsstring/src/jsstring.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 let flag = true;
@@ -12,19 +12,24 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
   constructor () {
     super();
     this._listeners = [];
-    this._isCentered = false;
-    this._beforeReadyHandlers = [
-      el => el.on('attribute-change', e => {
-        if ((e.name === 'class' || e.name === 'style') && global._usingShady) {
-          global.ShadyCSS.styleSubtree(this);
-        }
-      })
-    ];
+    this._beforeReadyHandlers = [];
+    this._pendingDOM = [];
     this._isReady = event2Promise({
       element: this,
       eventName: 'ui-component-ready',
       callback: () => this
     });
+
+    let tmpl = this._stamp();
+    if (tmpl) {
+      if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
+      this.shadowRoot.appendChild(global.document.importNode(tmpl.content, true));
+    }
+
+    // This is because the spec doesn't allow attribute changes in an element constructor.
+    setTimeout(() => {
+      this.init();
+    }, 0);
   }
 
   static get observedAttributes () {
@@ -49,56 +54,67 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
   }
 
   onReady (...fs) {
-    this._isReady.then(_ => {
-      fs.forEach(f => f(this));
-    });
+    let p = this._isReady.then(_ => Promise.all(fs.map(f => f(this))));
 
     if (global._usingShady) {
       global.ShadyCSS.styleSubtree(this);
     }
 
-    return this;
+    return p;
   }
 
   init () {
     // Should be called by extension elements via super. setTimeout is so that any initialization
     // and event handlers in the descendant classes can be attached before the reflected attribute
     // setup.
-    setTimeout(() => {
-      this.classList.add('is-ui-component');
+    this.classList.add('is-ui-component');
 
-      const children = this.shadowRoot ?
-        [this._childrenUpgraded, ...this.shadowRoot.children] :
-        this._childrenUpgraded;
+    const elReady = el => el._isReady || Promise.resolve(el);
+    const children = [...[...this.children].map(elReady)];
+    if (this.shadowRoot) children.push.apply(children, [...this.shadowRoot.children].map(elReady));
 
-      Promise.resolve(children)
-        .then(_ => {
-          this.constructor.observedAttributes.forEach(attr => {
-            if (this.attr(attr)) {
-              const evt = new CustomEvent('attribute-change');
-              evt.changed = { name: attr, now: this.attr(attr), was: null };
-              this.dispatchEvent(evt);
+    Promise.all(children)
+      .then(chlds => {
+        let tg = this.tagName.toLowerCase();
+        if (this._reflectedAttrs.length) {
+          this.on('attribute-change', ({ changed: { name, now } }) => {
+            if (this._reflectedAttrs.includes(name)) {
+              this[toCamelCase(name)] = now;
             }
           });
+        }
 
-          [...this.attributes].forEach(({ name: attr, value: val}) => {
-            const twoWay = val && val.match(/^\{\{\{(.+)\}\}\}$/);
-            const oneWay = val && val.match(/^\{\{(.+)\}\}$/);
-            const matched = twoWay ? twoWay[1] : oneWay ? oneWay[1] : null;
-            const attrToWatch = matched ? toSnakeCase(matched, '-') : null;
-            if (attrToWatch) {
-              this.bindAttribute(attr, attrToWatch, twoWay);
-            }
-          });
-
-          return this._beforeReadyHandlers.length ?
-            Promise.all(this._beforeReadyHandlers.map(f => f(this))) :
-            null;
-        })
-        .then(_ => {
-          this.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: true }));
+        this.constructor.observedAttributes.forEach(attr => {
+          if (this.attr(attr)) {
+            const evt = new CustomEvent('attribute-change');
+            evt.changed = { name: attr, now: this.attr(attr), was: null };
+            this.dispatchEvent(evt);
+          }
         });
-    }, 0);
+
+        [...this.attributes].forEach(({ name: attr, value: val}) => {
+          const twoWay = val && val.match(/^\{\{\{(.+)\}\}\}$/);
+          const oneWay = val && val.match(/^\{\{(.+)\}\}$/);
+          const matched = twoWay ? twoWay[1] : oneWay ? oneWay[1] : null;
+          const attrToWatch = matched ? toSnakeCase(matched, '-') : null;
+          if (attrToWatch) {
+            this.bindAttribute(attr, attrToWatch, twoWay);
+          }
+        });
+
+        return this._beforeReadyHandlers.length ?
+          Promise.all(this._beforeReadyHandlers.map(f => f(this))) :
+          null;
+      })
+      // .then(_ => Promise.all(this._pendingDOM))
+      .then(_ => {
+        // if (this.tagName.toLowerCase() === 'ui-drop-down') debugger;
+        return Promise.all(this._pendingDOM);
+      })
+      .then(_ => {
+        this.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: false }));
+        this._pendingDOM = null;
+      });
   }
 
   // If extension elements override the default connected and disconnected
@@ -114,11 +130,10 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     this._mutationObservers.forEach(([o, target, conf]) => o.observe(target, conf));
 
     // This avoids Chrome firing the event before DOM is ready
-    setTimeout(() => { this.init(); }, 10)
+    // setTimeout(() => { this.init(); }, 10)
   }
 
   disconnectedCallback () {
-    this._isCentered = false;
     this._shadowElement = null;
     this._listeners.forEach(([evt, f]) => this.removeEventListener(evt, f));
     this._mutationObservers.forEach(([o]) => o.disconnect());

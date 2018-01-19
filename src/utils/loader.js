@@ -21,8 +21,10 @@
   } else {
 
     // Figure out if we're somewhere other than the root
-    var match = global.document.currentScript.outerHTML.match(/['"]{1}(\.+[\.\/]+)/);
+    var match = global.document.currentScript.outerHTML.match(/['"]{1}([\.\w\/\-]+\/)build\/loader/);
     var prefix = match ? match[1] : './';
+    console.log(prefix);
+    console.log(global.document.currentScript.outerHTML);
 
     var transpiled = prefix + 'build/es5.js';
     var corejs = '<script src="' +
@@ -105,17 +107,11 @@
       console.log('Loading es5-class-adaptor, webcomponents polyfills...');
       polyfills = [es5shim, webcomplite];
     } else if (needsShady || needsCustomEl) {
-      global._usingShady = true;
-      var globalStyleFixes = global.document.createElement('style');
-      globalStyleFixes.innerHTML = '' +
-        'ui-tab ui-checkbox { display: none; } ' +
-        'ui-login ui-fab .content-wrapper .arrow { left: 27px; }';
-
-      document.head.append(globalStyleFixes);
-
       console.log('Loading shadow DOM and custom elements polyfills...');
       polyfills = [webcompmin];
     }
+
+    if (needsShady) global._usingShady = true;
 
     if (needsFormData) {
       polyfills.push(formdata);

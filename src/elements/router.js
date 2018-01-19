@@ -104,6 +104,10 @@ export const Router = (() => {
           this.attr('current-route', route);
           if (data && Object.keys(data).length) elem.update(data);
           elem.setAttribute('is-selected', true);
+
+          // TODO: this makes maps work. Fix this.
+          setTimeout(() => { global.dispatchEvent(new Event('resize')); }, 0);
+
           return elem;
         }
         return null;
@@ -209,7 +213,7 @@ export const Router = (() => {
               break;
 
             case 'updates-history':
-              if (now) {
+              if (now && historyManager !== this) {
                 if (historyManager) {
                   throw new Error(
                     `Only one router per page can manage the navigation history

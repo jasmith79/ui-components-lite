@@ -38,6 +38,7 @@ const Alert = defineUIComponent({
       super.init();
       this.scrollableDialog = false;
       this.smallDialog = true;
+      this.attr('is-modal', true);
       this.watchAttribute(this, 'is-open', open => {
         open ? this._backdrop.show() : this._backdrop.hide();
       });

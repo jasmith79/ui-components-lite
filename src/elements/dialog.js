@@ -4,7 +4,7 @@ import Card from './card.js';
 import './backdrop.js';
 import './button.js';
 
-import { defineUIComponent, document } from '../utils/dom.js';
+import { defineUIComponent, document, global } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 const template = document.createElement('template');
@@ -89,6 +89,9 @@ const Dialog = defineUIComponent({
       super();
       this.hide();
       this._backdrop = null;
+      global.addEventListener('logout', e => {
+        this.close();
+      });
     }
 
     // Intercepts calls to appendChild so buttons can be appropriately used.

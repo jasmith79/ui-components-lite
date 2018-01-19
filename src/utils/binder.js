@@ -22,7 +22,14 @@ export default superclass => class DataBinder extends superclass {
     let parent = null;
     let node = this;
     while (node = (node.parentNode || node.host)) { // need host for shadowRoots
-      if (node.getAttribute && node.getAttribute(parentAttribute) != null) {
+      if (
+        (node.getAttribute && node.getAttribute(parentAttribute) != null) ||
+        (
+          node.constructor &&
+          node.constructor.observedAttributes &&
+          node.constructor.observedAttributes.includes(parentAttribute)
+        )
+      ) {
         parent = node;
         break;
       }
