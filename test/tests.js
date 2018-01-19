@@ -60,9 +60,6 @@ const tests = {
         dd.appendChild(item2);
         document.body.appendChild(dd);
 
-        window.item1 = item1;
-        window.item2 = item2;
-
         output.innerHTML += `<p class="ok">Appended ${name} OK.</p>`;
         dd = document.querySelector('#createElement');
 
@@ -86,7 +83,34 @@ const tests = {
         let dd = document.querySelector('#createElement');
         if (dd) dd.parentNode.removeChild(dd);
       }
-    }
+    },
+
+    'Dropdown change event fires exactly once on value changes': (name, output) => {
+      let dd = document.createElement('ui-drop-down');
+      let item = document.createElement('ui-item');
+      dd.appendChild(item);
+      item.value = '3oo';
+      let count = 0;
+      let listen = e => ++count;
+      dd.on('change', listen);
+      return dd.onReady(_ => {
+        dd.selected = item;
+        return new Promise(function(resolve, reject) {
+          setTimeout(() => {
+            dd.remove(listen);
+            if (count === 1) {
+              output.innerHTML += `<p class="ok">Dropdown change event fired ${count} times`;
+            } else {
+              output.innerHTML += `<p class="fail">Dropdown change event fired ${count} times`;
+            }
+            // document.body.removeChild(dd);
+            resolve(true);
+          }, 500);
+        });
+      });
+
+      document.body.appendChild(dd);
+    },
   },
 
   'ui-input': {
@@ -97,9 +121,9 @@ const tests = {
         ip.value = 'pizza';
         let value = ip._input.value; // I know, I know
         if (value === 'pizza' && ip.attr('value') === 'pizza') {
-          output.innerHTML += `<p class="ok">ui-input has expected value.</p>`;
+          output.innerHTML += `<p class="ok">${name} has expected value.</p>`;
         } else {
-          output.innerHTML += `<p class="fail">ui-input has expected value ${value}.</p>`;
+          output.innerHTML += `<p class="fail">${name} has unexpected value "${value}".</p>`;
         }
 
         document.body.removeChild(ip);
@@ -115,13 +139,57 @@ const tests = {
         ip.value = 'pizza';
         let value = ip._input.value; // I know, I know
         if (value === 'pizza' && ip.attr('value') === 'pizza') {
-          output.innerHTML += `<p class="ok">ui-input has expected value.</p>`;
+          output.innerHTML += `<p class="ok">${name} has expected value.</p>`;
         } else {
-          output.innerHTML += `<p class="fail">ui-input has expected value ${value}.</p>`;
+          output.innerHTML += `<p class="fail">${name} has unexpected value "${value}".</p>`;
         }
 
         document.body.removeChild(div);
       });
+    },
+
+    'Input default value': (name, output) => {
+      let ip = document.createElement('ui-input');
+      ip.attr('placeholder', 'barfoo');
+      ip.onReady(_ => {
+        let val = ip.selectInternalElement('input').value;
+
+        ip.attr('default-value', 'foobar');
+        val = ip.selectInternalElement('input').value;
+        if (val === 'foobar') {
+          output.innerHTML += `<p class="ok">${name} has expected text for default value.</p>`;
+        } else {
+          output.innerHTML += `<p class="fail">${name} has unexpected text "${val}" for default value.</p>`;
+        }
+
+        ip.value = '5';
+        ip.value = null;
+
+        val = ip.selectInternalElement('input').value;
+        if (val === 'foobar') {
+          output.innerHTML += `<p class="ok">${name} has expected text after null set.</p>`;
+        } else {
+          output.innerHTML += `<p class="fail">${name} has unexpected text "${val}" after null set.</p>`;
+        }
+
+        document.body.removeChild(ip);
+      });
+      document.body.appendChild(ip);
+    },
+
+    'Input name as placeholder': (name, output) => {
+      let ip = document.createElement('ui-input');
+      ip.attr('name', 'foobar');
+      ip.onReady(_ => {
+        let val = ip.selectInternalElement('input').getAttribute('placeholder');
+        if (val === 'foobar') {
+          output.innerHTML += `<p class="ok">${name} has expected text for ${name}.</p>`;
+        } else {
+          output.innerHTML += `<p class="fail">${name} has unexpected text "${val}" for ${name}.</p>`;
+        }
+        document.body.removeChild(ip);
+      });
+      document.body.appendChild(ip);
     },
 
     'Date input': (name, output) => {
@@ -241,6 +309,26 @@ const tests = {
     // 'Time input': (name, output) => {
     //
     // },
+
+    'Input change event fires exactly once on value changes': (name, output) => {
+      let ip = document.createElement('ui-input');
+      let count = 0;
+      let listen = e => ++count;
+      let p = ip.onReady(_ => {
+        ip.on('change', listen);
+        ip.value = '3';
+        ip.remove(listen);
+        if (count === 1) {
+          output.innerHTML += `<p class="ok">input change event fired ${count} times`;
+        } else {
+          output.innerHTML += `<p class="fail">input change event fired ${count} times`;
+        }
+        document.body.removeChild(ip);
+      });
+
+      document.body.appendChild(ip);
+      return p;
+    },
   },
 };
 
@@ -262,4 +350,5 @@ Promise.all(Object.entries(tests).map(([elementName, ts]) => {
   });
 })).then(_ => {
   resultDiv.innerHTML += '<p>Done.</p>';
+  console.log('Done');
 });

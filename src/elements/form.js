@@ -162,19 +162,6 @@ export const Form = (() => {
         this.attr('is-data-element', true);
 
         this._beforeReady(_ => {
-          // this._inputs = [
-          //   ...new Set([
-          //     ...this.selectAll('input[name]'),
-          //     ...(document.querySelectorAll(`input[form="${this.id}"]`) || []),
-          //   ])
-          // ];
-          //
-          // this._selects = [...new Set([
-          //     ...this.selectAll('select[name]'),
-          //     ...(document.querySelectorAll(`select[form="${this.id}"]`) || []),
-          //   ])
-          // ];
-
           this._formUIComponents = [...new Set([
               ...this.selectAll('.ui-form-behavior'),
               ...(document.querySelectorAll(`.ui-form-behavior[form="${this.id}"]`) || []),
@@ -205,6 +192,26 @@ export const FormBehavior = (() => {
           this.isValid = validator.apply(this, args);
           this.classList.remove(this.isValid ? 'invalid' : 'valid');
           this.classList.add(this.isValid ? 'valid' : 'invalid');
+        });
+      }
+
+      init () {
+        super.init();
+        this._beforeReady(_ => {
+          let val = this.value;
+          this.on('attribute-change', ({ changed: { now, name } }) => {
+            switch (name) {
+              case 'value':
+              case 'selected-index':
+                if (now !== val) {
+                  val = now;
+                  const evt = new Event('change');
+                  evt.value = now;
+                  this.dispatchEvent(evt);
+                }
+                break;
+            }
+          });
         });
       }
     }

@@ -30,6 +30,7 @@ const Backdrop = defineUIComponent({
     }
 
     init () {
+      super.init();
       this.hide();
     }
   }

@@ -84,7 +84,7 @@ template.innerHTML = `
       border-color: var(--ui-theme-primary-dark-color, blue);
     }
 
-    :host([is-open="false"]) ::slotted(.ui-item) {
+    :host([is-open="false"]) slot::slotted(.ui-item) {
       display: none;
     }
 

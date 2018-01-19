@@ -288,9 +288,9 @@ export const Input = defineUIComponent({
     init () {
       super.init();
       this._input = this.shadowRoot.querySelector('#input');
-      const placeholder = this.placeholder ||
-        this.name ||
-        this.defaultValue ||
+      const placeholder = this.attr('placeholder') ||
+        this.attr('name') ||
+        this.attr('default-value') ||
         null;
 
       if (placeholder) this.placeholder = placeholder;
@@ -335,7 +335,6 @@ export const Input = defineUIComponent({
         if (this._input.value !== this._before) {
           this._before = this._input.value;
           this.value = this._input.value;
-          this.dispatchEvent(new Event('change', { bubbles: true }));
         }
       })));
 
@@ -344,13 +343,13 @@ export const Input = defineUIComponent({
           case 'name':
             this._input.name = now;
             this.name = now;
+            if (!this.attr('placeholder')) this._input.setAttribute('placeholder', now);
             break;
 
           case 'value':
             let val = now === true ? '' : now;
             if (this._input.value !== val) {
-              this._input.value = val;
-              this.dispatchEvent(new Event('change', { bubbles: 'true' }));
+              this._input.value = !val && this.defaultValue ? this.defaultValue : val;
             }
             break;
 

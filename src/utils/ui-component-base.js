@@ -12,13 +12,19 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
   constructor () {
     super();
     this._listeners = [];
-    this._isCentered = false;
     this._beforeReadyHandlers = [];
+    this._pendingDOM = [];
     this._isReady = event2Promise({
       element: this,
       eventName: 'ui-component-ready',
       callback: () => this
     });
+
+    let tmpl = this._stamp();
+    if (tmpl) {
+      if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
+      this.shadowRoot.appendChild(global.document.importNode(tmpl.content, true));
+    }
 
     // This is because the spec doesn't allow attribute changes in an element constructor.
     setTimeout(() => {
@@ -63,12 +69,6 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     // setup.
     this.classList.add('is-ui-component');
 
-    let tmpl = this._stamp();
-    if (tmpl) {
-      this.attachShadow({ mode: 'open' });
-      this.shadowRoot.appendChild(global.document.importNode(tmpl.content, true));
-    }
-
     const elReady = el => el._isReady || Promise.resolve(el);
     const children = [...[...this.children].map(elReady)];
     if (this.shadowRoot) children.push.apply(children, [...this.shadowRoot.children].map(elReady));
@@ -106,8 +106,14 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
           Promise.all(this._beforeReadyHandlers.map(f => f(this))) :
           null;
       })
+      // .then(_ => Promise.all(this._pendingDOM))
+      .then(_ => {
+        // if (this.tagName.toLowerCase() === 'ui-drop-down') debugger;
+        return Promise.all(this._pendingDOM);
+      })
       .then(_ => {
         this.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: false }));
+        this._pendingDOM = null;
       });
   }
 
@@ -128,7 +134,6 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
   }
 
   disconnectedCallback () {
-    this._isCentered = false;
     this._shadowElement = null;
     this._listeners.forEach(([evt, f]) => this.removeEventListener(evt, f));
     this._mutationObservers.forEach(([o]) => o.disconnect());

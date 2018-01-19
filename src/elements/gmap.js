@@ -97,9 +97,9 @@ export const GoogleMap = defineUIComponent({
     }
 
     init () {
-      this._mapContainer = this.shadowRoot.querySelector('#map-container');
+      super.init();
       mapsAPILoaded.then(_ => {
-        super.init();
+        this._mapContainer = this.shadowRoot.querySelector('#map-container');
         const options = {
           zoom: 11,
           center: new global.google.maps.LatLng(39.75, -86.16),

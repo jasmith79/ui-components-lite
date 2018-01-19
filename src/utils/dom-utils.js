@@ -14,7 +14,7 @@ export default superclass => class DOMutils extends superclass {
 
   get isVisible () {
     const style = DOM.global.getComputedStyle(this);
-    return style.display !== 'none' && style.visibility !== 'hidden';
+    return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
   }
 
   // Observes changes to the given attribute on the given node.
@@ -152,23 +152,17 @@ export default superclass => class DOMutils extends superclass {
     return this;
   }
 
-  // // Alias for the .on method. Intercepts addEventListener.
-  // addEventListener(...args) {
-  //   return this.on(...args);
-  // }
-  //
-  // // Ditto for removal
-  // removeEventListener(...args) {
-  //   return this.remove(...args);
-  // }
-
   hide () {
-    this.style.display = 'none';
+    let inlineStyles = this.attr('style') || '';
+    inlineStyles += 'display:none !important;';
+    this.attr('style', inlineStyles);
     return this;
   }
 
   show () {
-    this.style.display = '';
+    let inlineStyles = this.attr('style') || '';
+    inlineStyles = inlineStyles.replace('display:none !important;', '');
+    this.attr('style', inlineStyles);
     return this;
   }
 
