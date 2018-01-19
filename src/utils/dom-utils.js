@@ -154,6 +154,7 @@ export default superclass => class DOMutils extends superclass {
 
   hide () {
     let inlineStyles = this.attr('style') || '';
+    if (inlineStyles === true) inlineStyles = ''; // Because style="" returns true
     inlineStyles += 'display:none !important;';
     this.attr('style', inlineStyles);
     return this;
@@ -161,6 +162,7 @@ export default superclass => class DOMutils extends superclass {
 
   show () {
     let inlineStyles = this.attr('style') || '';
+    if (inlineStyles === true) inlineStyles = ''; // Because style="" returns true
     inlineStyles = inlineStyles.replace('display:none !important;', '');
     this.attr('style', inlineStyles);
     return this;
