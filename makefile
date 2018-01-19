@@ -22,6 +22,7 @@ build/index.js:
 	import '../src/elements/input.js';\
 	import '../src/elements/router.js';\
 	import '../src/elements/tabs.js';\
+	import '../src/elements/text.js';\
 	import '../src/elements/toolbar.js';" > $@
 
 build/concat.js: build/index.js

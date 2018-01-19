@@ -2368,7 +2368,8 @@ var __run = function __run() {
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__src_elements_input_js__ = __webpack_require__(11);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__src_elements_router_js__ = __webpack_require__(31);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__src_elements_tabs_js__ = __webpack_require__(33);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_8__src_elements_toolbar_js__ = __webpack_require__(34);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_8__src_elements_text_js__ = __webpack_require__(34);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_9__src_elements_toolbar_js__ = __webpack_require__(35);
 
     /***/
   },
@@ -4587,6 +4588,69 @@ var __run = function __run() {
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__ = __webpack_require__(0);
+
+    var reflectedAttrs = ['view-text'];
+    var template = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    :host {\n      display: inline;\n    }\n\n    #text-holder {\n      color: var(--ui-theme-dark-text-color, #000);\n    }\n  </style>\n  <span id="text-holder"></span>\n';
+
+    var Text = Object(__WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["b" /* defineUIComponent */])({
+      name: 'ui-text',
+      reflectedAttrs: reflectedAttrs,
+      template: template,
+      definition: function (_WEBPACK_IMPORTED_MO11) {
+        _inherits(Text, _WEBPACK_IMPORTED_MO11);
+
+        function Text() {
+          _classCallCheck(this, Text);
+
+          var _this69 = _possibleConstructorReturn(this, (Text.__proto__ || Object.getPrototypeOf(Text)).call(this));
+
+          _this69._textHolder = null;
+          return _this69;
+        }
+
+        // Override the default textContent property
+
+
+        _createClass(Text, [{
+          key: 'init',
+          value: function init() {
+            var _this70 = this;
+
+            _get(Text.prototype.__proto__ || Object.getPrototypeOf(Text.prototype), 'init', this).call(this);
+            this._textHolder = this.shadowRoot.querySelector('#text-holder');
+            this.watchAttribute(this, 'view-text', function (val) {
+              _this70._textHolder.textContent = val || _this70.innerHTML; // render innerHTML as a fallback
+            });
+
+            if (this.innerHTML && !this.viewText) this.viewText = this.innerHTML;
+          }
+        }, {
+          key: 'textContent',
+          get: function get() {
+            return this._textHolder.textContent;
+          },
+          set: function set(text) {
+            this.viewText = text;
+            return text;
+          }
+        }]);
+
+        return Text;
+      }(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* default */])
+    });
+
+    /* unused harmony default export */var _unused_webpack_default_export = Text;
+
+    /***/
+  },
+  /* 35 */
+  /***/function (module, __webpack_exports__, __webpack_require__) {
+
+    "use strict";
+    /* harmony import */
+    var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_float_js__ = __webpack_require__(4);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_centerer_js__ = __webpack_require__(14);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__ = __webpack_require__(0);
@@ -4608,16 +4672,16 @@ var __run = function __run() {
         function Toolbar() {
           _classCallCheck(this, Toolbar);
 
-          var _this69 = _possibleConstructorReturn(this, (Toolbar.__proto__ || Object.getPrototypeOf(Toolbar)).call(this));
+          var _this71 = _possibleConstructorReturn(this, (Toolbar.__proto__ || Object.getPrototypeOf(Toolbar)).call(this));
 
-          _this69._secondaryToolbar = null;
-          return _this69;
+          _this71._secondaryToolbar = null;
+          return _this71;
         }
 
         _createClass(Toolbar, [{
           key: 'init',
           value: function init() {
-            var _this70 = this;
+            var _this72 = this;
 
             _get(Toolbar.prototype.__proto__ || Object.getPrototypeOf(Toolbar.prototype), 'init', this).call(this);
             var secondarySlot = this.shadowRoot.querySelector('[name="secondary-toolbar-slot"]');
@@ -4628,8 +4692,8 @@ var __run = function __run() {
             }
 
             secondarySlot.addEventListener('slotchange', function (e) {
-              _this70._secondaryToolbar = _this70.querySelector('[slot="secondary-toolbar-slot"]');
-              if (_this70._secondaryToolbar) _this70.classList.add('has-secondary');
+              _this72._secondaryToolbar = _this72.querySelector('[slot="secondary-toolbar-slot"]');
+              if (_this72._secondaryToolbar) _this72.classList.add('has-secondary');
             });
 
             this.on('attribute-change', function (_ref55) {
@@ -4639,14 +4703,14 @@ var __run = function __run() {
 
               if (name === 'is-tall') {
                 if (now == null) {
-                  if (_this70._secondaryToolbar) {
-                    _this70._secondaryToolbar.classList.add('tabs-centered');
+                  if (_this72._secondaryToolbar) {
+                    _this72._secondaryToolbar.classList.add('tabs-centered');
                   }
                 } else if (!now || now === "false") {
-                  _this70.isTall = null;
+                  _this72.isTall = null;
                 } else {
-                  if (_this70._secondaryToolbar) {
-                    _this70._secondaryToolbar.classList.remove('tabs-centered');
+                  if (_this72._secondaryToolbar) {
+                    _this72._secondaryToolbar.classList.remove('tabs-centered');
                   }
                 }
               }

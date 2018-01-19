@@ -2208,7 +2208,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__src_elements_input_js__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__src_elements_router_js__ = __webpack_require__(31);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__src_elements_tabs_js__ = __webpack_require__(33);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__src_elements_toolbar_js__ = __webpack_require__(34);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__src_elements_text_js__ = __webpack_require__(34);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__src_elements_toolbar_js__ = __webpack_require__(35);
 
 
 
@@ -4260,6 +4261,66 @@ const Tabs = (() => {
 
 /***/ }),
 /* 34 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__ = __webpack_require__(0);
+
+
+
+const reflectedAttrs = ['view-text'];
+const template = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: inline;
+    }
+
+    #text-holder {
+      color: var(--ui-theme-dark-text-color, #000);
+    }
+  </style>
+  <span id="text-holder"></span>
+`;
+
+const Text = Object(__WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["b" /* defineUIComponent */])({
+  name: 'ui-text',
+  reflectedAttrs,
+  template,
+  definition: class Text extends __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* default */] {
+    constructor () {
+      super();
+      this._textHolder = null;
+    }
+
+    // Override the default textContent property
+    get textContent () {
+      return this._textHolder.textContent;
+    }
+
+    set textContent (text) {
+      this.viewText = text;
+      return text;
+    }
+
+    init () {
+      super.init();
+      this._textHolder = this.shadowRoot.querySelector('#text-holder');
+      this.watchAttribute(this, 'view-text', val => {
+        this._textHolder.textContent = val || this.innerHTML; // render innerHTML as a fallback
+      });
+
+      if (this.innerHTML && !this.viewText) this.viewText = this.innerHTML;
+    }
+  }
+});
+
+/* unused harmony default export */ var _unused_webpack_default_export = (Text);
+
+
+/***/ }),
+/* 35 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
