@@ -30,6 +30,11 @@ template.innerHTML = `
       margin-bottom: 56px;
     }
 
+    header {
+      height: 100%;
+      width: 100%;
+    }
+
     #title-holder {
       position: relative;
       margin-left: auto;
@@ -85,12 +90,14 @@ template.innerHTML = `
       text-align: center;
     }
   </style>
-  <div id="title-holder" class="content-wrapper">
-    <slot></slot>
-  </div>
-  <slot name="left-button-slot"></slot>
-  <slot name="right-button-slot"></slot>
-  <slot name="secondary-toolbar-slot"></slot>
+  <header>
+    <div id="title-holder" class="content-wrapper">
+      <slot></slot>
+    </div>
+    <slot name="left-button-slot"></slot>
+    <slot name="right-button-slot"></slot>
+    <slot name="secondary-toolbar-slot"></slot>
+  </header>
 `;
 
 export default defineUIComponent({
@@ -105,11 +112,16 @@ export default defineUIComponent({
 
     init () {
       super.init();
+      this.attr('role', 'toolbar');
       const secondarySlot = this.shadowRoot.querySelector('[name="secondary-toolbar-slot"]');
       const slotted = secondarySlot.assignedNodes();
       if (slotted.length) {
         this._secondaryToolbar = slotted[0];
         this.classList.add('has-secondary');
+        this._secondaryToolbar.attr('role', 'menubar');
+        this._secondaryToolbar.selectAll('.ui-item').forEach(item => {
+          item.attr('role', 'menuitem');
+        });
       }
 
       secondarySlot.addEventListener('slotchange', e => {

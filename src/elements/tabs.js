@@ -47,6 +47,7 @@ export const Tab = (() => {
     definition: class Tab extends Item {
       init () {
         super.init();
+        this.attr('role', 'tab');
         this.on('click', e => {
           this.isSelected = true;
         });
@@ -103,6 +104,7 @@ export const Tabs = (() => {
 
       init () {
         super.init();
+        this.attr('role', 'tabpanel');
         this.on('attribute-change', ({ changed: { now, name } }) => {
           switch (name) {
             case 'for':

@@ -38,7 +38,12 @@ const Button = defineUIComponent({
   name: 'ui-button',
   template,
   reflectedAttrs,
-  definition: class Button extends mix(UIBase).with(Centerable, Floats, Ripples) {}
+  definition: class Button extends mix(UIBase).with(Centerable, Floats, Ripples) {
+    init () {
+      super.init();
+      this.attr('role', 'button');
+    }
+  }
 });
 
 export default Button;

@@ -52,6 +52,7 @@ export const ListBehavior = superclass => defineUIComponent({
 
       if (type.match(/HTML\w*Element/) && this._items.includes(value)) selection = value;
       if (selection) {
+        selection.attr('aria-selected', true);
         selection.isSelected = true;
         if (this.multiple) {
           this.selectedIndex = -1;
@@ -61,6 +62,7 @@ export const ListBehavior = superclass => defineUIComponent({
           this._selected = selection;
           this._items.forEach(item => {
             if (item !== selection) item.isSelected = false;
+            item.attr('aria-selected', false);
           });
         }
       }
@@ -111,7 +113,9 @@ export const ListBehavior = superclass => defineUIComponent({
             if (now) {
               this.selectedIndex = -1;
               this._selected = [this.selected];
+              this.attr('aria-multiselectable', true);
             } else {
+              this.attr('aria-multiselectable', false);
               this.selected = this.selected == null ? null : this.selected[0];
             }
             break;
@@ -203,6 +207,7 @@ export const Item = (() => {
 
       init () {
         super.init();
+        this.attr('role', 'listoption');
         this._beforeReady(_ => {
           this._checkbox = this.shadowRoot.querySelector('ui-checkbox');
           this._content = this.shadowRoot.querySelector('#content');
@@ -247,6 +252,11 @@ export const List = (() => {
   return defineUIComponent({
     name: 'ui-list',
     template,
-    definition: class List extends mix(UIBase).with(ListBehavior) {}
+    definition: class List extends mix(UIBase).with(ListBehavior) {
+      init () {
+        super.init();
+        this.attr('role', 'list');
+      }
+    }
   });
 })();

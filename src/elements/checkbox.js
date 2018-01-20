@@ -66,12 +66,14 @@ const Checkbox = defineUIComponent({
 
     init () {
       super.init();
+      this.attr('role', 'checkbox');
       this.watchAttribute(this, 'checked', now => {
         now ? this.classList.add('checked') : this.classList.remove('checked');
       });
 
       this.on('click', e => {
         this.checked = !this.checked;
+        this.attr('aria-checked', this.checked);
       });
     }
   }

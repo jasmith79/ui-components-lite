@@ -36,6 +36,7 @@ const Alert = defineUIComponent({
   definition: class Alert extends Dialog {
     init () {
       super.init();
+      this.attr('role', 'alert');
       this.scrollableDialog = false;
       this.smallDialog = true;
       this.attr('is-modal', true);

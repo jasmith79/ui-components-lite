@@ -122,6 +122,7 @@ const Dialog = defineUIComponent({
 
     init () {
       super.init();
+      this.attr('role', 'dialog');
       this._backdrop = document.createElement('ui-backdrop');
       this._backdrop.for = this;
       document.body.appendChild(this._backdrop);
