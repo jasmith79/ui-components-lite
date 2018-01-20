@@ -78,7 +78,7 @@ export const Tabs = (() => {
         width: 100%;
       }
 
-      slot::slotted(.ui-tab:hover) {
+      ::slotted(.ui-tab:hover) {
         text-shadow: 1px 1px 6px #fff;
       }
     </style>

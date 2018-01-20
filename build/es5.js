@@ -3426,7 +3426,7 @@ var __run = function __run() {
 
     var reflectedAttrs = ['selected-index', 'is-open', 'multiple'];
     var template = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    ui-list {\n      transition: transform 500ms cubic-bezier(0.165, 0.84, 0.44, 1);\n      background: #fff;\n      position: relative;\n      left: -5px;\n      z-index: 1000;\n      width: 100%;\n      max-height: 225px;\n      overflow-y: scroll;\n    }\n\n    .arrow {\n      border: solid #999;\n      border-width: 0 2px 2px 0;\n      display: inline-block;\n      padding: 3px;\n      float: right;\n      position: relative;\n      top: 6px;\n      right: 2px;\n      transform: rotate(45deg);\n    }\n\n    .not-overflowing {\n      overflow: hidden !important;\n    }\n\n    #dummy-item {\n      text-align: center;\n      padding-bottom: 3px;\n    }\n\n    #dummy-item.default {\n      letter-spacing: 3px;\n    }\n\n    #list-holder {\n      height: 1px;\n      overflow: visible;\n      position: relative;\n      top: -10px;\n      border-top: 1px solid #999;\n    }\n\n    slot::slotted(.ui-item) {\n      border: none;\n    }\n\n    :host {\n      display: block;\n      max-width: 200px;\n    }\n\n    :host([multiple="true"]) #dummy-item #dummy-item-content {\n      position: relative;\n      left: 10px;\n    }\n\n    :host([is-open="true"]) .arrow {\n      transform: rotate(-135deg);\n    }\n\n    :host([is-open="true"]) ui-list {\n      box-shadow: 3px 5px 10px -4px #999;\n      padding-bottom: 1px;\n      transform: scale(1) translateY(0px);\n    }\n\n    :host([is-open="false"]) ui-list {\n      transform: scale(0) translateY(-200px);\n    }\n\n    :host([is-open="true"]) #list-holder {\n      border-color: var(--ui-theme-primary-dark-color, blue);\n    }\n\n    :host([is-open="false"]) slot::slotted(.ui-item) {\n      display: none;\n    }\n\n  </style>\n  <ui-item id="dummy-item" class="default">\n    <span id="dummy-item-content">...</span>\n    <div class="arrow down"></div>\n  </ui-item>\n  <div id="list-holder" class="not-overflowing">\n    <ui-list multiple="{{multiple}}">\n      <slot></slot>\n    </ui-list>\n  </div>\n';
+    template.innerHTML = '\n  <style>\n    ui-list {\n      transition: transform 500ms cubic-bezier(0.165, 0.84, 0.44, 1);\n      background: #fff;\n      position: relative;\n      left: -5px;\n      z-index: 1000;\n      width: 100%;\n      max-height: 225px;\n      overflow-y: scroll;\n    }\n\n    .arrow {\n      border: solid #999;\n      border-width: 0 2px 2px 0;\n      display: inline-block;\n      padding: 3px;\n      float: right;\n      position: relative;\n      top: 6px;\n      right: 2px;\n      transform: rotate(45deg);\n    }\n\n    .not-overflowing {\n      overflow: hidden !important;\n    }\n\n    #dummy-item {\n      text-align: center;\n      padding-bottom: 3px;\n    }\n\n    #dummy-item.default {\n      letter-spacing: 3px;\n    }\n\n    #list-holder {\n      height: 1px;\n      overflow: visible;\n      position: relative;\n      top: -10px;\n      border-top: 1px solid #999;\n    }\n\n    ::slotted(.ui-item) {\n      border: none;\n    }\n\n    :host {\n      display: block;\n      max-width: 200px;\n    }\n\n    :host([multiple="true"]) #dummy-item #dummy-item-content {\n      position: relative;\n      left: 10px;\n    }\n\n    :host([is-open="true"]) .arrow {\n      transform: rotate(-135deg);\n    }\n\n    :host([is-open="true"]) ui-list {\n      box-shadow: 3px 5px 10px -4px #999;\n      padding-bottom: 1px;\n      transform: scale(1) translateY(0px);\n    }\n\n    :host([is-open="false"]) ui-list {\n      transform: scale(0) translateY(-200px);\n    }\n\n    :host([is-open="true"]) #list-holder {\n      border-color: var(--ui-theme-primary-dark-color, blue);\n    }\n\n    :host([is-open="false"]) ::slotted(.ui-item) {\n      display: none;\n    }\n\n  </style>\n  <ui-item id="dummy-item" class="default">\n    <span id="dummy-item-content">...</span>\n    <div class="arrow down"></div>\n  </ui-item>\n  <div id="list-holder" class="not-overflowing">\n    <ui-list multiple="{{multiple}}">\n      <slot></slot>\n    </ui-list>\n  </div>\n';
 
     /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["b" /* defineUIComponent */])({
       name: 'ui-drop-down',
@@ -3811,45 +3811,44 @@ var __run = function __run() {
               var minus = min && distance.match('-') ? '' : min;
               var inClass = Object(__WEBPACK_IMPORTED_MODULE_1__utils_styler_js__["a" /* generateCSSClassName */])();
               var outClass = Object(__WEBPACK_IMPORTED_MODULE_1__utils_styler_js__["a" /* generateCSSClassName */])();
-              var animationStyles = __WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["c" /* document */].createElement('style');
-              animationStyles.innerHTML = '\n        :host(.' + inClass + ') {\n          transform: translate' + xy + '(' + minus + distance + ');\n          transition-property: transform;\n          transition-duration: ' + timing + 'ms;\n          transition-timing-function: ' + fn + ';\n        }\n\n        :host(.' + outClass + ') {\n          transform: translate' + xy + '(0);\n          transition-property: transform;\n          transition-duration: ' + timing + 'ms;\n          transition-timing-function: ' + (fn === 'ease-in' ? 'ease-out' : fn) + ';\n        }\n      ';
+              var animationStyles = __WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["c" /* document */].createElement('template');
+              animationStyles.innerHTML = '\n        <style>\n          :host(.' + inClass + ') {\n            transform: translate' + xy + '(' + minus + distance + ');\n            transition-property: transform;\n            transition-duration: ' + timing + 'ms;\n            transition-timing-function: ' + fn + ';\n          }\n\n          :host(.' + outClass + ') {\n            transform: translate' + xy + '(0);\n            transition-property: transform;\n            transition-duration: ' + timing + 'ms;\n            transition-timing-function: ' + (fn === 'ease-in' ? 'ease-out' : fn) + ';\n          }\n        </style>\n      ';
 
-              this.shadowRoot.appendChild(animationStyles);
+              if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) __WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */].ShadyCSS.prepareTemplate(animationStyles, this.tagName.toLowerCase());
+
+              this.shadowRoot.appendChild(__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["c" /* document */].importNode(animationStyles.content, true));
+
               var self = this;
               var obj = {
                 _isIn: false,
 
                 easeIn: function easeIn() {
-                  var _this57 = this;
-
                   this._isIn = true;
                   self.classList.add(inClass);
                   if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) {
-                    ShadyCSS.styleSubtree(this);
+                    ShadyCSS.styleSubtree(self);
                   }
                   return new Promise(function (res) {
                     setTimeout(function () {
                       self.classList.remove(outClass);
                       if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) {
-                        ShadyCSS.styleSubtree(_this57);
+                        ShadyCSS.styleSubtree(self);
                       }
                       res(true);
                     }, timing);
                   });
                 },
                 easeOut: function easeOut() {
-                  var _this58 = this;
-
                   this._isIn = false;
                   self.classList.add(outClass);
                   if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) {
-                    ShadyCSS.styleSubtree(this);
+                    ShadyCSS.styleSubtree(self);
                   }
                   return new Promise(function (res) {
                     setTimeout(function () {
                       self.classList.remove(inClass);
                       if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) {
-                        ShadyCSS.styleSubtree(_this58);
+                        ShadyCSS.styleSubtree(self);
                       }
                       res(true);
                     }, timing);
@@ -3908,13 +3907,13 @@ var __run = function __run() {
         _createClass(Hamburger, [{
           key: 'init',
           value: function init() {
-            var _this60 = this;
+            var _this58 = this;
 
             _get(Hamburger.prototype.__proto__ || Object.getPrototypeOf(Hamburger.prototype), 'init', this).call(this);
             this.shadowRoot.querySelector('.content-wrapper').appendChild(__WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].importNode(lineDivTemplate.content, true));
 
             this.watchAttribute(this, 'line-color', function (now) {
-              [].concat(_toConsumableArray(_this60.shadowRoot.querySelectorAll('.line'))).forEach(function (el) {
+              [].concat(_toConsumableArray(_this58.shadowRoot.querySelectorAll('.line'))).forEach(function (el) {
                 el.style.backgroundColor = now;
               });
             });
@@ -3970,14 +3969,14 @@ var __run = function __run() {
           function Router() {
             _classCallCheck(this, Router);
 
-            var _this61 = _possibleConstructorReturn(this, (Router.__proto__ || Object.getPrototypeOf(Router)).call(this));
+            var _this59 = _possibleConstructorReturn(this, (Router.__proto__ || Object.getPrototypeOf(Router)).call(this));
 
-            _this61._contentSlot = null;
-            _this61._routes = {};
-            _this61._currentRoute = null;
-            _this61._managingHistory = false;
-            _this61._login = null;
-            _this61._popstateListener = function (_ref46) {
+            _this59._contentSlot = null;
+            _this59._routes = {};
+            _this59._currentRoute = null;
+            _this59._managingHistory = false;
+            _this59._login = null;
+            _this59._popstateListener = function (_ref46) {
               var data = _ref46.state;
 
               // here we ignore querystring data, it may be stale
@@ -3991,13 +3990,13 @@ var __run = function __run() {
                 historyStack.pop();
               }
 
-              _this61._updateRoute(route);
+              _this59._updateRoute(route);
               if (!historyStack.length || historyStack.length === 1 && historyStack[0] === '/') {
-                __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["d" /* global */].removeEventListener('popstate', _this61._popstateListener);
-                _this61._managingHistory = false;
+                __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["d" /* global */].removeEventListener('popstate', _this59._popstateListener);
+                _this59._managingHistory = false;
               }
             };
-            return _this61;
+            return _this59;
           }
 
           _createClass(Router, [{
@@ -4106,12 +4105,12 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this62 = this;
+              var _this60 = this;
 
               _get(Router.prototype.__proto__ || Object.getPrototypeOf(Router.prototype), 'init', this).call(this);
 
               this._beforeReady(function (_) {
-                _this62._contentSlot = _this62.shadowRoot.querySelector('slot');
+                _this60._contentSlot = _this60.shadowRoot.querySelector('slot');
                 var selected = null;
 
                 var _Object3 = Object(__WEBPACK_IMPORTED_MODULE_3__utils_url_js__["a" /* parseURL */])(window.location.href),
@@ -4121,34 +4120,34 @@ var __run = function __run() {
                 if (route) selected = route;
 
                 var flag = false;
-                _this62.selectAll('[route-path]').forEach(function (el, i) {
+                _this60.selectAll('[route-path]').forEach(function (el, i) {
                   var path = el.getAttribute('route-path');
-                  _this62._routes[path] = el;
+                  _this60._routes[path] = el;
                   if (!i && !selected) selected = path;
                   if (el.matches && el.matches('[selected]')) selected = path;
                   if (path === '/login') {
                     flag = true;
                     el.onReady(function (_) {
                       var login = el.querySelector('.ui-login');
-                      _this62._login = login;
+                      _this60._login = login;
                       login.on('login', function (e) {
                         var _Object4 = Object(__WEBPACK_IMPORTED_MODULE_3__utils_url_js__["a" /* parseURL */])(window.location.href),
                             route = _Object4.route;
 
-                        _this62._updateRoute(route);
+                        _this60._updateRoute(route);
                       });
 
                       login.on('logout', function (e) {
-                        _this62.route('/login');
+                        _this60.route('/login');
                       });
-                      _this62.route(selected);
+                      _this60.route(selected);
                     });
                   }
                 });
 
                 if (!flag) {
-                  _this62.onReady(function (_) {
-                    _this62.route(selected);
+                  _this60.onReady(function (_) {
+                    _this60.route(selected);
                   });
                 }
               });
@@ -4161,27 +4160,27 @@ var __run = function __run() {
 
                 switch (name) {
                   case 'renders-current':
-                    if (_this62.selected) {
+                    if (_this60.selected) {
                       if (now) {
-                        _this62.selected.setAttribute('slot', 'router-content');
+                        _this60.selected.setAttribute('slot', 'router-content');
                       } else {
-                        _this62.selected.removeAttribute('slot');
+                        _this60.selected.removeAttribute('slot');
                       }
                     }
                     break;
 
                   case 'updates-history':
-                    if (now && historyManager !== _this62) {
+                    if (now && historyManager !== _this60) {
                       if (historyManager) {
                         throw new Error('Only one router per page can manage the navigation history\n                     at a time. Please listen for that router\'s route-changed\n                     event to update other elements.');
                       }
-                      historyManager = _this62;
-                      _this62._managingHistory = true;
-                      window.addEventListener('popstate', _this62._popstateListener);
+                      historyManager = _this60;
+                      _this60._managingHistory = true;
+                      window.addEventListener('popstate', _this60._popstateListener);
                     } else {
                       historyManager = null;
-                      _this62._managingHistory = false;
-                      window.removeEventListener('popstate', _this62._popstateListener);
+                      _this60._managingHistory = false;
+                      window.removeEventListener('popstate', _this60._popstateListener);
                     }
                 }
               });
@@ -4231,15 +4230,15 @@ var __run = function __run() {
           function Route() {
             _classCallCheck(this, Route);
 
-            var _this63 = _possibleConstructorReturn(this, (Route.__proto__ || Object.getPrototypeOf(Route)).call(this));
+            var _this61 = _possibleConstructorReturn(this, (Route.__proto__ || Object.getPrototypeOf(Route)).call(this));
 
-            _this63._data = null;
-            _this63._dataElements = [];
-            _this63._fromChangeHandler = false;
-            _this63._unloadListener = function (e) {
-              if (_this63.data) localStorage.setItem(_this63.routePath, JSON.stringify(elem.data));
+            _this61._data = null;
+            _this61._dataElements = [];
+            _this61._fromChangeHandler = false;
+            _this61._unloadListener = function (e) {
+              if (_this61.data) localStorage.setItem(_this61.routePath, JSON.stringify(elem.data));
             };
-            return _this63;
+            return _this61;
           }
 
           _createClass(Route, [{
@@ -4275,17 +4274,17 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this64 = this;
+              var _this62 = this;
 
               _get(Route.prototype.__proto__ || Object.getPrototypeOf(Route.prototype), 'init', this).call(this);
 
               this.onReady(function (_) {
-                _this64._dataElements = _this64.shadowRoot ? [].concat(_toConsumableArray(_this64.shadowRoot.querySelectorAll('[is-data-element]')), _toConsumableArray(_this64.selectAll('[is-data-element]'))) : _this64.selectAll('[is-data-element]');
+                _this62._dataElements = _this62.shadowRoot ? [].concat(_toConsumableArray(_this62.shadowRoot.querySelectorAll('[is-data-element]')), _toConsumableArray(_this62.selectAll('[is-data-element]'))) : _this62.selectAll('[is-data-element]');
 
-                _this64._dataElements.forEach(function (el) {
+                _this62._dataElements.forEach(function (el) {
                   el.on('change', function (_) {
-                    _this64._fromChangeHandler = true;
-                    _this64.update(_this64._dataElements.reduce(function (acc, el) {
+                    _this62._fromChangeHandler = true;
+                    _this62.update(_this62._dataElements.reduce(function (acc, el) {
                       var data = el.serialize();
                       Object.entries(data).forEach(function (_ref48) {
                         var _ref49 = _slicedToArray(_ref48, 2),
@@ -4302,10 +4301,10 @@ var __run = function __run() {
                   });
                 });
 
-                var data = localStorage.getItem(_this64.routePath);
+                var data = localStorage.getItem(_this62.routePath);
 
                 // Check to see if it was written from query string first.
-                if (!_this64.data && data != null) _this64.update(JSON.parse(data));
+                if (!_this62.data && data != null) _this62.update(JSON.parse(data));
               });
 
               this.on('attribute-change', function (_ref50) {
@@ -4315,9 +4314,9 @@ var __run = function __run() {
 
                 switch (name) {
                   case 'is-selected':
-                    if (!now || now && !_this64.isSelected) {
+                    if (!now || now && !_this62.isSelected) {
                       var evtName = now ? 'component-selected' : 'component-deselected';
-                      _this64.dispatchEvent(new CustomEvent(evtName));
+                      _this62.dispatchEvent(new CustomEvent(evtName));
                     }
                     break;
                 }
@@ -4476,18 +4475,18 @@ var __run = function __run() {
           _createClass(Tab, [{
             key: 'init',
             value: function init() {
-              var _this66 = this;
+              var _this64 = this;
 
               _get(Tab.prototype.__proto__ || Object.getPrototypeOf(Tab.prototype), 'init', this).call(this);
               this.on('click', function (e) {
-                _this66.isSelected = true;
+                _this64.isSelected = true;
               });
 
               this.watchAttribute(this, 'is-selected', function (now) {
                 if (now) {
-                  _this66.dispatchEvent(new CustomEvent('component-selected'));
+                  _this64.dispatchEvent(new CustomEvent('component-selected'));
                 } else {
-                  _this66.dispatchEvent(new CustomEvent('component-deselected'));
+                  _this64.dispatchEvent(new CustomEvent('component-deselected'));
                 }
               });
             }
@@ -4503,7 +4502,7 @@ var __run = function __run() {
       var reflectedAttrs = ['for'];
 
       var template = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].createElement('template');
-      template.innerHTML = '\n    <style>\n      :host {\n        display: block;\n        height: 55px;\n        background-color: var(--ui-theme-primary-dark-color, blue);\n        width: 100%;\n      }\n\n      slot::slotted(.ui-tab:hover) {\n        text-shadow: 1px 1px 6px #fff;\n      }\n    </style>\n    <slot></slot>\n  ';
+      template.innerHTML = '\n    <style>\n      :host {\n        display: block;\n        height: 55px;\n        background-color: var(--ui-theme-primary-dark-color, blue);\n        width: 100%;\n      }\n\n      ::slotted(.ui-tab:hover) {\n        text-shadow: 1px 1px 6px #fff;\n      }\n    </style>\n    <slot></slot>\n  ';
 
       return Object(__WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["b" /* defineUIComponent */])({
         name: 'ui-tabs',
@@ -4515,10 +4514,10 @@ var __run = function __run() {
           function Tabs() {
             _classCallCheck(this, Tabs);
 
-            var _this67 = _possibleConstructorReturn(this, (Tabs.__proto__ || Object.getPrototypeOf(Tabs)).call(this));
+            var _this65 = _possibleConstructorReturn(this, (Tabs.__proto__ || Object.getPrototypeOf(Tabs)).call(this));
 
-            _this67._for = null;
-            return _this67;
+            _this65._for = null;
+            return _this65;
           }
 
           _createClass(Tabs, [{
@@ -4531,7 +4530,7 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this68 = this;
+              var _this66 = this;
 
               _get(Tabs.prototype.__proto__ || Object.getPrototypeOf(Tabs.prototype), 'init', this).call(this);
               this.on('attribute-change', function (_ref53) {
@@ -4542,34 +4541,34 @@ var __run = function __run() {
                 switch (name) {
                   case 'for':
                     if (now) {
-                      _this68._for = now;
-                      var _elem = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].querySelector(_this68._for);
+                      _this66._for = now;
+                      var _elem = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].querySelector(_this66._for);
                       if (_elem) {
                         var method = _elem.on ? 'on' : 'addEventListener';
                         _elem[method]('change', function (_ref54) {
                           var value = _ref54.value;
 
-                          var matched = _this68._items.reduce(function (acc, item) {
+                          var matched = _this66._items.reduce(function (acc, item) {
                             if (acc) return acc;
                             if (item.value === value) return item;
                             return acc;
                           }, null);
 
-                          if (matched && matched !== _this68.selected) {
-                            _this68.selected = value;
+                          if (matched && matched !== _this66.selected) {
+                            _this66.selected = value;
                           } else {
-                            _this68.selected = null;
+                            _this66.selected = null;
                           }
                         });
                       }
                     } else {
-                      _this68._for = null;
+                      _this66._for = null;
                     }
                     break;
 
                   case 'selected-index':
-                    if (now > -1 && _this68._for) {
-                      __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].querySelector(_this68._for).route(_this68.selected.value);
+                    if (now > -1 && _this66._for) {
+                      __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].querySelector(_this66._for).route(_this66.selected.value);
                     }
                     break;
                 }
@@ -4607,10 +4606,10 @@ var __run = function __run() {
         function Text() {
           _classCallCheck(this, Text);
 
-          var _this69 = _possibleConstructorReturn(this, (Text.__proto__ || Object.getPrototypeOf(Text)).call(this));
+          var _this67 = _possibleConstructorReturn(this, (Text.__proto__ || Object.getPrototypeOf(Text)).call(this));
 
-          _this69._textHolder = null;
-          return _this69;
+          _this67._textHolder = null;
+          return _this67;
         }
 
         // Override the default textContent property
@@ -4619,12 +4618,12 @@ var __run = function __run() {
         _createClass(Text, [{
           key: 'init',
           value: function init() {
-            var _this70 = this;
+            var _this68 = this;
 
             _get(Text.prototype.__proto__ || Object.getPrototypeOf(Text.prototype), 'init', this).call(this);
             this._textHolder = this.shadowRoot.querySelector('#text-holder');
             this.watchAttribute(this, 'view-text', function (val) {
-              _this70._textHolder.textContent = val || _this70.innerHTML; // render innerHTML as a fallback
+              _this68._textHolder.textContent = val || _this68.innerHTML; // render innerHTML as a fallback
             });
 
             if (this.innerHTML && !this.viewText) this.viewText = this.innerHTML;
@@ -4663,7 +4662,7 @@ var __run = function __run() {
     var reflectedAttrs = ['is-tall'];
 
     var template = __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    ' + __WEBPACK_IMPORTED_MODULE_2__utils_centerer_js__["a" /* centeredStyles */] + '\n\n    :host {\n      width: 100%;\n      background-color: var(--ui-theme-primary-dark-color, blue);\n      color: var(--ui-theme-light-text-color, #fff);\n      height: 70px;\n      display: block;\n    }\n\n    :host([is-tall]) {\n      height: 192px;\n    }\n\n    :host(:not([is-tall]).has-secondary) {\n      margin-bottom: 56px;\n    }\n\n    #title-holder {\n      position: relative;\n      margin-left: auto;\n      margin-right: auto;\n      max-width: 300px;\n      text-align: center;\n      text-transform: capitalize;\n      overflow: hidden;\n      text-overflow: ellipsis;\n      overflow: hidden;\n      white-space: nowrap;\n      font-size: 22px;\n    }\n\n    :host([is-tall]) #title-holder {\n      font-size: 40px;\n    }\n\n    slot::slotted([slot="left-button-slot"]) {\n      position: relative;\n      top: -18px;\n      left: 10px;\n      float: left;\n    }\n\n    :host([is-tall]) slot::slotted([slot="left-button-slot"]) {\n      top: -35px;\n    }\n\n    slot::slotted([slot="right-button-slot"]) {\n      position: relative;\n      top: -18px;\n      right: 30px;\n      float: right;\n    }\n\n\n    :host([is-tall]) slot::slotted([slot="right-button-slot"]) {\n      top: -35px;\n    }\n\n    slot::slotted([slot="secondary-toolbar-slot"]) {\n      position: relative;\n      width: 100vw;\n      top: 44px;\n    }\n\n    :host([is-tall]) slot::slotted([slot="secondary-toolbar-slot"]) {\n      top: 92px;\n    }\n\n    :host(:not([is-tall])) slot::slotted([slot="secondary-toolbar-slot"]) {\n      text-align: center;\n    }\n  </style>\n  <div id="title-holder" class="content-wrapper">\n    <slot></slot>\n  </div>\n  <slot name="left-button-slot"></slot>\n  <slot name="right-button-slot"></slot>\n  <slot name="secondary-toolbar-slot"></slot>\n';
+    template.innerHTML = '\n  <style>\n    ' + __WEBPACK_IMPORTED_MODULE_2__utils_centerer_js__["a" /* centeredStyles */] + '\n\n    :host {\n      width: 100%;\n      background-color: var(--ui-theme-primary-dark-color, blue);\n      color: var(--ui-theme-light-text-color, #fff);\n      height: 70px;\n      display: block;\n    }\n\n    :host([is-tall]) {\n      height: 192px;\n    }\n\n    :host(:not([is-tall]).has-secondary) {\n      margin-bottom: 56px;\n    }\n\n    #title-holder {\n      position: relative;\n      margin-left: auto;\n      margin-right: auto;\n      max-width: 300px;\n      text-align: center;\n      text-transform: capitalize;\n      overflow: hidden;\n      text-overflow: ellipsis;\n      overflow: hidden;\n      white-space: nowrap;\n      font-size: 22px;\n    }\n\n    :host([is-tall]) #title-holder {\n      font-size: 40px;\n    }\n\n    ::slotted([slot="left-button-slot"]) {\n      position: relative;\n      top: -18px;\n      left: 10px;\n      float: left;\n    }\n\n    :host([is-tall]) ::slotted([slot="left-button-slot"]) {\n      top: -35px;\n    }\n\n    ::slotted([slot="right-button-slot"]) {\n      position: relative;\n      top: -18px;\n      right: 30px;\n      float: right;\n    }\n\n\n    :host([is-tall]) ::slotted([slot="right-button-slot"]) {\n      top: -35px;\n    }\n\n    ::slotted([slot="secondary-toolbar-slot"]) {\n      position: relative;\n      width: 100vw;\n      top: 44px;\n    }\n\n    :host([is-tall]) ::slotted([slot="secondary-toolbar-slot"]) {\n      top: 92px;\n    }\n\n    :host(:not([is-tall])) ::slotted([slot="secondary-toolbar-slot"]) {\n      text-align: center;\n    }\n  </style>\n  <div id="title-holder" class="content-wrapper">\n    <slot></slot>\n  </div>\n  <slot name="left-button-slot"></slot>\n  <slot name="right-button-slot"></slot>\n  <slot name="secondary-toolbar-slot"></slot>\n';
 
     /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_3__utils_dom_js__["b" /* defineUIComponent */])({
       name: 'ui-toolbar',
@@ -4675,16 +4674,16 @@ var __run = function __run() {
         function Toolbar() {
           _classCallCheck(this, Toolbar);
 
-          var _this71 = _possibleConstructorReturn(this, (Toolbar.__proto__ || Object.getPrototypeOf(Toolbar)).call(this));
+          var _this69 = _possibleConstructorReturn(this, (Toolbar.__proto__ || Object.getPrototypeOf(Toolbar)).call(this));
 
-          _this71._secondaryToolbar = null;
-          return _this71;
+          _this69._secondaryToolbar = null;
+          return _this69;
         }
 
         _createClass(Toolbar, [{
           key: 'init',
           value: function init() {
-            var _this72 = this;
+            var _this70 = this;
 
             _get(Toolbar.prototype.__proto__ || Object.getPrototypeOf(Toolbar.prototype), 'init', this).call(this);
             var secondarySlot = this.shadowRoot.querySelector('[name="secondary-toolbar-slot"]');
@@ -4695,8 +4694,8 @@ var __run = function __run() {
             }
 
             secondarySlot.addEventListener('slotchange', function (e) {
-              _this72._secondaryToolbar = _this72.querySelector('[slot="secondary-toolbar-slot"]');
-              if (_this72._secondaryToolbar) _this72.classList.add('has-secondary');
+              _this70._secondaryToolbar = _this70.querySelector('[slot="secondary-toolbar-slot"]');
+              if (_this70._secondaryToolbar) _this70.classList.add('has-secondary');
             });
 
             this.on('attribute-change', function (_ref55) {
@@ -4706,14 +4705,14 @@ var __run = function __run() {
 
               if (name === 'is-tall') {
                 if (now == null) {
-                  if (_this72._secondaryToolbar) {
-                    _this72._secondaryToolbar.classList.add('tabs-centered');
+                  if (_this70._secondaryToolbar) {
+                    _this70._secondaryToolbar.classList.add('tabs-centered');
                   }
                 } else if (!now || now === "false") {
-                  _this72.isTall = null;
+                  _this70.isTall = null;
                 } else {
-                  if (_this72._secondaryToolbar) {
-                    _this72._secondaryToolbar.classList.remove('tabs-centered');
+                  if (_this70._secondaryToolbar) {
+                    _this70._secondaryToolbar.classList.remove('tabs-centered');
                   }
                 }
               }

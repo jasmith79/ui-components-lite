@@ -3106,7 +3106,7 @@ template.innerHTML = `
       border-top: 1px solid #999;
     }
 
-    slot::slotted(.ui-item) {
+    ::slotted(.ui-item) {
       border: none;
     }
 
@@ -3138,7 +3138,7 @@ template.innerHTML = `
       border-color: var(--ui-theme-primary-dark-color, blue);
     }
 
-    :host([is-open="false"]) slot::slotted(.ui-item) {
+    :host([is-open="false"]) ::slotted(.ui-item) {
       display: none;
     }
 
@@ -3521,24 +3521,29 @@ const orientations = {
       const minus = min && distance.match('-') ? '' : min;
       const inClass = Object(__WEBPACK_IMPORTED_MODULE_1__utils_styler_js__["a" /* generateCSSClassName */])();
       const outClass = Object(__WEBPACK_IMPORTED_MODULE_1__utils_styler_js__["a" /* generateCSSClassName */])();
-      const animationStyles = __WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["c" /* document */].createElement('style');
+      const animationStyles = __WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["c" /* document */].createElement('template');
       animationStyles.innerHTML = `
-        :host(.${inClass}) {
-          transform: translate${xy}(${minus}${distance});
-          transition-property: transform;
-          transition-duration: ${timing}ms;
-          transition-timing-function: ${fn};
-        }
+        <style>
+          :host(.${inClass}) {
+            transform: translate${xy}(${minus}${distance});
+            transition-property: transform;
+            transition-duration: ${timing}ms;
+            transition-timing-function: ${fn};
+          }
 
-        :host(.${outClass}) {
-          transform: translate${xy}(0);
-          transition-property: transform;
-          transition-duration: ${timing}ms;
-          transition-timing-function: ${fn === 'ease-in' ? 'ease-out' : fn};
-        }
+          :host(.${outClass}) {
+            transform: translate${xy}(0);
+            transition-property: transform;
+            transition-duration: ${timing}ms;
+            transition-timing-function: ${fn === 'ease-in' ? 'ease-out' : fn};
+          }
+        </style>
       `;
 
-      this.shadowRoot.appendChild(animationStyles);
+      if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) __WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */].ShadyCSS.prepareTemplate(animationStyles, this.tagName.toLowerCase());
+
+      this.shadowRoot.appendChild(__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["c" /* document */].importNode(animationStyles.content, true));
+
       const self = this;
       const obj = {
         _isIn: false,
@@ -3547,13 +3552,13 @@ const orientations = {
           this._isIn = true;
           self.classList.add(inClass);
           if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) {
-            ShadyCSS.styleSubtree(this);
+            ShadyCSS.styleSubtree(self);
           }
           return new Promise(res => {
             setTimeout(() => {
               self.classList.remove(outClass);
               if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) {
-                ShadyCSS.styleSubtree(this);
+                ShadyCSS.styleSubtree(self);
               }
               res(true);
             }, timing);
@@ -3564,13 +3569,13 @@ const orientations = {
           this._isIn = false;
           self.classList.add(outClass);
           if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) {
-            ShadyCSS.styleSubtree(this);
+            ShadyCSS.styleSubtree(self);
           }
           return new Promise(res => {
             setTimeout(() => {
               self.classList.remove(inClass);
               if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) {
-                ShadyCSS.styleSubtree(this);
+                ShadyCSS.styleSubtree(self);
               }
               res(true);
             }, timing);
@@ -4195,7 +4200,7 @@ const Tabs = (() => {
         width: 100%;
       }
 
-      slot::slotted(.ui-tab:hover) {
+      ::slotted(.ui-tab:hover) {
         text-shadow: 1px 1px 6px #fff;
       }
     </style>
@@ -4383,18 +4388,18 @@ template.innerHTML = `
       font-size: 40px;
     }
 
-    slot::slotted([slot="left-button-slot"]) {
+    ::slotted([slot="left-button-slot"]) {
       position: relative;
       top: -18px;
       left: 10px;
       float: left;
     }
 
-    :host([is-tall]) slot::slotted([slot="left-button-slot"]) {
+    :host([is-tall]) ::slotted([slot="left-button-slot"]) {
       top: -35px;
     }
 
-    slot::slotted([slot="right-button-slot"]) {
+    ::slotted([slot="right-button-slot"]) {
       position: relative;
       top: -18px;
       right: 30px;
@@ -4402,21 +4407,21 @@ template.innerHTML = `
     }
 
 
-    :host([is-tall]) slot::slotted([slot="right-button-slot"]) {
+    :host([is-tall]) ::slotted([slot="right-button-slot"]) {
       top: -35px;
     }
 
-    slot::slotted([slot="secondary-toolbar-slot"]) {
+    ::slotted([slot="secondary-toolbar-slot"]) {
       position: relative;
       width: 100vw;
       top: 44px;
     }
 
-    :host([is-tall]) slot::slotted([slot="secondary-toolbar-slot"]) {
+    :host([is-tall]) ::slotted([slot="secondary-toolbar-slot"]) {
       top: 92px;
     }
 
-    :host(:not([is-tall])) slot::slotted([slot="secondary-toolbar-slot"]) {
+    :host(:not([is-tall])) ::slotted([slot="secondary-toolbar-slot"]) {
       text-align: center;
     }
   </style>

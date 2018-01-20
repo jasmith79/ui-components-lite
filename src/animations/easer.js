@@ -23,24 +23,29 @@ export default superclass => defineUIComponent({
       const minus = min && distance.match('-') ? '' : min;
       const inClass = generateCSSClassName();
       const outClass = generateCSSClassName();
-      const animationStyles = document.createElement('style');
+      const animationStyles = document.createElement('template');
       animationStyles.innerHTML = `
-        :host(.${inClass}) {
-          transform: translate${xy}(${minus}${distance});
-          transition-property: transform;
-          transition-duration: ${timing}ms;
-          transition-timing-function: ${fn};
-        }
+        <style>
+          :host(.${inClass}) {
+            transform: translate${xy}(${minus}${distance});
+            transition-property: transform;
+            transition-duration: ${timing}ms;
+            transition-timing-function: ${fn};
+          }
 
-        :host(.${outClass}) {
-          transform: translate${xy}(0);
-          transition-property: transform;
-          transition-duration: ${timing}ms;
-          transition-timing-function: ${fn === 'ease-in' ? 'ease-out' : fn};
-        }
+          :host(.${outClass}) {
+            transform: translate${xy}(0);
+            transition-property: transform;
+            transition-duration: ${timing}ms;
+            transition-timing-function: ${fn === 'ease-in' ? 'ease-out' : fn};
+          }
+        </style>
       `;
 
-      this.shadowRoot.appendChild(animationStyles);
+      if (global._usingShady) global.ShadyCSS.prepareTemplate(animationStyles, this.tagName.toLowerCase());
+
+      this.shadowRoot.appendChild(document.importNode(animationStyles.content, true));
+
       const self = this;
       const obj = {
         _isIn: false,
@@ -49,13 +54,13 @@ export default superclass => defineUIComponent({
           this._isIn = true;
           self.classList.add(inClass);
           if (global._usingShady) {
-            ShadyCSS.styleSubtree(this);
+            ShadyCSS.styleSubtree(self);
           }
           return new Promise(res => {
             setTimeout(() => {
               self.classList.remove(outClass);
               if (global._usingShady) {
-                ShadyCSS.styleSubtree(this);
+                ShadyCSS.styleSubtree(self);
               }
               res(true);
             }, timing);
@@ -66,13 +71,13 @@ export default superclass => defineUIComponent({
           this._isIn = false;
           self.classList.add(outClass);
           if (global._usingShady) {
-            ShadyCSS.styleSubtree(this);
+            ShadyCSS.styleSubtree(self);
           }
           return new Promise(res => {
             setTimeout(() => {
               self.classList.remove(inClass);
               if (global._usingShady) {
-                ShadyCSS.styleSubtree(this);
+                ShadyCSS.styleSubtree(self);
               }
               res(true);
             }, timing);

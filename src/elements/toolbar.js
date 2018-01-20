@@ -48,18 +48,18 @@ template.innerHTML = `
       font-size: 40px;
     }
 
-    slot::slotted([slot="left-button-slot"]) {
+    ::slotted([slot="left-button-slot"]) {
       position: relative;
       top: -18px;
       left: 10px;
       float: left;
     }
 
-    :host([is-tall]) slot::slotted([slot="left-button-slot"]) {
+    :host([is-tall]) ::slotted([slot="left-button-slot"]) {
       top: -35px;
     }
 
-    slot::slotted([slot="right-button-slot"]) {
+    ::slotted([slot="right-button-slot"]) {
       position: relative;
       top: -18px;
       right: 30px;
@@ -67,21 +67,21 @@ template.innerHTML = `
     }
 
 
-    :host([is-tall]) slot::slotted([slot="right-button-slot"]) {
+    :host([is-tall]) ::slotted([slot="right-button-slot"]) {
       top: -35px;
     }
 
-    slot::slotted([slot="secondary-toolbar-slot"]) {
+    ::slotted([slot="secondary-toolbar-slot"]) {
       position: relative;
       width: 100vw;
       top: 44px;
     }
 
-    :host([is-tall]) slot::slotted([slot="secondary-toolbar-slot"]) {
+    :host([is-tall]) ::slotted([slot="secondary-toolbar-slot"]) {
       top: 92px;
     }
 
-    :host(:not([is-tall])) slot::slotted([slot="secondary-toolbar-slot"]) {
+    :host(:not([is-tall])) ::slotted([slot="secondary-toolbar-slot"]) {
       text-align: center;
     }
   </style>
