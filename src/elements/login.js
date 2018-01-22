@@ -146,8 +146,14 @@ export default defineUIComponent({
               return;
             }
 
-            this.selectInternalElement('ui-form')
-              .submit({ url: this.dataUrl, method: 'POST', responseType: 'json' })
+            const { user, pass } = this.credentials;
+            const headers = {
+              'Authorization': `Basic ${btoa(user + ':' + pass)}`,
+              'Content-Type': 'application/x-www-form-urlencoded'
+            };
+
+            fetch(this.dataUrl, { method: 'POST', headers })
+              .then(resp => resp.json())
               .then(valid => {
                 if (valid) {
                   sessionStorage.setItem('ui-credentials', JSON.stringify(this.credentials));

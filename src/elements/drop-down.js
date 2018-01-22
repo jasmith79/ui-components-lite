@@ -4,7 +4,7 @@ import { defineUIComponent, document } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import { extractType } from '../../node_modules/extracttype/extracttype.js';
 
-const reflectedAttrs = ['selected-index', 'is-open', 'multiple'];
+const reflectedAttrs = ['selected-index', 'is-open', 'multiple', 'placeholder'];
 const template = document.createElement('template');
 template.innerHTML = `
   <style>

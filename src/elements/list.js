@@ -17,6 +17,10 @@ export const ListBehavior = superclass => defineUIComponent({
       this._selected = null;
     }
 
+    get items () {
+      return this.selectAll('.ui-item');
+    }
+
     get value () {
       return this.selected && this.selected.map ?
         this.selected.map(x => x ? x.value : '').join(',') :
