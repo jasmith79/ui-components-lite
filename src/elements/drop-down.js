@@ -139,9 +139,11 @@ export default defineUIComponent({
       if (node) {
         super.appendChild(node);
         node.on('click', e => {
-          setTimeout(() => {
-            this.close();
-          }, 300);
+          if (!this.multiple) {
+            setTimeout(() => {
+              this.close();
+            }, 300);
+          }
         });
       }
 
