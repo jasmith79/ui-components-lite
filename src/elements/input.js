@@ -149,7 +149,7 @@ const parseTimeString = s => {
   if (!s) return [];
   let [t, meridian] = s.split(' ');
   let [h, m] = t.split(':').map(Number);
-  let hr = meridian.toLowerCase() === 'pm' ? 12 + h : h;
+  let hr = meridian && meridian.toLowerCase() === 'pm' ? 12 + h : h;
   return [hr, m];
 };
 
@@ -208,7 +208,7 @@ export const Input = defineUIComponent({
 
         case 'time':
           let value = super.value;
-          return parseTimeString(value);
+          return value ? parseTimeString(value) : null;
 
         default: return super.value;
 

@@ -168,20 +168,6 @@ export default defineUIComponent({
               });
           }
         });
-
-        let cached = global.sessionStorage.getItem('ui-credentials');
-        if (cached) {
-          try {
-            let credentials = JSON.parse(cached);
-            if (credentials.user && credentials.pass) {
-              console.log('Logging in with session data...');
-              this._form.data = credentials;
-              this.login();
-            }
-          } catch (e) {
-            // no-op
-          }
-        }
       });
 
       this.onReady(_ => {
@@ -194,6 +180,24 @@ export default defineUIComponent({
             }
           });
         }
+
+        // Wait a bit to allow handlers to be set if anything wants to listen for the login
+        // event.
+        global.setTimeout(() => {
+          let cached = global.sessionStorage.getItem('ui-credentials');
+          if (cached) {
+            try {
+              let credentials = JSON.parse(cached);
+              if (credentials.user && credentials.pass) {
+                console.log('Logging in with session data...');
+                this._form.data = credentials;
+                this.login();
+              }
+            } catch (e) {
+              // no-op
+            }
+          }
+        }, 500);
       });
     }
   }

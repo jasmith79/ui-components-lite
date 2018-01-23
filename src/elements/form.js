@@ -205,7 +205,7 @@ export const FormBehavior = (() => {
                 if (now !== val) {
                   val = now;
                   const evt = new Event('change');
-                  evt.value = now;
+                  evt.value = this.value;
                   this.dispatchEvent(evt);
                 }
                 break;

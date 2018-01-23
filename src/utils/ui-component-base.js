@@ -106,9 +106,7 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
           Promise.all(this._beforeReadyHandlers.map(f => f(this))) :
           null;
       })
-      // .then(_ => Promise.all(this._pendingDOM))
       .then(_ => {
-        // if (this.tagName.toLowerCase() === 'ui-drop-down') debugger;
         return Promise.all(this._pendingDOM);
       })
       .then(_ => {
