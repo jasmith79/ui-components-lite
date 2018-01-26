@@ -25,33 +25,8 @@ export const Form = (() => {
     definition: class Form extends UIBase {
       constructor () {
         super();
-        // this._inputs = null;
-        // this._selects = null;
         this._form = null;
         this._formUIComponents = null;
-      }
-
-      _isFormEligible (el) {
-        return el &&
-          el.matches &&
-          (() => {
-            if (
-              el.matches('input[name]') ||
-              el.matches(`input[form="${this.id}"]`)
-            ) return 'input';
-
-            if (
-              el.matches('select[name]') ||
-              el.matches(`select[form="${this.id}"]`)
-            ) return 'select';
-
-            if (
-              el.matches('.ui-form-behavior') ||
-              el.matches(`.ui-form-behavior[form="${this.id}"]`)
-            ) return 'formElement';
-
-            return false;
-          })();
       }
 
       get elements () {
@@ -105,8 +80,9 @@ export const Form = (() => {
       }
 
       appendChild (node) {
-        const isEligible = this._isFormEligible(node);
-        if (isEligible) {
+        // const isEligible = this._isFormEligible(node);
+        // if (isEligible) {
+        if (node) {
           super.appendChild(node);
           if (node.isUIComponent) {
             this._formUIComponents.push(node);
@@ -185,7 +161,7 @@ export const FormBehavior = (() => {
     registerElement: false,
     reflectedAttrs,
     definition: class extends superclass {
-
+      
       validate (validator) {
         return this.watchAttribute(this, 'value', (...args) => {
           this.isValid = validator.apply(this, args);

@@ -48,17 +48,6 @@ export const Tab = (() => {
       init () {
         super.init();
         this.attr('role', 'tab');
-        this.on('click', e => {
-          this.isSelected = true;
-        });
-
-        this.watchAttribute(this, 'is-selected', now => {
-          if (now) {
-            this.dispatchEvent(new CustomEvent('component-selected'));
-          } else {
-            this.dispatchEvent(new CustomEvent('component-deselected'));
-          }
-        });
       }
     }
   });

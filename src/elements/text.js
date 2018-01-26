@@ -10,7 +10,7 @@ template.innerHTML = `
     }
 
     #text-holder {
-      color: var(--ui-theme-dark-text-color, #000);
+      color: inherit;
     }
   </style>
   <span id="text-holder"></span>

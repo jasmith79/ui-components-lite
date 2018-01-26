@@ -39,12 +39,11 @@ template.innerHTML = `
       position: relative;
       margin-left: auto;
       margin-right: auto;
-      max-width: 300px;
+      max-width: 80%;
       text-align: center;
       text-transform: capitalize;
       overflow: hidden;
       text-overflow: ellipsis;
-      overflow: hidden;
       white-space: nowrap;
       font-size: 22px;
     }

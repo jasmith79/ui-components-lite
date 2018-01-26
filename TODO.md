@@ -2,6 +2,9 @@ TODO:
 
 auto tests, especially dynamically added elements/children
 
+dynamic dialog construction fails.
+list unselection not working multi?
+
 DOCUMENT EVERYTHING
 
 Form inputs losing data? Test caching.
@@ -9,7 +12,6 @@ Form inputs losing data? Test caching.
 Tooling and css vendor prefixes
 
 Responsive styles and MQs and breakpoints
-aria stuffs
 
 Fix default theme colors
 

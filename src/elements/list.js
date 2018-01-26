@@ -6,6 +6,8 @@ import { defineUIComponent, document } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import extractType from '../../node_modules/extracttype/extracttype.js';
 
+const handlerCache = new WeakMap();
+
 export const ListBehavior = superclass => defineUIComponent({
   name: 'ui-list-behavior',
   reflectedAttrs: ['multiple', 'selected-index'],
@@ -15,6 +17,33 @@ export const ListBehavior = superclass => defineUIComponent({
       super();
       this._items = [];
       this._selected = null;
+
+      // Using a closure here because getting the item back out of the Event object is unreliable.
+      this._itemHandlerFactory = item => {
+        let h = handlerCache.get(item);
+        if (h) return h;
+        let f = e => {
+          if (this.multiple) {
+            if (!item.isSelected && !this.selected.includes(item)) {
+              item.isSelected = true;
+              this.selected = item; // pushes in setter
+            } else if (item.isSelected) {
+              item.isSelected = false;
+              this._deSelect(item);
+            }
+          } else {
+            if (!item.isSelected && item !== this.selected) {
+              item.isSelected = true;
+              this.selected = item;
+            }
+          }
+
+          return;
+        };
+
+        handlerCache.set(item, f);
+        return f;
+      }
     }
 
     get items () {
@@ -59,8 +88,8 @@ export const ListBehavior = superclass => defineUIComponent({
         selection.attr('aria-selected', true);
         selection.isSelected = true;
         if (this.multiple) {
-          this.selectedIndex = -1;
           this._selected.push(selection);
+          this.dispatchEvent(new Event('change'));
         } else {
           this.selectedIndex = this._items.indexOf(selection);
           this._selected = selection;
@@ -74,16 +103,21 @@ export const ListBehavior = superclass => defineUIComponent({
       return selection;
     }
 
+    _deSelect (item) {
+      if (this.multiple) {
+        this._selected = this._selected.filter(x => x !== item);
+        this.dispatchEvent(new Event('change'));
+      }
+      return this;
+    }
+
     appendChild (node) {
       let p = node.onReady(el => {
         if (el.matches && el.matches('.ui-item')) {
-          node.on('click', e => {
-            this.selected = node;
-            node.isSelected = true;
-          });
-          super.appendChild(node);
-          this._items.push(node);
-          if (el.isSelected) this.selected = node;
+          el.on('click', this._itemHandlerFactory(el));
+          super.appendChild(el);
+          this._items.push(el);
+          if (el.isSelected) this.selected = el;
         }
       });
       if (this._pendingDOM) this._pendingDOM.push(p);
@@ -95,19 +129,8 @@ export const ListBehavior = superclass => defineUIComponent({
       this._beforeReady(_ => {
         this.selectAll('.ui-item').map(item => {
           this._items.push(item);
-          if (item.isSelected) this.selected = item;
-          item.on('click', e => {
-            if (this.multiple) {
-              item.isSelected = !item.isSelected;
-              if (item.isSelected) {
-                this.selected = item;
-              } else {
-                this._selected = this._selected.filter(x => x !== item);
-              }
-            } else {
-              if (item !== this.selected) this.selected = item;
-            }
-          });
+          if (item.attr('is-selected')) this.selected = item;
+          item.on('click', this._itemHandlerFactory(item));
         });
       });
 
@@ -116,7 +139,7 @@ export const ListBehavior = superclass => defineUIComponent({
           case 'multiple':
             if (now) {
               this.selectedIndex = -1;
-              this._selected = [this.selected];
+              this._selected = this._selected ? [this._selected] : [];
               this.attr('aria-multiselectable', true);
             } else {
               this.attr('aria-multiselectable', false);
@@ -216,6 +239,7 @@ export const Item = (() => {
           this._checkbox = this.shadowRoot.querySelector('ui-checkbox');
           this._content = this.shadowRoot.querySelector('#content');
           if (!this.value || this.value.toString() === 'true') this.value = this.textContent;
+          if (!this.isSelected) this.isSelected = false;
         });
 
         this.on('attribute-change', ({ changed: { now, name } }) => {

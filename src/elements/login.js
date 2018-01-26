@@ -190,8 +190,8 @@ export default defineUIComponent({
               let credentials = JSON.parse(cached);
               if (credentials.user && credentials.pass) {
                 console.log('Logging in with session data...');
-                this._form.data = credentials;
                 this.login();
+                this._form.data = credentials;
               }
             } catch (e) {
               // no-op
