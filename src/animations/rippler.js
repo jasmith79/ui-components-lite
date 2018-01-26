@@ -1,7 +1,7 @@
 import { document, defineUIComponent } from '../utils/dom.js';
 import extractType from '../../node_modules/extracttype/extracttype.js';
 
-const rippleEvents = ['click', 'tap', 'dblclick'];
+const rippleEvents = ['click', 'tap', 'dblclick', 'enter-key'];
 const handlerRegistry = new WeakMap();
 const registerHandler = f => {
   const cached = handlerRegistry.get(f);

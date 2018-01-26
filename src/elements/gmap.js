@@ -98,6 +98,7 @@ export const GoogleMap = defineUIComponent({
 
     init () {
       super.init();
+
       mapsAPILoaded.then(_ => {
         this._mapContainer = this.shadowRoot.querySelector('#map-container');
         const options = {
@@ -131,6 +132,46 @@ export const GoogleMap = defineUIComponent({
 
         this._mapObj.addListener('dragend', e => {
           this._center = this.map.getCenter();
+        });
+
+        // mimic the google maps desktop keyboard shortcuts
+        let keydownHandler = e => {
+          switch (e.keyCode) {
+            case 107: // numpad add
+            case 187: // equals/plus
+              this._mapObj.setZoom(this._mapObj.getZoom() + 1);
+              break;
+
+            case 109: // numpad subtract
+            case 189: // minus
+              this._mapObj.setZoom(this._mapObj.getZoom() - 1);
+              break;
+
+            case 37: // left
+              this._mapObj.panBy(-50, 0);
+              break;
+
+            case 38: // up
+              this._mapObj.panBy(0, 50);
+              break;
+
+            case 39: // right
+              this._mapObj.panBy(50, 0);
+              break;
+
+            case 40: // down
+              this._mapObj.panBy(0, -50);
+              break;
+
+          }
+        };
+
+        this.on('mouseenter', e => {
+          document.addEventListener('keydown', keydownHandler);
+        });
+
+        this.on('mouseleave', e => {
+          document.removeEventListener('keydown', keydownHandler);
         });
 
         global.addEventListener('resize', e => {

@@ -105,6 +105,11 @@ export const Router = (() => {
           if (data && Object.keys(data).length) elem.update(data);
           elem.setAttribute('is-selected', true);
 
+          if (route === '/login') {
+            let username = elem.querySelector('.ui-login').selectInternalElement('[name="user"]');
+            if (username) username.focus();
+          }
+
           // TODO: this makes maps work. Fix this.
           setTimeout(() => { global.dispatchEvent(new Event('resize')); }, 0);
 

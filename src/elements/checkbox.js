@@ -7,6 +7,7 @@
 
 import UIBase from '../utils/ui-component-base.js';
 import Ripples from '../animations/rippler.js';
+import Focusable from '../utils/focusable.js';
 import { defineUIComponent, document } from '../utils/dom.js';
 import { FormBehavior } from './form.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
@@ -56,7 +57,7 @@ const Checkbox = defineUIComponent({
   name: 'ui-checkbox',
   template,
   reflectedAttrs,
-  definition: class Checkbox extends mix(UIBase).with(Ripples, FormBehavior) {
+  definition: class Checkbox extends mix(UIBase).with(Ripples, Focusable, FormBehavior) {
     constructor () {
       super();
       this._formElement = document.createElement('input');

@@ -83,5 +83,12 @@ ui-list {
       </ui-card>
     </ui-route>
   </ui-router>
+  <script>
+    customElements.whenDefined('ui-button').then(function() {
+      document.querySelector('.alert-bttn').on('click', function() {
+        document.querySelector('ui-alert').alert('Alerted!');
+      });
+    });
+  </script>
  </body>
 </html>

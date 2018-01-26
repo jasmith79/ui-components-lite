@@ -1,4 +1,5 @@
 import UIBase from '../utils/ui-component-base.js';
+import Focusable from '../utils/focusable.js';
 import { ListBehavior } from './list.js';
 import { defineUIComponent, document } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
@@ -104,7 +105,7 @@ export default defineUIComponent({
   name: 'ui-drop-down',
   reflectedAttrs,
   template,
-  definition: class DropDown extends mix(UIBase).with(ListBehavior) {
+  definition: class DropDown extends mix(UIBase).with(ListBehavior, Focusable) {
     constructor () {
       super();
       this._list = null;
@@ -168,6 +169,13 @@ export default defineUIComponent({
     init () {
       let mouseon = false;
       super.init();
+      const index = this.attr('tabindex');
+      if (index === null || index < 0) this.attr('tabindex', '0');
+
+      this.on('enter-key', e => {
+        this.open();
+      });
+
       this._beforeReady(_ => {
         this._list = this.shadowRoot.querySelector('ui-list');
         this._listHolder = this.shadowRoot.querySelector('#list-holder');
@@ -188,7 +196,7 @@ export default defineUIComponent({
         if (this.name && !this.selected) this.textContent = null;
         this._listHolder.classList.remove('not-overflowing');
 
-        this._dummyItem.on('click', e => {
+        this._dummyItem.on('click', e => {if (this.attr('tabindex') === null) this.attr('tabindex', '0');
           this.toggle();
           mouseon = this.isOpen;
         });

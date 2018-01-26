@@ -44,7 +44,10 @@ const Alert = defineUIComponent({
         open ? this._backdrop.show() : this._backdrop.hide();
       });
 
-      this.shadowRoot.querySelector('#closer').on('click', e => this.close());
+      const closer = this.selectInternalElement('#closer');
+      closer.on('click enter-key', e => this.close());
+
+      this.on('dialog-opened', e => closer.focus());
     }
 
     get textContent () {

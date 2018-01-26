@@ -2,6 +2,7 @@ import UIBase from '../utils/ui-component-base.js';
 import Ripples from '../animations/rippler.js';
 import Floats from '../utils/float.js';
 import Centerable from '../utils/centerer.js';
+import Focusable from '../utils/focusable.js';
 import { defineUIComponent, document } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
@@ -38,10 +39,12 @@ const Button = defineUIComponent({
   name: 'ui-button',
   template,
   reflectedAttrs,
-  definition: class Button extends mix(UIBase).with(Centerable, Floats, Ripples) {
+  definition: class Button extends mix(UIBase).with(Centerable, Floats, Ripples, Focusable) {
     init () {
       super.init();
       this.attr('role', 'button');
+      const index = this.attr('tabindex');
+      if (index === null || index < 0) this.attr('tabindex', '0');
     }
   }
 });

@@ -6,6 +6,10 @@ import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 // TODO external ui-input not getting cached data? input elements lose data sometimes
 // on multiple reloads?
 
+const formControlType = el => {
+
+};
+
 export const Form = (() => {
   const reflectedAttrs = ['action', 'method', 'autocomplete', 'response-type'];
   const template = document.createElement('template');
@@ -27,6 +31,29 @@ export const Form = (() => {
         super();
         this._form = null;
         this._formUIComponents = null;
+      }
+
+      _formControlType (el) {
+        return el &&
+          el.matches &&
+          (() => {
+            if (
+              el.matches('input[name]') ||
+              el.matches(`input[form="${this.id}"]`)		
+            ) return 'input';
+
+            if (
+              el.matches('select[name]') ||
+              el.matches(`select[form="${this.id}"]`)
+            ) return 'select';
+
+            if (
+              el.matches('.ui-form-behavior') ||
+              el.matches(`.ui-form-behavior[form="${this.id}"]`)
+            ) return 'formElement';
+
+            return false;
+          })();
       }
 
       get elements () {
@@ -55,7 +82,7 @@ export const Form = (() => {
         Object.entries(data).forEach(([name, val]) => {
           const els = this.elements.filter(el => el.matches(`[name="${name}"]`));
           els.forEach((el, i, arr) => {
-            const type = this._isFormEligible(el);
+            const type = this._formControlType(el);
             let value = Array.isArray(val) ?
               (val[i] || val[val.length - 1]) :
               val;
@@ -80,7 +107,7 @@ export const Form = (() => {
       }
 
       appendChild (node) {
-        // const isEligible = this._isFormEligible(node);
+        // const isEligible = this._formControlType(node);
         // if (isEligible) {
         if (node) {
           super.appendChild(node);
@@ -161,7 +188,7 @@ export const FormBehavior = (() => {
     registerElement: false,
     reflectedAttrs,
     definition: class extends superclass {
-      
+
       validate (validator) {
         return this.watchAttribute(this, 'value', (...args) => {
           this.isValid = validator.apply(this, args);

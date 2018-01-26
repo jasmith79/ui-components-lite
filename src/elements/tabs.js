@@ -48,6 +48,8 @@ export const Tab = (() => {
       init () {
         super.init();
         this.attr('role', 'tab');
+        const index = this.attr('tabindex');
+        if (index === null || index < 0) this.attr('tabindex', '0');
       }
     }
   });

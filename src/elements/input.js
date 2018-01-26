@@ -6,6 +6,7 @@
  */
 
 import UIBase from '../utils/ui-component-base.js';
+import Focusable from '../utils/focusable.js';
 import { FormBehavior } from './form.js';
 import { document, defineUIComponent } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
@@ -194,7 +195,7 @@ export const Input = defineUIComponent({
   name: 'ui-input',
   template,
   reflectedAttrs,
-  definition: class Input extends mix(UIBase).with(FormBehavior) {
+  definition: class Input extends mix(UIBase).with(FormBehavior, Focusable) {
     constructor () {
       super();
       this._input = null;
@@ -337,6 +338,10 @@ export const Input = defineUIComponent({
           this.value = this._input.value;
         }
       })));
+
+      this.on('focus', _ => {
+        this._input.focus();
+      });
 
       this.on('attribute-change', ({ changed: { now, name, was } } ) => {
         switch (name) {

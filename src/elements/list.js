@@ -1,5 +1,6 @@
 import UIBase from '../utils/ui-component-base.js';
 import Ripples from '../animations/rippler.js';
+import Focusable from '../utils/focusable.js';
 import Checkbox from './checkbox.js';
 import { FormBehavior } from './form.js';
 import { defineUIComponent, document } from '../utils/dom.js';
@@ -7,6 +8,7 @@ import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import extractType from '../../node_modules/extracttype/extracttype.js';
 
 const handlerCache = new WeakMap();
+
 
 export const ListBehavior = superclass => defineUIComponent({
   name: 'ui-list-behavior',
@@ -17,33 +19,33 @@ export const ListBehavior = superclass => defineUIComponent({
       super();
       this._items = [];
       this._selected = null;
+    }
 
-      // Using a closure here because getting the item back out of the Event object is unreliable.
-      this._itemHandlerFactory = item => {
-        let h = handlerCache.get(item);
-        if (h) return h;
-        let f = e => {
-          if (this.multiple) {
-            if (!item.isSelected && !this.selected.includes(item)) {
-              item.isSelected = true;
-              this.selected = item; // pushes in setter
-            } else if (item.isSelected) {
-              item.isSelected = false;
-              this._deSelect(item);
-            }
-          } else {
-            if (!item.isSelected && item !== this.selected) {
-              item.isSelected = true;
-              this.selected = item;
-            }
+    // Using a closure here because getting the item back out of the Event object is unreliable.
+    _itemHandlerFactory (item) {
+      let h = handlerCache.get(item);
+      if (h) return h;
+      let f = e => {
+        if (this.multiple) {
+          if (!item.isSelected && !this.selected.includes(item)) {
+            item.isSelected = true;
+            this.selected = item; // pushes in setter
+          } else if (item.isSelected) {
+            item.isSelected = false;
+            this._deSelect(item);
           }
+        } else {
+          if (!item.isSelected && item !== this.selected) {
+            item.isSelected = true;
+            this.selected = item;
+          }
+        }
 
-          return;
-        };
+        return;
+      };
 
-        handlerCache.set(item, f);
-        return f;
-      }
+      handlerCache.set(item, f);
+      return f;
     }
 
     get items () {
@@ -126,12 +128,16 @@ export const ListBehavior = superclass => defineUIComponent({
 
     init () {
       super.init();
-      this._beforeReady(_ => {
-        this.selectAll('.ui-item').map(item => {
-          this._items.push(item);
-          if (item.attr('is-selected')) this.selected = item;
-          item.on('click', this._itemHandlerFactory(item));
-        });
+      this.on('keydown', e => {
+        let el = (() => {
+          switch (e.keyCode) {
+            case 40: return this._items[(this._items.indexOf(el) + 1) % this._items.length];
+            case 38: return this._items[+(this._items.indexOf(el) - 1)];
+            default: return null;
+          }
+        })();
+
+        if (el) el.focus();
       });
 
       this.on('attribute-change', ({ changed: { now, name } }) => {
@@ -158,6 +164,14 @@ export const ListBehavior = superclass => defineUIComponent({
             if (this._items[now] !== this.selected) this.selected = now;
             break;
         }
+      });
+
+      this._beforeReady(_ => {
+        this.selectAll('.ui-item').map(item => {
+          this._items.push(item);
+          if (item.attr('is-selected')) this.selected = item;
+          item.on('click enter-key', this._itemHandlerFactory(item));
+        });
       });
     }
   }
@@ -225,7 +239,7 @@ export const Item = (() => {
     name: 'ui-item',
     template,
     reflectedAttrs,
-    definition: class Item extends mix(UIBase).with(Ripples) {
+    definition: class Item extends mix(UIBase).with(Ripples, Focusable) {
       constructor () {
         super();
         this._checkbox = null;

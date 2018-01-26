@@ -56,9 +56,10 @@ const Drawer = defineUIComponent({
       if (elem) {
         this._toggleElem = elem;
         if (this._toggleElem.on) {
-          this._toggleElem.on('click', e => { this.toggleState() });
+          this._toggleElem.on('click enter-key', e => { this.toggleState() });
         } else {
-          this._toggleElem.addEventListener('click', e => { this.toggleState() })
+          this._toggleElem.addEventListener('enter-key', e => { this.toggleState() });
+          this._toggleElem.addEventListener('click', e => { this.toggleState() });
         }
       }
       return this;

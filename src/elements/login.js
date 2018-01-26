@@ -64,10 +64,10 @@ template.innerHTML = `
   <ui-card>
     <h2 id="heading">Login</h2>
     <ui-form>
-      <ui-input name="user" placeholder="User" required></ui-input>
-      <ui-input name="pass" placeholder="Password" type="password" required></ui-input>
+      <ui-input name="user" placeholder="User" tabindex="1" required></ui-input>
+      <ui-input name="pass" placeholder="Password" type="password" tabindex="1" required></ui-input>
+      <ui-fab tabindex="1"><div class="arrow"></div></ui-fab>
     </ui-form>
-    <ui-fab><div class="arrow"></div></ui-fab>
   </ui-card>
 `;
 
@@ -129,14 +129,15 @@ export default defineUIComponent({
           document.body.appendChild(this._alert);
         }
 
+        // Reset the session timeout on interaction.
         ['click', 'keydown'].forEach(evt => {
           document.addEventListener(evt, e => {
             if (this.isLoggedIn) this._sessionTimeoutHandle = this.countDown(this._sessionTimeoutHandle);
           });
         });
 
-        this.selectInternalElement('ui-fab').on('click keydown', e => {
-          if (!this.isLoggedIn && (!e.keyCode || e.keyCode === 13)) {
+        const handler = _ => {
+          if (!this.isLoggedIn) {
             if (!this.dataUrl) {
               throw new Error('No url for login, whatcha want me to do?');
             }
@@ -167,7 +168,10 @@ export default defineUIComponent({
                 this._alert.alert(FAILURE);
               });
           }
-        });
+        };
+
+        this.selectInternalElement('ui-fab').on('click enter-key', handler);
+        this.selectInternalElement('[name="pass"]').on('enter-key', handler);
       });
 
       this.onReady(_ => {
