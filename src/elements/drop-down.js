@@ -54,7 +54,7 @@ template.innerHTML = `
       border-top: 1px solid #999;
     }
 
-    ::slotted(.ui-item) {
+    ui-list ::slotted(.ui-item) {
       border: none;
     }
 
@@ -86,7 +86,7 @@ template.innerHTML = `
       border-color: var(--ui-theme-primary-dark-color, blue);
     }
 
-    :host([is-open="false"]) ::slotted(.ui-item) {
+    :host([is-open="false"]) ui-list ::slotted(.ui-item) {
       display: none;
     }
 
@@ -136,7 +136,7 @@ export default defineUIComponent({
     }
 
     set textContent (val) {
-      const txt = val || '...';
+      const txt = val || '';
 
       this._textContent = txt;
       if (!this._dummyItem) this._dummyItem = this.selectInternalElement('#dummy-item');
@@ -202,7 +202,7 @@ export default defineUIComponent({
           if (this.label && !this.value) {
             this.selectInternalElement('label').classList.add('text-moved');
           }
-        }, 1);
+        }, 600); // ripple animation is 500 on the ui-item
       });
 
       this._beforeReady(_ => {

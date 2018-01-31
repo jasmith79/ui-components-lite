@@ -70,7 +70,7 @@ export const Tabs = (() => {
         width: 100%;
       }
 
-      ::slotted(.ui-tab:hover) {
+      :host ::slotted(.ui-tab:hover) {
         text-shadow: 1px 1px 6px #fff;
       }
     </style>

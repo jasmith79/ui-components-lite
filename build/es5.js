@@ -93,7 +93,7 @@ var __run = function __run() {
     /******/__webpack_require__.p = "";
     /******/
     /******/ // Load entry module and return exports
-    /******/return __webpack_require__(__webpack_require__.s = 17);
+    /******/return __webpack_require__(__webpack_require__.s = 19);
     /******/
   })(
   /************************************************************************/
@@ -118,7 +118,7 @@ var __run = function __run() {
     /* harmony export (binding) */__webpack_require__.d(__webpack_exports__, "d", function () {
       return global;
     });
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(7);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(8);
 
     var global = new Function('return this')();
     var document = global.document;
@@ -238,13 +238,13 @@ var __run = function __run() {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__styler_js__ = __webpack_require__(10);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__binder_js__ = __webpack_require__(19);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__dom_utils_js__ = __webpack_require__(20);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__attribute_analyzer_js__ = __webpack_require__(8);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__promise_from_event_js__ = __webpack_require__(21);
+    var __WEBPACK_IMPORTED_MODULE_0__styler_js__ = __webpack_require__(12);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__binder_js__ = __webpack_require__(21);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__dom_utils_js__ = __webpack_require__(22);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__attribute_analyzer_js__ = __webpack_require__(9);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__promise_from_event_js__ = __webpack_require__(23);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__dom_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(7);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(8);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
 
     var flag = true;
@@ -365,10 +365,7 @@ var __run = function __run() {
             return _this6._beforeReadyHandlers.length ? Promise.all(_this6._beforeReadyHandlers.map(function (f) {
               return f(_this6);
             })) : null;
-          })
-          // .then(_ => Promise.all(this._pendingDOM))
-          .then(function (_) {
-            // if (this.tagName.toLowerCase() === 'ui-drop-down') debugger;
+          }).then(function (_) {
             return Promise.all(_this6._pendingDOM);
           }).then(function (_) {
             _this6.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: false }));
@@ -736,6 +733,66 @@ var __run = function __run() {
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
+    /*
+     * focusable.js
+     * @author jasmith79@gmail.com
+     * @copyright 2018
+     * @license MIT
+     *
+     * Mixin for custom elements that can receive keyboard focus.
+     */
+
+    /* harmony default export */
+    __webpack_exports__["a"] = function (superclass) {
+      return function (_superclass) {
+        _inherits(Focusable, _superclass);
+
+        function Focusable() {
+          _classCallCheck(this, Focusable);
+
+          return _possibleConstructorReturn(this, (Focusable.__proto__ || Object.getPrototypeOf(Focusable)).call(this));
+        }
+
+        _createClass(Focusable, [{
+          key: 'setActive',
+          value: function setActive() {
+            var index = this.attr('tabindex');
+            if (index === null || index < 0) this.attr('tabindex', '0');
+            return this;
+          }
+        }, {
+          key: 'setInactive',
+          value: function setInactive() {
+            this.attr('tabindex', '-1');
+            return this;
+          }
+        }, {
+          key: 'init',
+          value: function init() {
+            var _this10 = this;
+
+            _get(Focusable.prototype.__proto__ || Object.getPrototypeOf(Focusable.prototype), 'init', this).call(this);
+            if (this.attr('tabindex') === null) this.attr('tabindex', '-1');
+            this.on('keydown', function (e) {
+              if (e.keyCode === 13) {
+                var evt = new CustomEvent('enter-key');
+                evt.keyCode = 13;
+                _this10.dispatchEvent(evt);
+              }
+            });
+          }
+        }]);
+
+        return Focusable;
+      }(superclass);
+    };
+
+    /***/
+  },
+  /* 5 */
+  /***/function (module, __webpack_exports__, __webpack_require__) {
+
+    "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__dom_js__ = __webpack_require__(0);
 
@@ -750,8 +807,8 @@ var __run = function __run() {
         reflectedAttrs: reflectedAttrs,
         template: template,
         registerElement: false,
-        definition: function (_superclass) {
-          _inherits(Floating, _superclass);
+        definition: function (_superclass2) {
+          _inherits(Floating, _superclass2);
 
           function Floating() {
             _classCallCheck(this, Floating);
@@ -762,7 +819,7 @@ var __run = function __run() {
           _createClass(Floating, [{
             key: 'init',
             value: function init() {
-              var _this10 = this;
+              var _this12 = this;
 
               _get(Floating.prototype.__proto__ || Object.getPrototypeOf(Floating.prototype), 'init', this).call(this);
               this.on('attribute-change', function (_ref14) {
@@ -772,23 +829,23 @@ var __run = function __run() {
 
                 switch (name) {
                   case 'floating-y':
-                    return now ? _this10.classList.add('float-y') : _this10.classList.remove('float-y');
+                    return now ? _this12.classList.add('float-y') : _this12.classList.remove('float-y');
 
                   case 'floating-x':
-                    var class_ = _this10.attr('right-oriented') ? 'right-x' : 'left-x';
-                    return now ? _this10.classList.add(class_) : _this10.classList.remove(class_);
+                    var class_ = _this12.attr('right-oriented') ? 'right-x' : 'left-x';
+                    return now ? _this12.classList.add(class_) : _this12.classList.remove(class_);
 
                   case 'right-oriented':
-                    if (_this10.classList.contains('left-x')) {
-                      _this10.classList.remove('left-x');
-                      _this10.classList.add('right-x');
+                    if (_this12.classList.contains('left-x')) {
+                      _this12.classList.remove('left-x');
+                      _this12.classList.add('right-x');
                     }
                     return;
 
                   case 'left-oriented':
-                    if (_this10.classList.contains('right-x')) {
-                      _this10.classList.remove('right-x');
-                      _this10.classList.add('left-x');
+                    if (_this12.classList.contains('right-x')) {
+                      _this12.classList.remove('right-x');
+                      _this12.classList.add('left-x');
                     }
                     return;
                 }
@@ -808,7 +865,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 5 */
+  /* 6 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -820,6 +877,8 @@ var __run = function __run() {
 
     // TODO external ui-input not getting cached data? input elements lose data sometimes
     // on multiple reloads?
+
+    var formControlType = function formControlType(el) {};
 
     var Form = function () {
       var reflectedAttrs = ['action', 'method', 'autocomplete', 'response-type'];
@@ -836,26 +895,24 @@ var __run = function __run() {
           function Form() {
             _classCallCheck(this, Form);
 
-            // this._inputs = null;
-            // this._selects = null;
-            var _this11 = _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).call(this));
+            var _this13 = _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).call(this));
 
-            _this11._form = null;
-            _this11._formUIComponents = null;
-            return _this11;
+            _this13._form = null;
+            _this13._formUIComponents = null;
+            return _this13;
           }
 
           _createClass(Form, [{
-            key: '_isFormEligible',
-            value: function _isFormEligible(el) {
-              var _this12 = this;
+            key: '_formControlType',
+            value: function _formControlType(el) {
+              var _this14 = this;
 
               return el && el.matches && function () {
-                if (el.matches('input[name]') || el.matches('input[form="' + _this12.id + '"]')) return 'input';
+                if (el.matches('input[name]') || el.matches('input[form="' + _this14.id + '"]')) return 'input';
 
-                if (el.matches('select[name]') || el.matches('select[form="' + _this12.id + '"]')) return 'select';
+                if (el.matches('select[name]') || el.matches('select[form="' + _this14.id + '"]')) return 'select';
 
-                if (el.matches('.ui-form-behavior') || el.matches('.ui-form-behavior[form="' + _this12.id + '"]')) return 'formElement';
+                if (el.matches('.ui-form-behavior') || el.matches('.ui-form-behavior[form="' + _this14.id + '"]')) return 'formElement';
 
                 return false;
               }();
@@ -863,8 +920,9 @@ var __run = function __run() {
           }, {
             key: 'appendChild',
             value: function appendChild(node) {
-              var isEligible = this._isFormEligible(node);
-              if (isEligible) {
+              // const isEligible = this._formControlType(node);
+              // if (isEligible) {
+              if (node) {
                 _get(Form.prototype.__proto__ || Object.getPrototypeOf(Form.prototype), 'appendChild', this).call(this, node);
                 if (node.isUIComponent) {
                   this._formUIComponents.push(node);
@@ -932,16 +990,16 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this13 = this;
+              var _this15 = this;
 
               _get(Form.prototype.__proto__ || Object.getPrototypeOf(Form.prototype), 'init', this).call(this);
               this.attr('is-data-element', true);
               this.attr('role', 'form');
 
               this._beforeReady(function (_) {
-                _this13._formUIComponents = [].concat(_toConsumableArray(new Set([].concat(_toConsumableArray(_this13.selectAll('.ui-form-behavior')), _toConsumableArray(__WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].querySelectorAll('.ui-form-behavior[form="' + _this13.id + '"]') || [])))));
+                _this15._formUIComponents = [].concat(_toConsumableArray(new Set([].concat(_toConsumableArray(_this15.selectAll('.ui-form-behavior')), _toConsumableArray(__WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].querySelectorAll('.ui-form-behavior[form="' + _this15.id + '"]') || [])))));
 
-                _this13._formUIComponents.forEach(function (el) {
+                _this15._formUIComponents.forEach(function (el) {
                   el.addEventListener('change', function (e) {});
                 });
               });
@@ -965,18 +1023,18 @@ var __run = function __run() {
               }, new FormData());
             },
             set: function set(data) {
-              var _this14 = this;
+              var _this16 = this;
 
               Object.entries(data).forEach(function (_ref18) {
                 var _ref19 = _slicedToArray(_ref18, 2),
                     name = _ref19[0],
                     val = _ref19[1];
 
-                var els = _this14.elements.filter(function (el) {
+                var els = _this16.elements.filter(function (el) {
                   return el.matches('[name="' + name + '"]');
                 });
                 els.forEach(function (el, i, arr) {
-                  var type = _this14._isFormEligible(el);
+                  var type = _this16._formControlType(el);
                   var value = Array.isArray(val) ? val[i] || val[val.length - 1] : val;
 
                   if (value === 'undefined' || value === 'null') value = '';
@@ -1012,8 +1070,8 @@ var __run = function __run() {
           name: 'ui-form-behavior',
           registerElement: false,
           reflectedAttrs: reflectedAttrs,
-          definition: function (_superclass2) {
-            _inherits(definition, _superclass2);
+          definition: function (_superclass3) {
+            _inherits(definition, _superclass3);
 
             function definition() {
               _classCallCheck(this, definition);
@@ -1024,27 +1082,27 @@ var __run = function __run() {
             _createClass(definition, [{
               key: 'validate',
               value: function validate(validator) {
-                var _this16 = this;
+                var _this18 = this;
 
                 return this.watchAttribute(this, 'value', function () {
                   for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
                     args[_key3] = arguments[_key3];
                   }
 
-                  _this16.isValid = validator.apply(_this16, args);
-                  _this16.classList.remove(_this16.isValid ? 'invalid' : 'valid');
-                  _this16.classList.add(_this16.isValid ? 'valid' : 'invalid');
+                  _this18.isValid = validator.apply(_this18, args);
+                  _this18.classList.remove(_this18.isValid ? 'invalid' : 'valid');
+                  _this18.classList.add(_this18.isValid ? 'valid' : 'invalid');
                 });
               }
             }, {
               key: 'init',
               value: function init() {
-                var _this17 = this;
+                var _this19 = this;
 
                 _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'init', this).call(this);
                 this._beforeReady(function (_) {
-                  var val = _this17.value;
-                  _this17.on('attribute-change', function (_ref20) {
+                  var val = _this19.value;
+                  _this19.on('attribute-change', function (_ref20) {
                     var _ref20$changed = _ref20.changed,
                         now = _ref20$changed.now,
                         name = _ref20$changed.name;
@@ -1055,8 +1113,8 @@ var __run = function __run() {
                         if (now !== val) {
                           val = now;
                           var evt = new Event('change');
-                          evt.value = now;
-                          _this17.dispatchEvent(evt);
+                          evt.value = _this19.value;
+                          _this19.dispatchEvent(evt);
                         }
                         break;
                     }
@@ -1074,24 +1132,25 @@ var __run = function __run() {
 
     /***/
   },
-  /* 6 */
+  /* 7 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__animations_rippler_js__ = __webpack_require__(9);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_float_js__ = __webpack_require__(4);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__utils_centerer_js__ = __webpack_require__(14);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__animations_rippler_js__ = __webpack_require__(11);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_float_js__ = __webpack_require__(5);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__utils_centerer_js__ = __webpack_require__(16);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__utils_focusable_js__ = __webpack_require__(4);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__utils_dom_js__ = __webpack_require__(0);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
 
-    var template = __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["c" /* document */].createElement('template');
+    var template = __WEBPACK_IMPORTED_MODULE_5__utils_dom_js__["c" /* document */].createElement('template');
     template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      height: 50px;\n      width: 120px;\n      text-align: center;\n      white-space: nowrap;\n      text-overflow: ellipsis;\n      text-transform: uppercase;\n      border-radius: 5%;\n      background-color: var(--ui-theme-secondary-dark-color, blue);\n      color: var(--ui-theme-light-text-color, #fff);\n      margin: 5px;\n    }\n\n    :host(:hover) {\n      box-shadow: inset 0 0 0 99999px rgba(150,150,150,0.2);\n    }\n  </style>\n';
 
     var reflectedAttrs = ['dialog-dismiss', 'dialog-confirm', 'submit'];
 
-    var Button = Object(__WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["b" /* defineUIComponent */])({
+    var Button = Object(__WEBPACK_IMPORTED_MODULE_5__utils_dom_js__["b" /* defineUIComponent */])({
       name: 'ui-button',
       template: template,
       reflectedAttrs: reflectedAttrs,
@@ -1109,18 +1168,20 @@ var __run = function __run() {
           value: function init() {
             _get(Button.prototype.__proto__ || Object.getPrototypeOf(Button.prototype), 'init', this).call(this);
             this.attr('role', 'button');
+            var index = this.attr('tabindex');
+            if (index === null || index < 0) this.attr('tabindex', '0');
           }
         }]);
 
         return Button;
-      }(Object(__WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* default */]).with(__WEBPACK_IMPORTED_MODULE_3__utils_centerer_js__["b" /* default */], __WEBPACK_IMPORTED_MODULE_2__utils_float_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_1__animations_rippler_js__["a" /* default */]))
+      }(Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* default */]).with(__WEBPACK_IMPORTED_MODULE_3__utils_centerer_js__["b" /* default */], __WEBPACK_IMPORTED_MODULE_2__utils_float_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_1__animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_4__utils_focusable_js__["a" /* default */]))
     });
 
     /* harmony default export */__webpack_exports__["a"] = Button;
 
     /***/
   },
-  /* 7 */
+  /* 8 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -1331,7 +1392,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 8 */
+  /* 9 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -1364,7 +1425,70 @@ var __run = function __run() {
 
     /***/
   },
-  /* 9 */
+  /* 10 */
+  /***/function (module, __webpack_exports__, __webpack_require__) {
+
+    "use strict";
+    /* harmony import */
+    var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__ = __webpack_require__(0);
+
+    var reflectedAttrs = ['view-text'];
+    var template = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    :host {\n      display: inline;\n    }\n\n    #text-holder {\n      color: inherit;\n    }\n  </style>\n  <span id="text-holder"></span>\n';
+
+    var Text = Object(__WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["b" /* defineUIComponent */])({
+      name: 'ui-text',
+      reflectedAttrs: reflectedAttrs,
+      template: template,
+      definition: function (_WEBPACK_IMPORTED_MO2) {
+        _inherits(Text, _WEBPACK_IMPORTED_MO2);
+
+        function Text() {
+          _classCallCheck(this, Text);
+
+          var _this21 = _possibleConstructorReturn(this, (Text.__proto__ || Object.getPrototypeOf(Text)).call(this));
+
+          _this21._textHolder = null;
+          return _this21;
+        }
+
+        // Override the default textContent property
+
+
+        _createClass(Text, [{
+          key: 'init',
+          value: function init() {
+            var _this22 = this;
+
+            _get(Text.prototype.__proto__ || Object.getPrototypeOf(Text.prototype), 'init', this).call(this);
+            this._textHolder = this.shadowRoot.querySelector('#text-holder');
+            this.watchAttribute(this, 'view-text', function (val) {
+              _this22._textHolder.textContent = val || _this22.innerHTML; // render innerHTML as a fallback
+            });
+
+            if (this.innerHTML && !this.viewText) this.viewText = this.innerHTML;
+          }
+        }, {
+          key: 'textContent',
+          get: function get() {
+            return this._textHolder.textContent;
+          },
+          set: function set(text) {
+            this.viewText = text;
+            return text;
+          }
+        }]);
+
+        return Text;
+      }(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* default */])
+    });
+
+    /* unused harmony default export */var _unused_webpack_default_export = Text;
+
+    /***/
+  },
+  /* 11 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -1372,7 +1496,7 @@ var __run = function __run() {
     var __WEBPACK_IMPORTED_MODULE_0__utils_dom_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
 
-    var rippleEvents = ['click', 'tap', 'dblclick'];
+    var rippleEvents = ['click', 'tap', 'dblclick', 'enter-key'];
     var handlerRegistry = new WeakMap();
     var registerHandler = function registerHandler(f) {
       var cached = handlerRegistry.get(f);
@@ -1391,8 +1515,8 @@ var __run = function __run() {
         name: 'ui-ripples',
         template: template,
         registerElement: false,
-        definition: function (_superclass3) {
-          _inherits(Ripples, _superclass3);
+        definition: function (_superclass4) {
+          _inherits(Ripples, _superclass4);
 
           function Ripples() {
             _classCallCheck(this, Ripples);
@@ -1407,16 +1531,16 @@ var __run = function __run() {
             // Here we want to intercept any handlers on events that trigger a ripple and delay them
             // to give the animation time to complete.
             value: function on(evts, f) {
-              var _this20 = this;
+              var _this24 = this;
 
               var events = evts.split(/\s+/g);
               events.forEach(function (evt) {
                 if (rippleEvents.includes(evt)) {
                   // Here we'll want to cache a canonical version for later removal
                   var fn = registerHandler(f);
-                  _get(Ripples.prototype.__proto__ || Object.getPrototypeOf(Ripples.prototype), 'on', _this20).call(_this20, evt, fn);
+                  _get(Ripples.prototype.__proto__ || Object.getPrototypeOf(Ripples.prototype), 'on', _this24).call(_this24, evt, fn);
                 } else {
-                  _get(Ripples.prototype.__proto__ || Object.getPrototypeOf(Ripples.prototype), 'on', _this20).call(_this20, evt, f);
+                  _get(Ripples.prototype.__proto__ || Object.getPrototypeOf(Ripples.prototype), 'on', _this24).call(_this24, evt, f);
                 }
               });
             }
@@ -1452,7 +1576,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 10 */
+  /* 12 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -1463,7 +1587,7 @@ var __run = function __run() {
       return generateCSSClassName;
     });
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(7);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(8);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__dom_js__ = __webpack_require__(0);
 
     var toCSSVar = function toCSSVar(s) {
@@ -1531,16 +1655,18 @@ var __run = function __run() {
 
     /***/
   },
-  /* 11 */
+  /* 13 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__form_js__ = __webpack_require__(5);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__text_js__ = __webpack_require__(10);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_focusable_js__ = __webpack_require__(4);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__form_js__ = __webpack_require__(6);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__ = __webpack_require__(0);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
     /*
      * NOTE: it is not currently possible to extend specific HTMLElements, leading
      * to this element being rather convoluted. Once it's possible to extend input
@@ -1552,7 +1678,7 @@ var __run = function __run() {
     // if the value is different than the last onfocus will trigger change event.
     var changeTriggers = ['blur', 'keyup', 'paste', 'input'];
 
-    var reflectedAttrs = [
+    var reflectedAttrs = ['label',
 
     // These values are here to mimic the behavior of the native, NOTE: incomplete.
     'type', 'form', 'placeholder', 'pattern', 'required',
@@ -1566,7 +1692,7 @@ var __run = function __run() {
 
     var debounce = function debounce(n, immed, f) {
       var _ref23 = function () {
-        switch (Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_extracttype_extracttype_js__["b" /* extractType */])(immed)) {
+        switch (Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__["b" /* extractType */])(immed)) {
           case 'Boolean':
             return [f, immed];
           case 'Function':
@@ -1581,7 +1707,7 @@ var __run = function __run() {
 
       var timer = null;
       return function () {
-        var _this21 = this;
+        var _this25 = this;
 
         for (var _len6 = arguments.length, args = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
           args[_key6] = arguments[_key6];
@@ -1592,7 +1718,7 @@ var __run = function __run() {
         }
         clearTimeout(timer);
         timer = setTimeout(function () {
-          return fn.apply(_this21, args);
+          return fn.apply(_this25, args);
         }, n);
         return timer;
       };
@@ -1616,7 +1742,7 @@ var __run = function __run() {
     var VALID_INPUT_TIME = /^[0-2][0-9]:[0-5][0-9]$/;
 
     var DATE_TYPE_SUPPORTED = function () {
-      var input = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].createElement('input');
+      var input = __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["c" /* document */].createElement('input');
       var notDate = 'not-a-date';
       input.setAttribute('type', 'date');
       input.setAttribute('value', notDate);
@@ -1626,7 +1752,7 @@ var __run = function __run() {
 
     // Need this because Edge supports date but not time
     var TIME_TYPE_SUPPORTED = function () {
-      var input = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].createElement('input');
+      var input = __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["c" /* document */].createElement('input');
       var notTime = 'not-a-time';
       input.setAttribute('type', 'time');
       input.setAttribute('value', notTime);
@@ -1732,14 +1858,14 @@ var __run = function __run() {
           h = _t$split$map2[0],
           m = _t$split$map2[1];
 
-      var hr = meridian.toLowerCase() === 'pm' ? 12 + h : h;
+      var hr = meridian && meridian.toLowerCase() === 'pm' ? 12 + h : h;
       return [hr, m];
     };
 
-    var template = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      border-bottom: solid 1px;\n      border-bottom-color: #999;\n      min-height: 25px;\n      margin-bottom: 10px;\n      margin-top: 10px;\n      max-width: 200px;\n      color: var(--ui-theme-dark-text-color, #333);\n    }\n\n    :host(.focused) {\n      border-bottom-color: var(--ui-theme-primary-dark-color, blue);\n      box-shadow: 0px 4px 4px -4px;\n    }\n\n    :host(.empty) {\n      color: #999;\n    }\n\n    #input {\n      border: none;\n      outline: none;\n      width: 90%;\n      margin-left: 5%;\n      margin-bottom: 3px;\n      height: 25px;\n      font-size: 16px;\n      color: inherit;\n    }\n  </style>\n  <input id="input"/>\n';
+    var template = __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      border-bottom: solid 1px;\n      border-bottom-color: #999;\n      min-height: 25px;\n      margin-bottom: 10px;\n      margin-top: 10px;\n      max-width: 200px;\n      color: var(--ui-theme-dark-text-color, #333);\n    }\n\n    :host(.focused) {\n      border-bottom-color: var(--ui-theme-primary-dark-color, blue);\n      box-shadow: 0px 4px 4px -4px;\n    }\n\n    :host(.empty) {\n      color: #999;\n    }\n\n    label {\n      /* janky, I know. TODO: find a way to make this work with transform: translate */\n      transition-property: top, left;\n      transition-timing-function: ease;\n      transition-duration: 1s;\n      position: relative;\n      top: 0px;\n      left: 0px;\n    }\n\n    #input {\n      border: none;\n      outline: none;\n      width: 90%;\n      margin-left: 5%;\n      margin-bottom: 3px;\n      height: 25px;\n      font-size: 16px;\n      color: inherit;\n    }\n\n    .text-moved {\n      top: 20px;\n      left: 10px;\n    }\n  </style>\n  <label><ui-text view-text="{{label}}"></ui-text></label>\n  <input id="input"/>\n';
 
-    var Input = Object(__WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["b" /* defineUIComponent */])({
+    var Input = Object(__WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["b" /* defineUIComponent */])({
       name: 'ui-input',
       template: template,
       reflectedAttrs: reflectedAttrs,
@@ -1749,22 +1875,41 @@ var __run = function __run() {
         function Input() {
           _classCallCheck(this, Input);
 
-          var _this22 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this));
+          var _this26 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this));
 
-          _this22._input = null;
-          return _this22;
+          _this26._input = null;
+          return _this26;
         }
 
         _createClass(Input, [{
           key: 'init',
           value: function init() {
-            var _this23 = this;
+            var _this27 = this;
 
             _get(Input.prototype.__proto__ || Object.getPrototypeOf(Input.prototype), 'init', this).call(this);
-            this._input = this.shadowRoot.querySelector('#input');
-            var placeholder = this.attr('placeholder') || this.attr('name') || this.attr('default-value') || null;
+            this._input = this.selectInternalElement('#input');
+            var placeholder = this.attr('placeholder') || this.attr('default-value') || null;
+
+            if (this.attr('name')) {
+              if (!this.attr('label')) this.attr('label', this.attr('name'));
+              this.selectInternalElement('label').setAttribute('for', this.attr('name'));
+            }
 
             if (placeholder) this.placeholder = placeholder;
+
+            if (this.attr('label') && !placeholder) this.selectInternalElement('label').classList.add('text-moved');
+            this.on('focus', function (e) {
+              return _this27.selectInternalElement('label').classList.remove('text-moved');
+            });
+            this.on('blur', function (e) {
+              setTimeout(function () {
+                // Checked 1-31, doesn't work without
+                if (_this27.label && !_this27.placeholder && !_this27.value) {
+                  _this27.selectInternalElement('label').classList.add('text-moved');
+                }
+              }, 1);
+            });
+
             if (!this.attr('type')) this.type = 'text';
             if (!(this.value && this.value.length || this.attr('value'))) this.classList.add('empty');
 
@@ -1794,21 +1939,25 @@ var __run = function __run() {
             }
 
             this._input.addEventListener('focus', function (e) {
-              _this23._before = _this23._input.value;
-              _this23.classList.add('focused');
+              _this27._before = _this27._input.value;
+              _this27.classList.add('focused');
             });
 
             this._input.addEventListener('blur', function (e) {
-              _this23.classList.remove('focused');
+              _this27.classList.remove('focused');
             });
 
             changeTriggers.forEach(function (evtName) {
-              return _this23._input.addEventListener(evtName, debounce(500, function (e) {
-                if (_this23._input.value !== _this23._before) {
-                  _this23._before = _this23._input.value;
-                  _this23.value = _this23._input.value;
+              return _this27._input.addEventListener(evtName, debounce(500, function (e) {
+                if (_this27._input.value !== _this27._before) {
+                  _this27._before = _this27._input.value;
+                  _this27.value = _this27._input.value;
                 }
               }));
+            });
+
+            this.on('focus', function (_) {
+              _this27._input.focus();
             });
 
             this.on('attribute-change', function (_ref25) {
@@ -1819,25 +1968,24 @@ var __run = function __run() {
 
               switch (name) {
                 case 'name':
-                  _this23._input.name = now;
-                  _this23.name = now;
-                  if (!_this23.attr('placeholder')) _this23._input.setAttribute('placeholder', now);
+                  _this27._input.name = now;
+                  _this27.name = now;
                   break;
 
                 case 'value':
                   var val = now === true ? '' : now;
-                  if (_this23._input.value !== val) {
-                    _this23._input.value = !val && _this23.defaultValue ? _this23.defaultValue : val;
+                  if (_this27._input.value !== val) {
+                    _this27._input.value = !val && _this27.defaultValue ? _this27.defaultValue : val;
                   }
                   break;
 
                 case 'default-value':
-                  if (!_this23.value) _this23.value = now;
+                  if (!_this27.value) _this27.value = now;
                   break;
 
                 case 'type':
                   if (now === 'hidden') {
-                    _this23.hide();
+                    _this27.hide();
                     return;
                   }
                   if (!['text', 'number', 'password', 'email'].includes(now)) return;
@@ -1846,9 +1994,9 @@ var __run = function __run() {
                 case 'placeholder':
                 case 'required':
                   if (now == null) {
-                    _this23._input.removeAttribute(name);
+                    _this27._input.removeAttribute(name);
                   } else {
-                    _this23._input.setAttribute(name, now || true);
+                    _this27._input.setAttribute(name, now || true);
                   }
                   break;
               }
@@ -1864,7 +2012,7 @@ var __run = function __run() {
 
               case 'time':
                 var value = _get(Input.prototype.__proto__ || Object.getPrototypeOf(Input.prototype), 'value', this);
-                return parseTimeString(value);
+                return value ? parseTimeString(value) : null;
 
               default:
                 return _get(Input.prototype.__proto__ || Object.getPrototypeOf(Input.prototype), 'value', this);
@@ -1875,7 +2023,7 @@ var __run = function __run() {
             var value = '';
             switch (this.attr('type').toLowerCase()) {
               case 'date':
-                switch (Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_extracttype_extracttype_js__["b" /* extractType */])(val)) {
+                switch (Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__["b" /* extractType */])(val)) {
                   case 'Null':
                   case 'Undefined':
                     value = null;
@@ -1897,7 +2045,7 @@ var __run = function __run() {
                 break;
 
               case 'time':
-                switch (Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_extracttype_extracttype_js__["b" /* extractType */])(val)) {
+                switch (Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__["b" /* extractType */])(val)) {
                   case 'Array':
                     value = val.length ? val.map(pad2).join(':') : '';
                     break;
@@ -1920,7 +2068,7 @@ var __run = function __run() {
             }
 
             var empty = function () {
-              switch (Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_extracttype_extracttype_js__["b" /* extractType */])(value)) {
+              switch (Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__["b" /* extractType */])(value)) {
                 case 'Array':
                 case 'String':
                   return value.length === 0;
@@ -1936,6 +2084,7 @@ var __run = function __run() {
               this.classList.add('empty');
             } else {
               this.classList.remove('empty');
+              this.selectInternalElement('label').classList.remove('text-moved');
             }
 
             return _set(Input.prototype.__proto__ || Object.getPrototypeOf(Input.prototype), 'value', value == null ? '' : value, this);
@@ -1943,19 +2092,19 @@ var __run = function __run() {
         }]);
 
         return Input;
-      }(Object(__WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* default */]).with(__WEBPACK_IMPORTED_MODULE_1__form_js__["a" /* FormBehavior */]))
+      }(Object(__WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* default */]).with(__WEBPACK_IMPORTED_MODULE_3__form_js__["a" /* FormBehavior */], __WEBPACK_IMPORTED_MODULE_2__utils_focusable_js__["a" /* default */]))
     });
     /* unused harmony export Input */
 
     /***/
   },
-  /* 12 */
+  /* 14 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_float_js__ = __webpack_require__(4);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_float_js__ = __webpack_require__(5);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
 
@@ -1990,12 +2139,12 @@ var __run = function __run() {
 
     /***/
   },
-  /* 13 */
+  /* 15 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(6);
+    var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(7);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__ = __webpack_require__(0);
 
     var template = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].createElement('template');
@@ -2004,8 +2153,8 @@ var __run = function __run() {
     /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["b" /* defineUIComponent */])({
       name: 'ui-fab',
       template: template,
-      definition: function (_WEBPACK_IMPORTED_MO2) {
-        _inherits(Fab, _WEBPACK_IMPORTED_MO2);
+      definition: function (_WEBPACK_IMPORTED_MO3) {
+        _inherits(Fab, _WEBPACK_IMPORTED_MO3);
 
         function Fab() {
           _classCallCheck(this, Fab);
@@ -2027,7 +2176,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 14 */
+  /* 16 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -2047,8 +2196,8 @@ var __run = function __run() {
         name: 'ui-centered',
         template: template,
         registerElement: false,
-        definition: function (_superclass4) {
-          _inherits(Centered, _superclass4);
+        definition: function (_superclass5) {
+          _inherits(Centered, _superclass5);
 
           function Centered() {
             _classCallCheck(this, Centered);
@@ -2063,7 +2212,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 15 */
+  /* 17 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -2077,18 +2226,18 @@ var __run = function __run() {
     var Backdrop = Object(__WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["b" /* defineUIComponent */])({
       name: 'ui-backdrop',
       template: template,
-      definition: function (_WEBPACK_IMPORTED_MO3) {
-        _inherits(Backdrop, _WEBPACK_IMPORTED_MO3);
+      definition: function (_WEBPACK_IMPORTED_MO4) {
+        _inherits(Backdrop, _WEBPACK_IMPORTED_MO4);
 
         function Backdrop() {
           _classCallCheck(this, Backdrop);
 
           // Elements that use this element should set this property to themselves as a
           // debugging aid.
-          var _this27 = _possibleConstructorReturn(this, (Backdrop.__proto__ || Object.getPrototypeOf(Backdrop)).call(this));
+          var _this31 = _possibleConstructorReturn(this, (Backdrop.__proto__ || Object.getPrototypeOf(Backdrop)).call(this));
 
-          _this27.for = null;
-          return _this27;
+          _this31.for = null;
+          return _this31;
         }
 
         _createClass(Backdrop, [{
@@ -2107,21 +2256,24 @@ var __run = function __run() {
 
     /***/
   },
-  /* 16 */
+  /* 18 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__animations_rippler_js__ = __webpack_require__(9);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__checkbox_js__ = __webpack_require__(25);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__form_js__ = __webpack_require__(5);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__animations_rippler_js__ = __webpack_require__(11);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_focusable_js__ = __webpack_require__(4);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__checkbox_js__ = __webpack_require__(27);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__form_js__ = __webpack_require__(6);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__utils_dom_js__ = __webpack_require__(0);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+
+    var handlerCache = new WeakMap();
 
     var ListBehavior = function ListBehavior(superclass) {
-      return Object(__WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["b" /* defineUIComponent */])({
+      return Object(__WEBPACK_IMPORTED_MODULE_5__utils_dom_js__["b" /* defineUIComponent */])({
         name: 'ui-list-behavior',
         reflectedAttrs: ['multiple', 'selected-index'],
         registerElement: false,
@@ -2131,27 +2283,67 @@ var __run = function __run() {
           function definition() {
             _classCallCheck(this, definition);
 
-            var _this28 = _possibleConstructorReturn(this, (definition.__proto__ || Object.getPrototypeOf(definition)).call(this));
+            var _this32 = _possibleConstructorReturn(this, (definition.__proto__ || Object.getPrototypeOf(definition)).call(this));
 
-            _this28._items = [];
-            _this28._selected = null;
-            return _this28;
+            _this32._items = [];
+            _this32._selected = null;
+            return _this32;
           }
 
+          // Using a closure here because getting the item back out of the Event object is unreliable.
+
+
           _createClass(definition, [{
+            key: '_itemHandlerFactory',
+            value: function _itemHandlerFactory(item) {
+              var _this33 = this;
+
+              var h = handlerCache.get(item);
+              if (h) return h;
+              var f = function f(e) {
+                if (_this33.multiple) {
+                  if (!item.isSelected && !_this33.selected.includes(item)) {
+                    item.isSelected = true;
+                    _this33.selected = item; // pushes in setter
+                  } else if (item.isSelected) {
+                    item.isSelected = false;
+                    _this33._deSelect(item);
+                  }
+                } else {
+                  if (!item.isSelected && item !== _this33.selected) {
+                    item.isSelected = true;
+                    _this33.selected = item;
+                  }
+                }
+
+                return;
+              };
+
+              handlerCache.set(item, f);
+              return f;
+            }
+          }, {
+            key: '_deSelect',
+            value: function _deSelect(item) {
+              if (this.multiple) {
+                this._selected = this._selected.filter(function (x) {
+                  return x !== item;
+                });
+                this.dispatchEvent(new Event('change'));
+              }
+              return this;
+            }
+          }, {
             key: 'appendChild',
             value: function appendChild(node) {
-              var _this29 = this;
+              var _this34 = this;
 
               var p = node.onReady(function (el) {
                 if (el.matches && el.matches('.ui-item')) {
-                  node.on('click', function (e) {
-                    _this29.selected = node;
-                    node.isSelected = true;
-                  });
-                  _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'appendChild', _this29).call(_this29, node);
-                  _this29._items.push(node);
-                  if (el.isSelected) _this29.selected = node;
+                  el.on('click', _this34._itemHandlerFactory(el));
+                  _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'appendChild', _this34).call(_this34, el);
+                  _this34._items.push(el);
+                  if (el.isSelected) _this34.selected = el;
                 }
               });
               if (this._pendingDOM) this._pendingDOM.push(p);
@@ -2160,28 +2352,22 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this30 = this;
+              var _this35 = this;
 
               _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'init', this).call(this);
-              this._beforeReady(function (_) {
-                _this30.selectAll('.ui-item').map(function (item) {
-                  _this30._items.push(item);
-                  if (item.isSelected) _this30.selected = item;
-                  item.on('click', function (e) {
-                    if (_this30.multiple) {
-                      item.isSelected = !item.isSelected;
-                      if (item.isSelected) {
-                        _this30.selected = item;
-                      } else {
-                        _this30._selected = _this30._selected.filter(function (x) {
-                          return x !== item;
-                        });
-                      }
-                    } else {
-                      if (item !== _this30.selected) _this30.selected = item;
-                    }
-                  });
-                });
+              this.on('keydown', function (e) {
+                var el = function () {
+                  switch (e.keyCode) {
+                    case 40:
+                      return _this35._items[(_this35._items.indexOf(el) + 1) % _this35._items.length];
+                    case 38:
+                      return _this35._items[+(_this35._items.indexOf(el) - 1)];
+                    default:
+                      return null;
+                  }
+                }();
+
+                if (el) el.focus();
               });
 
               this.on('attribute-change', function (_ref26) {
@@ -2192,27 +2378,40 @@ var __run = function __run() {
                 switch (name) {
                   case 'multiple':
                     if (now) {
-                      _this30.selectedIndex = -1;
-                      _this30._selected = [_this30.selected];
-                      _this30.attr('aria-multiselectable', true);
+                      _this35.selectedIndex = -1;
+                      _this35._selected = _this35._selected ? [_this35._selected] : [];
+                      _this35.attr('aria-multiselectable', true);
                     } else {
-                      _this30.attr('aria-multiselectable', false);
-                      _this30.selected = _this30.selected == null ? null : _this30.selected[0];
+                      _this35.attr('aria-multiselectable', false);
+                      _this35.selected = _this35.selected == null ? null : _this35.selected[0];
                     }
                     break;
 
                   case 'selected-index':
-                    if (now === -1 || _this30.multiple) return;
-                    if (!_this30._items[now]) {
+                    if (now === -1 || _this35.multiple) return;
+                    if (!_this35._items[now]) {
                       console.warn('Attempted to set invalid index ' + now + ' for element.');
-                      _this30.attr('selected-index', was);
+                      _this35.attr('selected-index', was);
                       return;
                     }
 
-                    if (_this30._items[now] !== _this30.selected) _this30.selected = now;
+                    if (_this35._items[now] !== _this35.selected) _this35.selected = now;
                     break;
                 }
               });
+
+              this._beforeReady(function (_) {
+                _this35.selectAll('.ui-item').map(function (item) {
+                  _this35._items.push(item);
+                  if (item.attr('is-selected')) _this35.selected = item;
+                  item.on('click enter-key', _this35._itemHandlerFactory(item));
+                });
+              });
+            }
+          }, {
+            key: 'items',
+            get: function get() {
+              return this.selectAll('.ui-item');
             }
           }, {
             key: 'value',
@@ -2235,7 +2434,7 @@ var __run = function __run() {
                 return;
               }
 
-              var type = Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__["a" /* default */])(value);
+              var type = Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_extracttype_extracttype_js__["a" /* default */])(value);
               var selection = void 0;
               switch (type) {
                 case 'Number':
@@ -2255,8 +2454,8 @@ var __run = function __run() {
                 selection.attr('aria-selected', true);
                 selection.isSelected = true;
                 if (this.multiple) {
-                  this.selectedIndex = -1;
                   this._selected.push(selection);
+                  this.dispatchEvent(new Event('change'));
                 } else {
                   this.selectedIndex = this._items.indexOf(selection);
                   this._selected = selection;
@@ -2272,17 +2471,17 @@ var __run = function __run() {
           }]);
 
           return definition;
-        }(Object(__WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(superclass).with(__WEBPACK_IMPORTED_MODULE_3__form_js__["a" /* FormBehavior */]))
+        }(Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(superclass).with(__WEBPACK_IMPORTED_MODULE_4__form_js__["a" /* FormBehavior */]))
       });
     };
     /* harmony export (immutable) */__webpack_exports__["b"] = ListBehavior;
 
     var Item = function () {
-      var template = __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["c" /* document */].createElement('template');
+      var template = __WEBPACK_IMPORTED_MODULE_5__utils_dom_js__["c" /* document */].createElement('template');
       var reflectedAttrs = ['is-selected', 'value'];
       template.innerHTML = '\n    <style>\n      :host {\n        --ui-theme-ripple-color: var(--ui-theme-primary-dark-color, rgb(0, 139, 163));\n        display: block;\n        margin-top: 10px;\n        margin-bottom: 10px;\n        min-height: 20px;\n        background-color: inherit;\n        color: inherit;\n        border-radius: 0;\n        text-transform: capitalize;\n        width: 90%;\n        margin-left: 5%;\n        padding-top: 4px;\n      }\n\n      :host(:hover) {\n        color: var(--ui-theme-primary-dark-color, #999);\n      }\n\n      :host(.selected) {\n        border-bottom: 1px solid var(--ui-theme-primary-dark-color, rgb(0, 139, 163));\n      }\n\n      .ui-checkbox {\n        display: none;\n        height: 18px;\n        width: 18px;\n        float: left;\n      }\n\n      .ui-checkbox::before {\n        top: 2px;\n        height: 9px;\n        left: 5px;\n      }\n\n      :host-context([multiple="true"]) {\n        border-bottom: none;\n      }\n\n      :host-context([multiple="true"]) ui-checkbox {\n        display: inline-block;\n      }\n\n      :host-context([multiple="true"]) #content {\n        position: relative;\n        left: -10px; /* offsets checkbox */\n      }\n    </style>\n    <ui-checkbox></ui-checkbox>\n    <span id="content"><slot></slot></span>\n  ';
 
-      return Object(__WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["b" /* defineUIComponent */])({
+      return Object(__WEBPACK_IMPORTED_MODULE_5__utils_dom_js__["b" /* defineUIComponent */])({
         name: 'ui-item',
         template: template,
         reflectedAttrs: reflectedAttrs,
@@ -2292,24 +2491,25 @@ var __run = function __run() {
           function Item() {
             _classCallCheck(this, Item);
 
-            var _this31 = _possibleConstructorReturn(this, (Item.__proto__ || Object.getPrototypeOf(Item)).call(this));
+            var _this36 = _possibleConstructorReturn(this, (Item.__proto__ || Object.getPrototypeOf(Item)).call(this));
 
-            _this31._checkbox = null;
-            _this31._content = null;
-            return _this31;
+            _this36._checkbox = null;
+            _this36._content = null;
+            return _this36;
           }
 
           _createClass(Item, [{
             key: 'init',
             value: function init() {
-              var _this32 = this;
+              var _this37 = this;
 
               _get(Item.prototype.__proto__ || Object.getPrototypeOf(Item.prototype), 'init', this).call(this);
               this.attr('role', 'listoption');
               this._beforeReady(function (_) {
-                _this32._checkbox = _this32.shadowRoot.querySelector('ui-checkbox');
-                _this32._content = _this32.shadowRoot.querySelector('#content');
-                if (!_this32.value || _this32.value.toString() === 'true') _this32.value = _this32.textContent;
+                _this37._checkbox = _this37.shadowRoot.querySelector('ui-checkbox');
+                _this37._content = _this37.shadowRoot.querySelector('#content');
+                if (!_this37.value || _this37.value.toString() === 'true') _this37.value = _this37.textContent;
+                if (!_this37.isSelected) _this37.isSelected = false;
               });
 
               this.on('attribute-change', function (_ref27) {
@@ -2319,15 +2519,15 @@ var __run = function __run() {
 
                 switch (name) {
                   case 'is-selected':
-                    _this32.onReady(function (_) {
+                    _this37.onReady(function (_) {
                       if (now) {
-                        _this32.classList.add('selected');
-                        _this32._checkbox.checked = true;
-                        _this32.dispatchEvent(new CustomEvent('component-selected'));
+                        _this37.classList.add('selected');
+                        _this37._checkbox.checked = true;
+                        _this37.dispatchEvent(new CustomEvent('component-selected'));
                       } else {
-                        _this32.classList.remove('selected');
-                        _this32._checkbox.checked = false;
-                        _this32.dispatchEvent(new CustomEvent('component-deselected'));
+                        _this37.classList.remove('selected');
+                        _this37._checkbox.checked = false;
+                        _this37.dispatchEvent(new CustomEvent('component-deselected'));
                       }
                     });
                     break;
@@ -2337,16 +2537,16 @@ var __run = function __run() {
           }]);
 
           return Item;
-        }(Object(__WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* default */]).with(__WEBPACK_IMPORTED_MODULE_1__animations_rippler_js__["a" /* default */]))
+        }(Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* default */]).with(__WEBPACK_IMPORTED_MODULE_1__animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_2__utils_focusable_js__["a" /* default */]))
       });
     }();
     /* harmony export (immutable) */__webpack_exports__["a"] = Item;
 
     var List = function () {
-      var template = __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["c" /* document */].createElement('template');
+      var template = __WEBPACK_IMPORTED_MODULE_5__utils_dom_js__["c" /* document */].createElement('template');
       template.innerHTML = '\n    <style>\n      :host {\n        display: block;\n        text-align: center;\n        margin: 5px;\n      }\n    </style>\n    <slot></slot>\n  ';
 
-      return Object(__WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["b" /* defineUIComponent */])({
+      return Object(__WEBPACK_IMPORTED_MODULE_5__utils_dom_js__["b" /* defineUIComponent */])({
         name: 'ui-list',
         template: template,
         definition: function (_Object$with7) {
@@ -2367,68 +2567,68 @@ var __run = function __run() {
           }]);
 
           return List;
-        }(Object(__WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* default */]).with(ListBehavior))
+        }(Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* default */]).with(ListBehavior))
       });
     }();
     /* unused harmony export List */
 
     /***/
   },
-  /* 17 */
+  /* 19 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
 
     Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__src_elements_login_js__ = __webpack_require__(18);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__src_elements_fab_js__ = __webpack_require__(13);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__src_elements_drop_down_js__ = __webpack_require__(24);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__src_elements_drawer_js__ = __webpack_require__(26);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__src_elements_hamburger_js__ = __webpack_require__(28);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__src_elements_input_js__ = __webpack_require__(11);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__src_elements_router_js__ = __webpack_require__(29);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__src_elements_tabs_js__ = __webpack_require__(31);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_8__src_elements_text_js__ = __webpack_require__(32);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_9__src_elements_toolbar_js__ = __webpack_require__(33);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__src_elements_login_js__ = __webpack_require__(20);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__src_elements_fab_js__ = __webpack_require__(15);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__src_elements_drop_down_js__ = __webpack_require__(26);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__src_elements_drawer_js__ = __webpack_require__(28);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__src_elements_hamburger_js__ = __webpack_require__(30);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__src_elements_input_js__ = __webpack_require__(13);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__src_elements_router_js__ = __webpack_require__(31);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__src_elements_tabs_js__ = __webpack_require__(33);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_8__src_elements_text_js__ = __webpack_require__(10);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_9__src_elements_toolbar_js__ = __webpack_require__(34);
 
     /***/
   },
-  /* 18 */
+  /* 20 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__form_js__ = __webpack_require__(5);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__input_js__ = __webpack_require__(11);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__card_js__ = __webpack_require__(12);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__fab_js__ = __webpack_require__(13);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__alert_js__ = __webpack_require__(22);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__form_js__ = __webpack_require__(6);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__input_js__ = __webpack_require__(13);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__card_js__ = __webpack_require__(14);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__fab_js__ = __webpack_require__(15);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__alert_js__ = __webpack_require__(24);
 
     var INVALID = 'Invalid login credentials. Please double-check your username and password.';
     var FAILURE = 'Could not connect to the server to verify your identity. Please check the console for details.';
 
     var reflectedAttrs = ['is-logged-in', 'data-url', 'session-timeout'];
     var template = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    ui-card {\n      width: 300px;\n      height: 315px;\n    }\n\n    ui-input {\n      margin-bottom: 30px;\n    }\n\n    ui-fab {\n      float: right;\n      position: relative;\n      top: 30px;\n      left: 15px;\n    }\n\n    h2 {\n      color: #AAA;\n      font-style: italic;\n      margin-bottom: 40px;\n    }\n\n    #heading {\n      width: 70%;\n      margin-left: 10%;\n      border-bottom: var(--ui-theme-dark-text-color, #999);\n    }\n\n    .arrow {\n      border: solid #fff;\n      border-width: 0 4px 5px 0;\n      display: inline-block;\n      padding: 3px;\n      position: relative;\n      transform: rotate(45deg);\n      height: 25px;\n      width: 12px;\n      top: -2px;\n      left: 2px;\n    }\n\n    :host {\n      position: relative;\n      left: 50px;\n      top: 50px;\n    }\n  </style>\n  <ui-card>\n    <h2 id="heading">Login</h2>\n    <ui-form>\n      <ui-input name="user" placeholder="User" required></ui-input>\n      <ui-input name="pass" placeholder="Password" type="password" required></ui-input>\n    </ui-form>\n    <ui-fab><div class="arrow"></div></ui-fab>\n  </ui-card>\n';
+    template.innerHTML = '\n  <style>\n    ui-card {\n      width: 300px;\n      height: 315px;\n    }\n\n    ui-input {\n      margin-bottom: 30px;\n    }\n\n    ui-fab {\n      float: right;\n      position: relative;\n      left: 15px;\n    }\n\n    h2 {\n      color: #AAA;\n      font-style: italic;\n      margin-bottom: 40px;\n    }\n\n    #heading {\n      width: 70%;\n      margin-left: 10%;\n      border-bottom: var(--ui-theme-dark-text-color, #999);\n    }\n\n    .arrow {\n      border: solid #fff;\n      border-width: 0 4px 5px 0;\n      display: inline-block;\n      padding: 3px;\n      position: relative;\n      transform: rotate(45deg);\n      height: 25px;\n      width: 12px;\n      top: -2px;\n      left: 2px;\n    }\n\n    :host {\n      position: relative;\n      left: 50px;\n      top: 50px;\n    }\n  </style>\n  <ui-card>\n    <h2 id="heading">Login</h2>\n    <ui-form>\n      <ui-input name="user" label="User" tabindex="1" required></ui-input>\n      <ui-input name="pass" label="Password" type="password" tabindex="1" required></ui-input>\n      <ui-fab tabindex="1"><div class="arrow"></div></ui-fab>\n    </ui-form>\n  </ui-card>\n';
 
     /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["b" /* defineUIComponent */])({
       name: 'ui-login',
       reflectedAttrs: reflectedAttrs,
       template: template,
-      definition: function (_WEBPACK_IMPORTED_MO4) {
-        _inherits(Login, _WEBPACK_IMPORTED_MO4);
+      definition: function (_WEBPACK_IMPORTED_MO5) {
+        _inherits(Login, _WEBPACK_IMPORTED_MO5);
 
         function Login() {
           _classCallCheck(this, Login);
 
-          var _this34 = _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).call(this));
+          var _this39 = _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).call(this));
 
-          _this34._alert = null;
-          _this34._form = null;
-          _this34._sessionTimeoutHandle = null;
-          return _this34;
+          _this39._alert = null;
+          _this39._form = null;
+          _this39._sessionTimeoutHandle = null;
+          return _this39;
         }
 
         _createClass(Login, [{
@@ -2462,72 +2662,73 @@ var __run = function __run() {
         }, {
           key: 'countDown',
           value: function countDown(h) {
-            var _this35 = this;
+            var _this40 = this;
 
             __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["d" /* global */].clearTimeout(h);
             return __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["d" /* global */].setTimeout(function () {
-              _this35.logout();
-              _this35._alert.alert('Session timed out. Please login again or close the tab.');
+              _this40.logout();
+              _this40._alert.alert('Session timed out. Please login again or close the tab.');
             }, this.sessionTimeout || 30 * 60 * 1000);
           }
         }, {
           key: 'init',
           value: function init() {
-            var _this36 = this;
+            var _this41 = this;
 
             _get(Login.prototype.__proto__ || Object.getPrototypeOf(Login.prototype), 'init', this).call(this);
             this._beforeReady(function (_) {
-              _this36._form = _this36.selectInternalElement('ui-form');
-              _this36._alert = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].querySelector('ui-alert');
-              if (!_this36._alert) {
-                _this36._alert = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].createElement('ui-alert');
-                __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].body.appendChild(_this36._alert);
+              _this41._form = _this41.selectInternalElement('ui-form');
+              _this41._alert = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].querySelector('ui-alert');
+              if (!_this41._alert) {
+                _this41._alert = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].createElement('ui-alert');
+                __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].body.appendChild(_this41._alert);
               }
 
+              // Reset the session timeout on interaction.
               ['click', 'keydown'].forEach(function (evt) {
                 __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].addEventListener(evt, function (e) {
-                  if (_this36.isLoggedIn) _this36._sessionTimeoutHandle = _this36.countDown(_this36._sessionTimeoutHandle);
+                  if (_this41.isLoggedIn) _this41._sessionTimeoutHandle = _this41.countDown(_this41._sessionTimeoutHandle);
                 });
               });
 
-              _this36.selectInternalElement('ui-fab').on('click keydown', function (e) {
-                if (!_this36.isLoggedIn && (!e.keyCode || e.keyCode === 13)) {
-                  if (!_this36.dataUrl) {
+              var handler = function handler(_) {
+                if (!_this41.isLoggedIn) {
+                  if (!_this41.dataUrl) {
                     throw new Error('No url for login, whatcha want me to do?');
                   }
 
-                  if (!_this36._form.isValid) {
-                    _this36._alert.alert('Please supply a Username and Password.');
+                  if (!_this41._form.isValid) {
+                    _this41._alert.alert('Please supply a Username and Password.');
                     return;
                   }
 
-                  _this36.selectInternalElement('ui-form').submit({ url: _this36.dataUrl, method: 'POST', responseType: 'json' }).then(function (valid) {
+                  var _credentials = _this41.credentials,
+                      user = _credentials.user,
+                      pass = _credentials.pass;
+
+                  var headers = {
+                    'Authorization': 'Basic ' + btoa(user + ':' + pass),
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                  };
+
+                  fetch(_this41.dataUrl, { method: 'POST', headers: headers }).then(function (resp) {
+                    return resp.json();
+                  }).then(function (valid) {
                     if (valid) {
-                      sessionStorage.setItem('ui-credentials', JSON.stringify(_this36.credentials));
-                      _this36.login(valid);
+                      sessionStorage.setItem('ui-credentials', JSON.stringify(_this41.credentials));
+                      _this41.login(valid);
                     } else {
-                      _this36._alert.alert(INVALID);
+                      _this41._alert.alert(INVALID);
                     }
                   }).catch(function (err) {
                     console.error(err);
-                    _this36._alert.alert(FAILURE);
+                    _this41._alert.alert(FAILURE);
                   });
                 }
-              });
+              };
 
-              var cached = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["d" /* global */].sessionStorage.getItem('ui-credentials');
-              if (cached) {
-                try {
-                  var credentials = JSON.parse(cached);
-                  if (credentials.user && credentials.pass) {
-                    console.log('Logging in with session data...');
-                    _this36._form.data = credentials;
-                    _this36.login();
-                  }
-                } catch (e) {
-                  // no-op
-                }
-              }
+              _this41.selectInternalElement('ui-fab').on('click enter-key', handler);
+              _this41.selectInternalElement('[name="pass"]').on('enter-key', handler);
             });
 
             this.onReady(function (_) {
@@ -2536,10 +2737,28 @@ var __run = function __run() {
               if (bttn) {
                 bttn.on('click keydown', function (e) {
                   if (!e.keyCode || e.keyCode === 13) {
-                    _this36.userLogout();
+                    _this41.userLogout();
                   }
                 });
               }
+
+              // Wait a bit to allow handlers to be set if anything wants to listen for the login
+              // event.
+              __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["d" /* global */].setTimeout(function () {
+                var cached = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["d" /* global */].sessionStorage.getItem('ui-credentials');
+                if (cached) {
+                  try {
+                    var credentials = JSON.parse(cached);
+                    if (credentials.user && credentials.pass) {
+                      console.log('Logging in with session data...');
+                      _this41.login();
+                      _this41._form.data = credentials;
+                    }
+                  } catch (e) {
+                    // no-op
+                  }
+                }
+              }, 500);
             });
           }
         }, {
@@ -2555,25 +2774,25 @@ var __run = function __run() {
 
     /***/
   },
-  /* 19 */
+  /* 21 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
 
     /* harmony default export */
     __webpack_exports__["a"] = function (superclass) {
-      return function (_superclass5) {
-        _inherits(DataBinder, _superclass5);
+      return function (_superclass6) {
+        _inherits(DataBinder, _superclass6);
 
         function DataBinder() {
           _classCallCheck(this, DataBinder);
 
-          var _this37 = _possibleConstructorReturn(this, (DataBinder.__proto__ || Object.getPrototypeOf(DataBinder)).call(this));
+          var _this42 = _possibleConstructorReturn(this, (DataBinder.__proto__ || Object.getPrototypeOf(DataBinder)).call(this));
 
-          _this37._oneWayBoundAttrs = {};
-          _this37._twoWayBoundAttrs = {};
-          _this37._internalMutationFlag = false;
-          return _this37;
+          _this42._oneWayBoundAttrs = {};
+          _this42._twoWayBoundAttrs = {};
+          _this42._internalMutationFlag = false;
+          return _this42;
         }
 
         // Set up data-binding. Any element attributes with a value matching the binding syntax
@@ -2591,7 +2810,7 @@ var __run = function __run() {
         _createClass(DataBinder, [{
           key: 'bindAttribute',
           value: function bindAttribute(attribute, parentAttribute) {
-            var _this38 = this;
+            var _this43 = this;
 
             var twoWay = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
@@ -2616,25 +2835,25 @@ var __run = function __run() {
               }
 
               // Initial set
-              _this38.attr(attribute, parent.attr(parentAttribute));
+              _this43.attr(attribute, parent.attr(parentAttribute));
 
               // Watch changes.
-              _this38.watchAttribute(parent, parentAttribute, function (now, name, was) {
-                if (_this38.attr(attribute) !== now) {
-                  _this38._internalMutationFlag = true;
-                  _this38.attr(attribute, now);
+              _this43.watchAttribute(parent, parentAttribute, function (now, name, was) {
+                if (_this43.attr(attribute) !== now) {
+                  _this43._internalMutationFlag = true;
+                  _this43.attr(attribute, now);
                 }
               });
 
               if (twoWay) {
-                _this38.watchAttribute(_this38, attribute, function (now, name, was) {
+                _this43.watchAttribute(_this43, attribute, function (now, name, was) {
                   if (parent.attr(parentAttribute) !== now) {
                     parent.attr(parentAttribute, now);
                   }
                 });
-                _this38._twoWayBoundAttrs[attribute] = parentAttribute;
+                _this43._twoWayBoundAttrs[attribute] = parentAttribute;
               } else {
-                _this38._oneWayBoundAttrs[attribute] = parentAttribute;
+                _this43._oneWayBoundAttrs[attribute] = parentAttribute;
               }
             };
 
@@ -2648,12 +2867,12 @@ var __run = function __run() {
 
     /***/
   },
-  /* 20 */
+  /* 22 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__attribute_analyzer_js__ = __webpack_require__(8);
+    var __WEBPACK_IMPORTED_MODULE_0__attribute_analyzer_js__ = __webpack_require__(9);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__dom_js__ = __webpack_require__(0);
 
@@ -2664,16 +2883,16 @@ var __run = function __run() {
     };
 
     /* harmony default export */__webpack_exports__["a"] = function (superclass) {
-      return function (_superclass6) {
-        _inherits(DOMutils, _superclass6);
+      return function (_superclass7) {
+        _inherits(DOMutils, _superclass7);
 
         function DOMutils() {
           _classCallCheck(this, DOMutils);
 
-          var _this39 = _possibleConstructorReturn(this, (DOMutils.__proto__ || Object.getPrototypeOf(DOMutils)).call(this));
+          var _this44 = _possibleConstructorReturn(this, (DOMutils.__proto__ || Object.getPrototypeOf(DOMutils)).call(this));
 
-          _this39._mutationObservers = [];
-          return _this39;
+          _this44._mutationObservers = [];
+          return _this44;
         }
 
         _createClass(DOMutils, [{
@@ -2682,11 +2901,11 @@ var __run = function __run() {
 
           // Observes changes to the given attribute on the given node.
           value: function watchAttribute(n, a, callb) {
-            var _this40 = this;
+            var _this45 = this;
 
             var _ref28 = function () {
               if (isHTMLElement(n)) return [n, a, callb];
-              return [_this40, n, a];
+              return [_this45, n, a];
             }(),
                 _ref29 = _slicedToArray(_ref28, 3),
                 node = _ref29[0],
@@ -2761,10 +2980,10 @@ var __run = function __run() {
            * DOM.
            */
           value: function on(evts, fn) {
-            var _this41 = this;
+            var _this46 = this;
 
             evts.split(/\s+/g).forEach(function (evt) {
-              var isDupe = _this41._listeners.some(function (_ref33) {
+              var isDupe = _this46._listeners.some(function (_ref33) {
                 var _ref34 = _slicedToArray(_ref33, 2),
                     e = _ref34[0],
                     f = _ref34[1];
@@ -2772,8 +2991,8 @@ var __run = function __run() {
                 return e === evt && fn === f;
               });
               if (!isDupe) {
-                _this41.addEventListener(evt, fn);
-                _this41._listeners.push([evt, fn]);
+                _this46.addEventListener(evt, fn);
+                _this46._listeners.push([evt, fn]);
               }
             });
             return this;
@@ -2795,7 +3014,7 @@ var __run = function __run() {
         }, {
           key: 'remove',
           value: function remove() {
-            var _this42 = this;
+            var _this47 = this;
 
             for (var _len7 = arguments.length, args = Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
               args[_key7] = arguments[_key7];
@@ -2804,7 +3023,7 @@ var __run = function __run() {
             var _ref35 = function (arr) {
               switch (arr.length) {
                 case 0:
-                  _this42.parentElement && _this42.parentElement.removeChild(_this42);
+                  _this47.parentElement && _this47.parentElement.removeChild(_this47);
                   return [];
 
                 case 1:
@@ -2847,7 +3066,7 @@ var __run = function __run() {
                     f = _ref40[1];
 
                 if (f === fn && (evt === null || evt === e)) {
-                  _this42.removeEventListener(e, f);
+                  _this47.removeEventListener(e, f);
                   return false;
                 }
                 return true;
@@ -2856,7 +3075,7 @@ var __run = function __run() {
 
             if (children) {
               children.forEach(function (child) {
-                return _this42.removeChild(child);
+                return _this47.removeChild(child);
               });
             }
 
@@ -2876,7 +3095,7 @@ var __run = function __run() {
           value: function show() {
             var inlineStyles = this.attr('style') || '';
             if (inlineStyles === true) inlineStyles = ''; // Because style="" returns true
-            inlineStyles = inlineStyles.replace('display:none !important;', '');
+            inlineStyles = inlineStyles.replace(/display:none\s*!important;/g, '');
             this.attr('style', inlineStyles);
             return this;
           }
@@ -2897,6 +3116,21 @@ var __run = function __run() {
               }
               return this;
             }
+          }
+        }, {
+          key: 'appendFirst',
+          value: function appendFirst(node, shadow) {
+            var parent = shadow ? this.shadowRoot : this;
+            if (!parent) {
+              throw new TypeError('Attempted to append to shadowRoot but none exists on element ' + this.identity);
+            }
+            if (parent.children.length) {
+              parent.insertBefore(parent, parent.children[0]);
+            } else {
+              parent.appendChild(node);
+            }
+
+            return this;
           }
         }, {
           key: 'isVisible',
@@ -2922,7 +3156,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 21 */
+  /* 23 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -2958,13 +3192,13 @@ var __run = function __run() {
 
     /***/
   },
-  /* 22 */
+  /* 24 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(6);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__dialog_js__ = __webpack_require__(23);
+    var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(7);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__dialog_js__ = __webpack_require__(25);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__ = __webpack_require__(0);
 
     var template = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].createElement('template');
@@ -2973,8 +3207,8 @@ var __run = function __run() {
     var Alert = Object(__WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["b" /* defineUIComponent */])({
       name: 'ui-alert',
       template: template,
-      definition: function (_WEBPACK_IMPORTED_MO5) {
-        _inherits(Alert, _WEBPACK_IMPORTED_MO5);
+      definition: function (_WEBPACK_IMPORTED_MO6) {
+        _inherits(Alert, _WEBPACK_IMPORTED_MO6);
 
         function Alert() {
           _classCallCheck(this, Alert);
@@ -2985,7 +3219,7 @@ var __run = function __run() {
         _createClass(Alert, [{
           key: 'init',
           value: function init() {
-            var _this44 = this;
+            var _this49 = this;
 
             _get(Alert.prototype.__proto__ || Object.getPrototypeOf(Alert.prototype), 'init', this).call(this);
             this.attr('role', 'alert');
@@ -2993,11 +3227,16 @@ var __run = function __run() {
             this.smallDialog = true;
             this.attr('is-modal', true);
             this.watchAttribute(this, 'is-open', function (open) {
-              open ? _this44._backdrop.show() : _this44._backdrop.hide();
+              open ? _this49._backdrop.show() : _this49._backdrop.hide();
             });
 
-            this.shadowRoot.querySelector('#closer').on('click', function (e) {
-              return _this44.close();
+            var closer = this.selectInternalElement('#closer');
+            closer.on('click enter-key', function (e) {
+              return _this49.close();
+            });
+
+            this.on('dialog-opened', function (e) {
+              return closer.focus();
             });
           }
         }, {
@@ -3025,15 +3264,15 @@ var __run = function __run() {
 
     /***/
   },
-  /* 23 */
+  /* 25 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__utils_float_js__ = __webpack_require__(4);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__card_js__ = __webpack_require__(12);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__backdrop_js__ = __webpack_require__(15);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__button_js__ = __webpack_require__(6);
+    var __WEBPACK_IMPORTED_MODULE_0__utils_float_js__ = __webpack_require__(5);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__card_js__ = __webpack_require__(14);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__backdrop_js__ = __webpack_require__(17);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__button_js__ = __webpack_require__(7);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
 
@@ -3076,20 +3315,20 @@ var __run = function __run() {
       name: 'ui-dialog',
       template: template,
       reflectedAttrs: reflectedAttrs,
-      definition: function (_WEBPACK_IMPORTED_MO6) {
-        _inherits(Dialog, _WEBPACK_IMPORTED_MO6);
+      definition: function (_WEBPACK_IMPORTED_MO7) {
+        _inherits(Dialog, _WEBPACK_IMPORTED_MO7);
 
         function Dialog() {
           _classCallCheck(this, Dialog);
 
-          var _this45 = _possibleConstructorReturn(this, (Dialog.__proto__ || Object.getPrototypeOf(Dialog)).call(this));
+          var _this50 = _possibleConstructorReturn(this, (Dialog.__proto__ || Object.getPrototypeOf(Dialog)).call(this));
 
-          _this45.hide();
-          _this45._backdrop = null;
+          _this50.hide();
+          _this50._backdrop = null;
           __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["d" /* global */].addEventListener('logout', function (e) {
-            _this45.close();
+            _this50.close();
           });
-          return _this45;
+          return _this50;
         }
 
         // Intercepts calls to appendChild so buttons can be appropriately used.
@@ -3098,15 +3337,15 @@ var __run = function __run() {
         _createClass(Dialog, [{
           key: 'appendChild',
           value: function appendChild(node) {
-            var _this46 = this;
+            var _this51 = this;
 
             if (node && node.onReady) {
               node.onReady(function (el) {
                 if (el && el.matches && el.matches('.ui-button')) {
-                  incorporateButtonChild(_this46, el);
-                  _this46.shadowRoot.appendChild(el);
+                  incorporateButtonChild(_this51, el);
+                  _this51.shadowRoot.appendChild(el);
                 } else {
-                  _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'appendChild', _this46).call(_this46, node);
+                  _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'appendChild', _this51).call(_this51, node);
                 }
               });
             }
@@ -3128,7 +3367,7 @@ var __run = function __run() {
         }, {
           key: 'init',
           value: function init() {
-            var _this47 = this;
+            var _this52 = this;
 
             _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'init', this).call(this);
             this.attr('role', 'dialog');
@@ -3140,12 +3379,12 @@ var __run = function __run() {
               children.filter(function (el) {
                 return el.matches && el.matches('.ui-button');
               }).forEach(function (el) {
-                return incorporateButtonChild(_this47, el);
+                return incorporateButtonChild(_this52, el);
               });
             });
 
             var closer = function closer(e) {
-              return _this47.close();
+              return _this52.close();
             };
 
             this.on('attribute-change', function (_ref42) {
@@ -3155,29 +3394,29 @@ var __run = function __run() {
 
               switch (name) {
                 case 'small-dialog':
-                  return now ? (_this47.classList.add('small-dialog'), _this47.classList.remove('medium-dialog', 'large-dialog')) : _this47.classList.remove('small-dialog');
+                  return now ? (_this52.classList.add('small-dialog'), _this52.classList.remove('medium-dialog', 'large-dialog')) : _this52.classList.remove('small-dialog');
 
                 case 'medium-dialog':
-                  return now ? (_this47.classList.add('medium-dialog'), _this47.classList.remove('small-dialog', 'large-dialog')) : _this47.classList.remove('medium-dialog');
+                  return now ? (_this52.classList.add('medium-dialog'), _this52.classList.remove('small-dialog', 'large-dialog')) : _this52.classList.remove('medium-dialog');
 
                 case 'large-dialog':
-                  return now ? (_this47.classList.add('large-dialog'), _this47.classList.remove('small-dialog', 'medium-dialog')) : _this47.classList.remove('large-dialog');
+                  return now ? (_this52.classList.add('large-dialog'), _this52.classList.remove('small-dialog', 'medium-dialog')) : _this52.classList.remove('large-dialog');
 
                 case 'scrollable-dialog':
-                  return now ? _this47.classList.add('scrollable-dialog') : _this47.classList.remove('scrollable-dialog');
+                  return now ? _this52.classList.add('scrollable-dialog') : _this52.classList.remove('scrollable-dialog');
 
                 case 'is-modal':
-                  return now ? _this47._backdrop.on('click', closer) : _this47._backdrop.remove(closer);
+                  return now ? _this52._backdrop.on('click', closer) : _this52._backdrop.remove(closer);
 
                 case 'is-open':
                   if (now) {
-                    if (_this47.isModal) _this47._backdrop.show();
-                    _this47.show();
-                    _this47.dispatchEvent(new CustomEvent('dialog-opened'));
+                    if (_this52.isModal) _this52._backdrop.show();
+                    _this52.show();
+                    _this52.dispatchEvent(new CustomEvent('dialog-opened'));
                   } else {
-                    _this47._backdrop.hide();
-                    _this47.hide();
-                    _this47.dispatchEvent(new CustomEvent('dialog-closed'));
+                    _this52._backdrop.hide();
+                    _this52.hide();
+                    _this52.dispatchEvent(new CustomEvent('dialog-closed'));
                   }
               }
             });
@@ -3192,22 +3431,24 @@ var __run = function __run() {
 
     /***/
   },
-  /* 24 */
+  /* 26 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__list_js__ = __webpack_require__(16);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_focusable_js__ = __webpack_require__(4);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__list_js__ = __webpack_require__(18);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__text_js__ = __webpack_require__(10);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__ = __webpack_require__(0);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
 
-    var reflectedAttrs = ['selected-index', 'is-open', 'multiple'];
-    var template = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    ui-list {\n      transition: transform 500ms cubic-bezier(0.165, 0.84, 0.44, 1);\n      background: #fff;\n      position: relative;\n      left: -5px;\n      z-index: 1000;\n      width: 100%;\n      max-height: 225px;\n      overflow-y: scroll;\n    }\n\n    .arrow {\n      border: solid #999;\n      border-width: 0 2px 2px 0;\n      display: inline-block;\n      padding: 3px;\n      float: right;\n      position: relative;\n      top: 6px;\n      right: 2px;\n      transform: rotate(45deg);\n    }\n\n    .not-overflowing {\n      overflow: hidden !important;\n    }\n\n    #dummy-item {\n      text-align: center;\n      padding-bottom: 3px;\n    }\n\n    #dummy-item.default {\n      letter-spacing: 3px;\n    }\n\n    #list-holder {\n      height: 1px;\n      overflow: visible;\n      position: relative;\n      top: -10px;\n      border-top: 1px solid #999;\n    }\n\n    ::slotted(.ui-item) {\n      border: none;\n    }\n\n    :host {\n      display: block;\n      max-width: 200px;\n    }\n\n    :host([multiple="true"]) #dummy-item #dummy-item-content {\n      position: relative;\n      left: 10px;\n    }\n\n    :host([is-open="true"]) .arrow {\n      transform: rotate(-135deg);\n    }\n\n    :host([is-open="true"]) ui-list {\n      box-shadow: 3px 5px 10px -4px #999;\n      padding-bottom: 1px;\n      transform: scale(1) translateY(0px);\n    }\n\n    :host([is-open="false"]) ui-list {\n      transform: scale(0) translateY(-200px);\n    }\n\n    :host([is-open="true"]) #list-holder {\n      border-color: var(--ui-theme-primary-dark-color, blue);\n    }\n\n    :host([is-open="false"]) ::slotted(.ui-item) {\n      display: none;\n    }\n\n  </style>\n  <ui-item id="dummy-item" class="default">\n    <span id="dummy-item-content">...</span>\n    <div class="arrow down"></div>\n  </ui-item>\n  <div id="list-holder" class="not-overflowing">\n    <ui-list multiple="{{multiple}}">\n      <slot></slot>\n    </ui-list>\n  </div>\n';
+    var reflectedAttrs = ['selected-index', 'is-open', 'multiple', 'label'];
+    var template = __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    ui-list {\n      transition: transform 500ms cubic-bezier(0.165, 0.84, 0.44, 1);\n      background: #fff;\n      position: relative;\n      left: -5px;\n      z-index: 1000;\n      width: 100%;\n      max-height: 225px;\n      overflow-y: scroll;\n    }\n\n    .arrow {\n      border: solid #999;\n      border-width: 0 2px 2px 0;\n      display: inline-block;\n      padding: 3px;\n      float: right;\n      position: relative;\n      top: 6px;\n      right: 2px;\n      transform: rotate(45deg);\n    }\n\n    .not-overflowing {\n      overflow: hidden !important;\n    }\n\n    #dummy-item {\n      text-align: center;\n      padding-bottom: 3px;\n    }\n\n    #dummy-item.default {\n      letter-spacing: 3px;\n    }\n\n    #list-holder {\n      height: 1px;\n      overflow: visible;\n      position: relative;\n      top: -10px;\n      border-top: 1px solid #999;\n    }\n\n    ui-list ::slotted(.ui-item) {\n      border: none;\n    }\n\n    :host {\n      display: block;\n      max-width: 200px;\n    }\n\n    :host([multiple="true"]) #dummy-item #dummy-item-content {\n      position: relative;\n      left: 10px;\n    }\n\n    :host([is-open="true"]) .arrow {\n      transform: rotate(-135deg);\n    }\n\n    :host([is-open="true"]) ui-list {\n      box-shadow: 3px 5px 10px -4px #999;\n      padding-bottom: 1px;\n      transform: scale(1) translateY(0px);\n    }\n\n    :host([is-open="false"]) ui-list {\n      transform: scale(0) translateY(-200px);\n    }\n\n    :host([is-open="true"]) #list-holder {\n      border-color: var(--ui-theme-primary-dark-color, blue);\n    }\n\n    :host([is-open="false"]) ui-list ::slotted(.ui-item) {\n      display: none;\n    }\n\n    label {\n      /* janky, I know. TODO: find a way to make this work with transform: translate */\n      transition-property: top, left;\n      transition-timing-function: ease;\n      transition-duration: 1s;\n      position: relative;\n      top: 0px;\n      left: 0px;\n    }\n\n    .text-moved {\n      top: 20px;\n      left: 10px;\n    }\n\n  </style>\n  <label><ui-text view-text="{{label}}"></ui-text></label>\n  <ui-item id="dummy-item" class="default">\n    <span id="dummy-item-content">...</span>\n    <div class="arrow down"></div>\n  </ui-item>\n  <div id="list-holder" class="not-overflowing">\n    <ui-list multiple="{{multiple}}">\n      <slot></slot>\n    </ui-list>\n  </div>\n';
 
-    /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["b" /* defineUIComponent */])({
+    /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["b" /* defineUIComponent */])({
       name: 'ui-drop-down',
       reflectedAttrs: reflectedAttrs,
       template: template,
@@ -3217,26 +3458,28 @@ var __run = function __run() {
         function DropDown() {
           _classCallCheck(this, DropDown);
 
-          var _this48 = _possibleConstructorReturn(this, (DropDown.__proto__ || Object.getPrototypeOf(DropDown)).call(this));
+          var _this53 = _possibleConstructorReturn(this, (DropDown.__proto__ || Object.getPrototypeOf(DropDown)).call(this));
 
-          _this48._list = null;
-          _this48._listHolder = null;
-          _this48._dummyItem = null;
-          _this48._textContent = '';
-          return _this48;
+          _this53._list = null;
+          _this53._listHolder = null;
+          _this53._dummyItem = null;
+          _this53._textContent = '';
+          return _this53;
         }
 
         _createClass(DropDown, [{
           key: 'appendChild',
           value: function appendChild(node) {
-            var _this49 = this;
+            var _this54 = this;
 
             if (node) {
               _get(DropDown.prototype.__proto__ || Object.getPrototypeOf(DropDown.prototype), 'appendChild', this).call(this, node);
               node.on('click', function (e) {
-                setTimeout(function () {
-                  _this49.close();
-                }, 300);
+                if (!_this54.multiple) {
+                  setTimeout(function () {
+                    _this54.close();
+                  }, 300);
+                }
               });
             }
 
@@ -3263,33 +3506,59 @@ var __run = function __run() {
         }, {
           key: 'init',
           value: function init() {
-            var _this50 = this;
+            var _this55 = this;
 
             var mouseon = false;
             _get(DropDown.prototype.__proto__ || Object.getPrototypeOf(DropDown.prototype), 'init', this).call(this);
-            this._beforeReady(function (_) {
-              _this50._list = _this50.shadowRoot.querySelector('ui-list');
-              _this50._listHolder = _this50.shadowRoot.querySelector('#list-holder');
-              _this50._dummyItem = _this50.shadowRoot.querySelector('#dummy-item');
-              _this50._dummyItem.shadowRoot.querySelector('ui-checkbox').style.display = 'none';
+            var index = this.attr('tabindex');
+            if (index === null || index < 0) this.attr('tabindex', '0');
 
-              _this50._items.forEach(function (item) {
-                if (item.isSelected) _this50.selected = item;
+            this.on('enter-key', function (e) {
+              _this55.open();
+            });
+
+            if (this.attr('name')) {
+              if (!this.attr('label')) this.attr('label', this.attr('name'));
+              this.selectInternalElement('label').setAttribute('for', this.attr('name'));
+            }
+
+            if (this.attr('label')) this.selectInternalElement('label').classList.add('text-moved');
+            this.on('focus', function (e) {
+              return _this55.selectInternalElement('label').classList.remove('text-moved');
+            });
+            this.on('blur', function (e) {
+              setTimeout(function () {
+                // Checked 1-31, doesn't work without
+                if (_this55.label && !_this55.value) {
+                  _this55.selectInternalElement('label').classList.add('text-moved');
+                }
+              }, 600); // ripple animation is 500 on the ui-item
+            });
+
+            this._beforeReady(function (_) {
+              _this55._list = _this55.shadowRoot.querySelector('ui-list');
+              _this55._listHolder = _this55.shadowRoot.querySelector('#list-holder');
+              _this55._dummyItem = _this55.shadowRoot.querySelector('#dummy-item');
+              _this55._dummyItem.shadowRoot.querySelector('ui-checkbox').style.display = 'none';
+
+              _this55._items.forEach(function (item) {
+                if (item.isSelected) _this55.selected = item;
                 item.on('click', function (e) {
-                  if (!_this50.multiple) {
+                  if (!_this55.multiple) {
                     setTimeout(function () {
-                      _this50.close();
+                      _this55.close();
                     }, 300);
                   }
                 });
               });
 
-              if (_this50.name && !_this50.selected) _this50.textContent = null;
-              _this50._listHolder.classList.remove('not-overflowing');
+              if (_this55.name && !_this55.selected) _this55.textContent = null;
+              _this55._listHolder.classList.remove('not-overflowing');
 
-              _this50._dummyItem.on('click', function (e) {
-                _this50.toggle();
-                mouseon = _this50.isOpen;
+              _this55._dummyItem.on('click', function (e) {
+                if (_this55.attr('tabindex') === null) _this55.attr('tabindex', '0');
+                _this55.toggle();
+                mouseon = _this55.isOpen;
               });
             });
 
@@ -3302,7 +3571,7 @@ var __run = function __run() {
             this.on('mouseleave', function (e) {
               mouseon = false;
               setTimeout(function () {
-                if (!mouseon) _this50.isOpen = false;
+                if (!mouseon) _this55.isOpen = false;
               }, 1000);
             });
 
@@ -3313,10 +3582,10 @@ var __run = function __run() {
 
               switch (name) {
                 case 'selected-index':
-                  if (_this50.selected && !_this50.multiple) {
-                    _this50.textContent = _this50.selected.textContent;
+                  if (_this55.selected && !_this55.multiple) {
+                    _this55.textContent = _this55.selected.textContent;
                   } else {
-                    _this50.textContent = ''; // default
+                    _this55.textContent = ''; // default
                   }
                   break;
               }
@@ -3328,7 +3597,7 @@ var __run = function __run() {
             return this._dummyItem && this._dummyItem.textContent || this._textContent;
           },
           set: function set(val) {
-            var txt = val || this.placeholder || this.name || '...';
+            var txt = val || '';
 
             this._textContent = txt;
             if (!this._dummyItem) this._dummyItem = this.selectInternalElement('#dummy-item');
@@ -3344,21 +3613,22 @@ var __run = function __run() {
         }]);
 
         return DropDown;
-      }(Object(__WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* default */]).with(__WEBPACK_IMPORTED_MODULE_1__list_js__["b" /* ListBehavior */]))
+      }(Object(__WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* default */]).with(__WEBPACK_IMPORTED_MODULE_2__list_js__["b" /* ListBehavior */], __WEBPACK_IMPORTED_MODULE_1__utils_focusable_js__["a" /* default */]))
     });
 
     /***/
   },
-  /* 25 */
+  /* 27 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__animations_rippler_js__ = __webpack_require__(9);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__form_js__ = __webpack_require__(5);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__animations_rippler_js__ = __webpack_require__(11);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_focusable_js__ = __webpack_require__(4);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__ = __webpack_require__(0);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__form_js__ = __webpack_require__(6);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
     /*
      * NOTE: it is not currently possible to extend specific HTMLElements, leading
      * to this element being rather convoluted. Once it's possible to extend input
@@ -3366,12 +3636,12 @@ var __run = function __run() {
      *
      */
 
-    var template = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].createElement('template');
+    var template = __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__["c" /* document */].createElement('template');
     template.innerHTML = '\n  <style>\n    :host {\n      display: inline-block;\n      height: 25px;\n      width: 25px;\n      background-color: #DDD;\n      position: relative;\n      border-radius: 5%;\n    }\n\n    :host(:hover) {\n      box-shadow: inset 0 0 0 99999px rgba(150,150,150,0.2);\n    }\n\n    :host:before {\n      content:"";\n      position: absolute;\n      display: none;\n      left: 9px;\n      top: 5px;\n      width: 5px;\n      height: 10px;\n      border: solid #fff;\n      border-width: 0 3px 3px 0;\n      transform: rotate(45deg);\n    }\n\n    :host(.checked) {\n      background-color: var(--ui-theme-primary-dark-color, blue);\n    }\n\n    :host(.checked):before {\n      display: block;\n    }\n  </style>\n';
 
     var reflectedAttrs = ['checked'];
 
-    var Checkbox = Object(__WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["b" /* defineUIComponent */])({
+    var Checkbox = Object(__WEBPACK_IMPORTED_MODULE_3__utils_dom_js__["b" /* defineUIComponent */])({
       name: 'ui-checkbox',
       template: template,
       reflectedAttrs: reflectedAttrs,
@@ -3381,51 +3651,51 @@ var __run = function __run() {
         function Checkbox() {
           _classCallCheck(this, Checkbox);
 
-          var _this51 = _possibleConstructorReturn(this, (Checkbox.__proto__ || Object.getPrototypeOf(Checkbox)).call(this));
+          var _this56 = _possibleConstructorReturn(this, (Checkbox.__proto__ || Object.getPrototypeOf(Checkbox)).call(this));
 
-          _this51._formElement = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].createElement('input');
-          _this51._formElement.style.opacity = 0;
-          _this51._formElement.type = 'checkbox';
-          return _this51;
+          _this56._formElement = __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__["c" /* document */].createElement('input');
+          _this56._formElement.style.opacity = 0;
+          _this56._formElement.type = 'checkbox';
+          return _this56;
         }
 
         _createClass(Checkbox, [{
           key: 'init',
           value: function init() {
-            var _this52 = this;
+            var _this57 = this;
 
             _get(Checkbox.prototype.__proto__ || Object.getPrototypeOf(Checkbox.prototype), 'init', this).call(this);
             this.attr('role', 'checkbox');
             this.watchAttribute(this, 'checked', function (now) {
-              now ? _this52.classList.add('checked') : _this52.classList.remove('checked');
+              now ? _this57.classList.add('checked') : _this57.classList.remove('checked');
             });
 
             this.on('click', function (e) {
-              _this52.checked = !_this52.checked;
-              _this52.attr('aria-checked', _this52.checked);
+              _this57.checked = !_this57.checked;
+              _this57.attr('aria-checked', _this57.checked);
             });
           }
         }]);
 
         return Checkbox;
-      }(Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* default */]).with(__WEBPACK_IMPORTED_MODULE_1__animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_3__form_js__["a" /* FormBehavior */]))
+      }(Object(__WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* default */]).with(__WEBPACK_IMPORTED_MODULE_1__animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_2__utils_focusable_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_4__form_js__["a" /* FormBehavior */]))
     });
 
     /* unused harmony default export */var _unused_webpack_default_export = Checkbox;
 
     /***/
   },
-  /* 26 */
+  /* 28 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_float_js__ = __webpack_require__(4);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__animations_easer_js__ = __webpack_require__(27);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_float_js__ = __webpack_require__(5);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__animations_easer_js__ = __webpack_require__(29);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__backdrop_js__ = __webpack_require__(15);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__backdrop_js__ = __webpack_require__(17);
 
     var template = __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__["c" /* document */].createElement('template');
     template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      position: absolute;\n      top: 0;\n      height: 100vh;\n      z-index: 9001;\n      max-width: 90vw;\n      width: 320px;\n      padding: 10px;\n      background-color: #fff;\n    }\n\n    :host([left-oriented]) {\n      left: -350px;\n      border-right: solid 1px var(--ui-theme-dark-text-color, #000);\n    }\n\n    :host([right-oriented]) {\n      left: 100vw;\n      border-left: solid 1px var(--ui-theme-dark-text-color, #000);\n    }\n  </style>\n  <slot></slot>\n';
@@ -3442,32 +3712,35 @@ var __run = function __run() {
         function Drawer() {
           _classCallCheck(this, Drawer);
 
-          var _this53 = _possibleConstructorReturn(this, (Drawer.__proto__ || Object.getPrototypeOf(Drawer)).call(this));
+          var _this58 = _possibleConstructorReturn(this, (Drawer.__proto__ || Object.getPrototypeOf(Drawer)).call(this));
 
-          _this53._backdrop = __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__["c" /* document */].createElement('ui-backdrop');
-          _this53._backdrop.for = _this53;
-          _this53._backdrop.style.zIndex = '9000';
-          _this53._toggleElem = null;
-          _this53._isOpen = false;
-          _this53._rightAnimator = null;
-          _this53._leftAnimator = null;
-          return _this53;
+          _this58._backdrop = __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__["c" /* document */].createElement('ui-backdrop');
+          _this58._backdrop.for = _this58;
+          _this58._backdrop.style.zIndex = '9000';
+          _this58._toggleElem = null;
+          _this58._isOpen = false;
+          _this58._rightAnimator = null;
+          _this58._leftAnimator = null;
+          return _this58;
         }
 
         _createClass(Drawer, [{
           key: 'toggledBy',
           value: function toggledBy(elem) {
-            var _this54 = this;
+            var _this59 = this;
 
             if (elem) {
               this._toggleElem = elem;
               if (this._toggleElem.on) {
-                this._toggleElem.on('click', function (e) {
-                  _this54.toggleState();
+                this._toggleElem.on('click enter-key', function (e) {
+                  _this59.toggleState();
                 });
               } else {
+                this._toggleElem.addEventListener('enter-key', function (e) {
+                  _this59.toggleState();
+                });
                 this._toggleElem.addEventListener('click', function (e) {
-                  _this54.toggleState();
+                  _this59.toggleState();
                 });
               }
             }
@@ -3494,7 +3767,7 @@ var __run = function __run() {
         }, {
           key: 'init',
           value: function init() {
-            var _this55 = this;
+            var _this60 = this;
 
             _get(Drawer.prototype.__proto__ || Object.getPrototypeOf(Drawer.prototype), 'init', this).call(this);
             if (!this.rightOriented) this.leftOriented = true;
@@ -3502,7 +3775,7 @@ var __run = function __run() {
 
             __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__["c" /* document */].body.appendChild(this._backdrop);
             this._backdrop.on('click', function (e) {
-              return _this55.close();
+              return _this60.close();
             });
 
             // Check for the drawer toggle in the DOM. If not, you'll need to use the toggledBy method
@@ -3517,16 +3790,16 @@ var __run = function __run() {
                   now = _ref44$changed.now,
                   name = _ref44$changed.name;
 
-              var orient = _this55.rightOriented ? 'right' : 'left';
-              var animator = _this55['_' + orient + 'Animator'];
+              var orient = _this60.rightOriented ? 'right' : 'left';
+              var animator = _this60['_' + orient + 'Animator'];
               switch (name) {
                 case 'is-open':
                   if (now) {
-                    if (_this55.isModal) _this55._backdrop.show();
+                    if (_this60.isModal) _this60._backdrop.show();
                     animator.easeIn();
                   } else {
                     animator.easeOut().then(function (_) {
-                      return _this55._backdrop.hide();
+                      return _this60._backdrop.hide();
                     });
                   }
                   break;
@@ -3541,13 +3814,13 @@ var __run = function __run() {
 
     /***/
   },
-  /* 27 */
+  /* 29 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__utils_dom_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_styler_js__ = __webpack_require__(10);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_styler_js__ = __webpack_require__(12);
 
     var orientations = {
       'left': ['X', '-'],
@@ -3560,16 +3833,16 @@ var __run = function __run() {
       return Object(__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["b" /* defineUIComponent */])({
         name: 'ui-easer',
         registerElement: false,
-        definition: function (_superclass7) {
-          _inherits(Easer, _superclass7);
+        definition: function (_superclass8) {
+          _inherits(Easer, _superclass8);
 
           function Easer() {
             _classCallCheck(this, Easer);
 
-            var _this56 = _possibleConstructorReturn(this, (Easer.__proto__ || Object.getPrototypeOf(Easer)).call(this));
+            var _this61 = _possibleConstructorReturn(this, (Easer.__proto__ || Object.getPrototypeOf(Easer)).call(this));
 
-            _this56._animations = [];
-            return _this56;
+            _this61._animations = [];
+            return _this61;
           }
 
           _createClass(Easer, [{
@@ -3657,12 +3930,12 @@ var __run = function __run() {
 
     /***/
   },
-  /* 28 */
+  /* 30 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(6);
+    var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(7);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__ = __webpack_require__(0);
 
     var reflectedAttrs = ['line-color'];
@@ -3676,8 +3949,8 @@ var __run = function __run() {
       name: 'ui-hamburger',
       template: template,
       reflectedAttrs: reflectedAttrs,
-      definition: function (_WEBPACK_IMPORTED_MO7) {
-        _inherits(Hamburger, _WEBPACK_IMPORTED_MO7);
+      definition: function (_WEBPACK_IMPORTED_MO8) {
+        _inherits(Hamburger, _WEBPACK_IMPORTED_MO8);
 
         function Hamburger() {
           _classCallCheck(this, Hamburger);
@@ -3688,13 +3961,13 @@ var __run = function __run() {
         _createClass(Hamburger, [{
           key: 'init',
           value: function init() {
-            var _this58 = this;
+            var _this63 = this;
 
             _get(Hamburger.prototype.__proto__ || Object.getPrototypeOf(Hamburger.prototype), 'init', this).call(this);
             this.shadowRoot.querySelector('.content-wrapper').appendChild(__WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].importNode(lineDivTemplate.content, true));
 
             this.watchAttribute(this, 'line-color', function (now) {
-              [].concat(_toConsumableArray(_this58.shadowRoot.querySelectorAll('.line'))).forEach(function (el) {
+              [].concat(_toConsumableArray(_this63.shadowRoot.querySelectorAll('.line'))).forEach(function (el) {
                 el.style.backgroundColor = now;
               });
             });
@@ -3707,7 +3980,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 29 */
+  /* 31 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -3715,7 +3988,7 @@ var __run = function __run() {
     var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__utils_url_js__ = __webpack_require__(30);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__utils_url_js__ = __webpack_require__(32);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
 
     // TODO ui-component-ready handler being called more than once on each route?
@@ -3744,20 +4017,20 @@ var __run = function __run() {
         name: 'ui-router',
         template: template,
         reflectedAttrs: reflectedAttrs,
-        definition: function (_WEBPACK_IMPORTED_MO8) {
-          _inherits(Router, _WEBPACK_IMPORTED_MO8);
+        definition: function (_WEBPACK_IMPORTED_MO9) {
+          _inherits(Router, _WEBPACK_IMPORTED_MO9);
 
           function Router() {
             _classCallCheck(this, Router);
 
-            var _this59 = _possibleConstructorReturn(this, (Router.__proto__ || Object.getPrototypeOf(Router)).call(this));
+            var _this64 = _possibleConstructorReturn(this, (Router.__proto__ || Object.getPrototypeOf(Router)).call(this));
 
-            _this59._contentSlot = null;
-            _this59._routes = {};
-            _this59._currentRoute = null;
-            _this59._managingHistory = false;
-            _this59._login = null;
-            _this59._popstateListener = function (_ref46) {
+            _this64._contentSlot = null;
+            _this64._routes = {};
+            _this64._currentRoute = null;
+            _this64._managingHistory = false;
+            _this64._login = null;
+            _this64._popstateListener = function (_ref46) {
               var data = _ref46.state;
 
               // here we ignore querystring data, it may be stale
@@ -3771,13 +4044,13 @@ var __run = function __run() {
                 historyStack.pop();
               }
 
-              _this59._updateRoute(route);
+              _this64._updateRoute(route);
               if (!historyStack.length || historyStack.length === 1 && historyStack[0] === '/') {
-                __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["d" /* global */].removeEventListener('popstate', _this59._popstateListener);
-                _this59._managingHistory = false;
+                __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["d" /* global */].removeEventListener('popstate', _this64._popstateListener);
+                _this64._managingHistory = false;
               }
             };
-            return _this59;
+            return _this64;
           }
 
           _createClass(Router, [{
@@ -3818,6 +4091,11 @@ var __run = function __run() {
                 this.attr('current-route', route);
                 if (data && Object.keys(data).length) elem.update(data);
                 elem.setAttribute('is-selected', true);
+
+                if (route === '/login') {
+                  var username = elem.querySelector('.ui-login').selectInternalElement('[name="user"]');
+                  if (username) username.focus();
+                }
 
                 // TODO: this makes maps work. Fix this.
                 setTimeout(function () {
@@ -3886,12 +4164,12 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this60 = this;
+              var _this65 = this;
 
               _get(Router.prototype.__proto__ || Object.getPrototypeOf(Router.prototype), 'init', this).call(this);
 
               this._beforeReady(function (_) {
-                _this60._contentSlot = _this60.shadowRoot.querySelector('slot');
+                _this65._contentSlot = _this65.shadowRoot.querySelector('slot');
                 var selected = null;
 
                 var _Object3 = Object(__WEBPACK_IMPORTED_MODULE_3__utils_url_js__["a" /* parseURL */])(window.location.href),
@@ -3901,34 +4179,34 @@ var __run = function __run() {
                 if (route) selected = route;
 
                 var flag = false;
-                _this60.selectAll('[route-path]').forEach(function (el, i) {
+                _this65.selectAll('[route-path]').forEach(function (el, i) {
                   var path = el.getAttribute('route-path');
-                  _this60._routes[path] = el;
+                  _this65._routes[path] = el;
                   if (!i && !selected) selected = path;
                   if (el.matches && el.matches('[selected]')) selected = path;
                   if (path === '/login') {
                     flag = true;
                     el.onReady(function (_) {
                       var login = el.querySelector('.ui-login');
-                      _this60._login = login;
+                      _this65._login = login;
                       login.on('login', function (e) {
                         var _Object4 = Object(__WEBPACK_IMPORTED_MODULE_3__utils_url_js__["a" /* parseURL */])(window.location.href),
                             route = _Object4.route;
 
-                        _this60._updateRoute(route);
+                        _this65._updateRoute(route);
                       });
 
                       login.on('logout', function (e) {
-                        _this60.route('/login');
+                        _this65.route('/login');
                       });
-                      _this60.route(selected);
+                      _this65.route(selected);
                     });
                   }
                 });
 
                 if (!flag) {
-                  _this60.onReady(function (_) {
-                    _this60.route(selected);
+                  _this65.onReady(function (_) {
+                    _this65.route(selected);
                   });
                 }
               });
@@ -3941,27 +4219,27 @@ var __run = function __run() {
 
                 switch (name) {
                   case 'renders-current':
-                    if (_this60.selected) {
+                    if (_this65.selected) {
                       if (now) {
-                        _this60.selected.setAttribute('slot', 'router-content');
+                        _this65.selected.setAttribute('slot', 'router-content');
                       } else {
-                        _this60.selected.removeAttribute('slot');
+                        _this65.selected.removeAttribute('slot');
                       }
                     }
                     break;
 
                   case 'updates-history':
-                    if (now && historyManager !== _this60) {
+                    if (now && historyManager !== _this65) {
                       if (historyManager) {
                         throw new Error('Only one router per page can manage the navigation history\n                     at a time. Please listen for that router\'s route-changed\n                     event to update other elements.');
                       }
-                      historyManager = _this60;
-                      _this60._managingHistory = true;
-                      window.addEventListener('popstate', _this60._popstateListener);
+                      historyManager = _this65;
+                      _this65._managingHistory = true;
+                      window.addEventListener('popstate', _this65._popstateListener);
                     } else {
                       historyManager = null;
-                      _this60._managingHistory = false;
-                      window.removeEventListener('popstate', _this60._popstateListener);
+                      _this65._managingHistory = false;
+                      window.removeEventListener('popstate', _this65._popstateListener);
                     }
                 }
               });
@@ -4005,21 +4283,21 @@ var __run = function __run() {
       return Object(__WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["b" /* defineUIComponent */])({
         name: 'ui-route',
         reflectedAttrs: reflectedAttrs,
-        definition: function (_WEBPACK_IMPORTED_MO9) {
-          _inherits(Route, _WEBPACK_IMPORTED_MO9);
+        definition: function (_WEBPACK_IMPORTED_MO10) {
+          _inherits(Route, _WEBPACK_IMPORTED_MO10);
 
           function Route() {
             _classCallCheck(this, Route);
 
-            var _this61 = _possibleConstructorReturn(this, (Route.__proto__ || Object.getPrototypeOf(Route)).call(this));
+            var _this66 = _possibleConstructorReturn(this, (Route.__proto__ || Object.getPrototypeOf(Route)).call(this));
 
-            _this61._data = null;
-            _this61._dataElements = [];
-            _this61._fromChangeHandler = false;
-            _this61._unloadListener = function (e) {
-              if (_this61.data) localStorage.setItem(_this61.routePath, JSON.stringify(elem.data));
+            _this66._data = null;
+            _this66._dataElements = [];
+            _this66._fromChangeHandler = false;
+            _this66._unloadListener = function (e) {
+              if (_this66.data) localStorage.setItem(_this66.routePath, JSON.stringify(elem.data));
             };
-            return _this61;
+            return _this66;
           }
 
           _createClass(Route, [{
@@ -4055,17 +4333,17 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this62 = this;
+              var _this67 = this;
 
               _get(Route.prototype.__proto__ || Object.getPrototypeOf(Route.prototype), 'init', this).call(this);
 
               this.onReady(function (_) {
-                _this62._dataElements = _this62.shadowRoot ? [].concat(_toConsumableArray(_this62.shadowRoot.querySelectorAll('[is-data-element]')), _toConsumableArray(_this62.selectAll('[is-data-element]'))) : _this62.selectAll('[is-data-element]');
+                _this67._dataElements = _this67.shadowRoot ? [].concat(_toConsumableArray(_this67.shadowRoot.querySelectorAll('[is-data-element]')), _toConsumableArray(_this67.selectAll('[is-data-element]'))) : _this67.selectAll('[is-data-element]');
 
-                _this62._dataElements.forEach(function (el) {
+                _this67._dataElements.forEach(function (el) {
                   el.on('change', function (_) {
-                    _this62._fromChangeHandler = true;
-                    _this62.update(_this62._dataElements.reduce(function (acc, el) {
+                    _this67._fromChangeHandler = true;
+                    _this67.update(_this67._dataElements.reduce(function (acc, el) {
                       var data = el.serialize();
                       Object.entries(data).forEach(function (_ref48) {
                         var _ref49 = _slicedToArray(_ref48, 2),
@@ -4082,10 +4360,10 @@ var __run = function __run() {
                   });
                 });
 
-                var data = localStorage.getItem(_this62.routePath);
+                var data = localStorage.getItem(_this67.routePath);
 
                 // Check to see if it was written from query string first.
-                if (!_this62.data && data != null) _this62.update(JSON.parse(data));
+                if (!_this67.data && data != null) _this67.update(JSON.parse(data));
               });
 
               this.on('attribute-change', function (_ref50) {
@@ -4095,9 +4373,9 @@ var __run = function __run() {
 
                 switch (name) {
                   case 'is-selected':
-                    if (!now || now && !_this62.isSelected) {
+                    if (!now || now && !_this67.isSelected) {
                       var evtName = now ? 'component-selected' : 'component-deselected';
-                      _this62.dispatchEvent(new CustomEvent(evtName));
+                      _this67.dispatchEvent(new CustomEvent(evtName));
                     }
                     break;
                 }
@@ -4118,7 +4396,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 30 */
+  /* 32 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -4226,13 +4504,13 @@ var __run = function __run() {
 
     /***/
   },
-  /* 31 */
+  /* 33 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__list_js__ = __webpack_require__(16);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__list_js__ = __webpack_require__(18);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
@@ -4244,8 +4522,8 @@ var __run = function __run() {
       return Object(__WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["b" /* defineUIComponent */])({
         name: 'ui-tab',
         template: template,
-        definition: function (_WEBPACK_IMPORTED_MO10) {
-          _inherits(Tab, _WEBPACK_IMPORTED_MO10);
+        definition: function (_WEBPACK_IMPORTED_MO11) {
+          _inherits(Tab, _WEBPACK_IMPORTED_MO11);
 
           function Tab() {
             _classCallCheck(this, Tab);
@@ -4256,21 +4534,10 @@ var __run = function __run() {
           _createClass(Tab, [{
             key: 'init',
             value: function init() {
-              var _this64 = this;
-
               _get(Tab.prototype.__proto__ || Object.getPrototypeOf(Tab.prototype), 'init', this).call(this);
               this.attr('role', 'tab');
-              this.on('click', function (e) {
-                _this64.isSelected = true;
-              });
-
-              this.watchAttribute(this, 'is-selected', function (now) {
-                if (now) {
-                  _this64.dispatchEvent(new CustomEvent('component-selected'));
-                } else {
-                  _this64.dispatchEvent(new CustomEvent('component-deselected'));
-                }
-              });
+              var index = this.attr('tabindex');
+              if (index === null || index < 0) this.attr('tabindex', '0');
             }
           }]);
 
@@ -4284,7 +4551,7 @@ var __run = function __run() {
       var reflectedAttrs = ['for'];
 
       var template = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].createElement('template');
-      template.innerHTML = '\n    <style>\n      :host {\n        display: block;\n        height: 55px;\n        background-color: var(--ui-theme-primary-dark-color, blue);\n        width: 100%;\n      }\n\n      ::slotted(.ui-tab:hover) {\n        text-shadow: 1px 1px 6px #fff;\n      }\n    </style>\n    <slot></slot>\n  ';
+      template.innerHTML = '\n    <style>\n      :host {\n        display: block;\n        height: 55px;\n        background-color: var(--ui-theme-primary-dark-color, blue);\n        width: 100%;\n      }\n\n      :host ::slotted(.ui-tab:hover) {\n        text-shadow: 1px 1px 6px #fff;\n      }\n    </style>\n    <slot></slot>\n  ';
 
       return Object(__WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["b" /* defineUIComponent */])({
         name: 'ui-tabs',
@@ -4296,10 +4563,10 @@ var __run = function __run() {
           function Tabs() {
             _classCallCheck(this, Tabs);
 
-            var _this65 = _possibleConstructorReturn(this, (Tabs.__proto__ || Object.getPrototypeOf(Tabs)).call(this));
+            var _this69 = _possibleConstructorReturn(this, (Tabs.__proto__ || Object.getPrototypeOf(Tabs)).call(this));
 
-            _this65._for = null;
-            return _this65;
+            _this69._for = null;
+            return _this69;
           }
 
           _createClass(Tabs, [{
@@ -4312,7 +4579,7 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this66 = this;
+              var _this70 = this;
 
               _get(Tabs.prototype.__proto__ || Object.getPrototypeOf(Tabs.prototype), 'init', this).call(this);
               this.attr('role', 'tabpanel');
@@ -4324,34 +4591,34 @@ var __run = function __run() {
                 switch (name) {
                   case 'for':
                     if (now) {
-                      _this66._for = now;
-                      var _elem = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].querySelector(_this66._for);
+                      _this70._for = now;
+                      var _elem = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].querySelector(_this70._for);
                       if (_elem) {
                         var method = _elem.on ? 'on' : 'addEventListener';
                         _elem[method]('change', function (_ref54) {
                           var value = _ref54.value;
 
-                          var matched = _this66._items.reduce(function (acc, item) {
+                          var matched = _this70._items.reduce(function (acc, item) {
                             if (acc) return acc;
                             if (item.value === value) return item;
                             return acc;
                           }, null);
 
-                          if (matched && matched !== _this66.selected) {
-                            _this66.selected = value;
+                          if (matched && matched !== _this70.selected) {
+                            _this70.selected = value;
                           } else {
-                            _this66.selected = null;
+                            _this70.selected = null;
                           }
                         });
                       }
                     } else {
-                      _this66._for = null;
+                      _this70._for = null;
                     }
                     break;
 
                   case 'selected-index':
-                    if (now > -1 && _this66._for) {
-                      __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].querySelector(_this66._for).route(_this66.selected.value);
+                    if (now > -1 && _this70._for) {
+                      __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].querySelector(_this70._for).route(_this70.selected.value);
                     }
                     break;
                 }
@@ -4367,85 +4634,22 @@ var __run = function __run() {
 
     /***/
   },
-  /* 32 */
+  /* 34 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__ = __webpack_require__(0);
-
-    var reflectedAttrs = ['view-text'];
-    var template = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    :host {\n      display: inline;\n    }\n\n    #text-holder {\n      color: var(--ui-theme-dark-text-color, #000);\n    }\n  </style>\n  <span id="text-holder"></span>\n';
-
-    var Text = Object(__WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["b" /* defineUIComponent */])({
-      name: 'ui-text',
-      reflectedAttrs: reflectedAttrs,
-      template: template,
-      definition: function (_WEBPACK_IMPORTED_MO11) {
-        _inherits(Text, _WEBPACK_IMPORTED_MO11);
-
-        function Text() {
-          _classCallCheck(this, Text);
-
-          var _this67 = _possibleConstructorReturn(this, (Text.__proto__ || Object.getPrototypeOf(Text)).call(this));
-
-          _this67._textHolder = null;
-          return _this67;
-        }
-
-        // Override the default textContent property
-
-
-        _createClass(Text, [{
-          key: 'init',
-          value: function init() {
-            var _this68 = this;
-
-            _get(Text.prototype.__proto__ || Object.getPrototypeOf(Text.prototype), 'init', this).call(this);
-            this._textHolder = this.shadowRoot.querySelector('#text-holder');
-            this.watchAttribute(this, 'view-text', function (val) {
-              _this68._textHolder.textContent = val || _this68.innerHTML; // render innerHTML as a fallback
-            });
-
-            if (this.innerHTML && !this.viewText) this.viewText = this.innerHTML;
-          }
-        }, {
-          key: 'textContent',
-          get: function get() {
-            return this._textHolder.textContent;
-          },
-          set: function set(text) {
-            this.viewText = text;
-            return text;
-          }
-        }]);
-
-        return Text;
-      }(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* default */])
-    });
-
-    /* unused harmony default export */var _unused_webpack_default_export = Text;
-
-    /***/
-  },
-  /* 33 */
-  /***/function (module, __webpack_exports__, __webpack_require__) {
-
-    "use strict";
-    /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(1);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_float_js__ = __webpack_require__(4);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_centerer_js__ = __webpack_require__(14);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__utils_float_js__ = __webpack_require__(5);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__utils_centerer_js__ = __webpack_require__(16);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__utils_attribute_analyzer_js__ = __webpack_require__(8);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__utils_attribute_analyzer_js__ = __webpack_require__(9);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(2);
 
     var reflectedAttrs = ['is-tall'];
 
     var template = __WEBPACK_IMPORTED_MODULE_3__utils_dom_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    ' + __WEBPACK_IMPORTED_MODULE_2__utils_centerer_js__["a" /* centeredStyles */] + '\n\n    :host {\n      width: 100%;\n      background-color: var(--ui-theme-primary-dark-color, blue);\n      color: var(--ui-theme-light-text-color, #fff);\n      height: 70px;\n      display: block;\n    }\n\n    :host([is-tall]) {\n      height: 192px;\n    }\n\n    :host(:not([is-tall]).has-secondary) {\n      margin-bottom: 56px;\n    }\n\n    header {\n      height: 100%;\n      width: 100%;\n    }\n\n    #title-holder {\n      position: relative;\n      margin-left: auto;\n      margin-right: auto;\n      max-width: 300px;\n      text-align: center;\n      text-transform: capitalize;\n      overflow: hidden;\n      text-overflow: ellipsis;\n      overflow: hidden;\n      white-space: nowrap;\n      font-size: 22px;\n    }\n\n    :host([is-tall]) #title-holder {\n      font-size: 40px;\n    }\n\n    ::slotted([slot="left-button-slot"]) {\n      position: relative;\n      top: -18px;\n      left: 10px;\n      float: left;\n    }\n\n    :host([is-tall]) ::slotted([slot="left-button-slot"]) {\n      top: -35px;\n    }\n\n    ::slotted([slot="right-button-slot"]) {\n      position: relative;\n      top: -18px;\n      right: 30px;\n      float: right;\n    }\n\n\n    :host([is-tall]) ::slotted([slot="right-button-slot"]) {\n      top: -35px;\n    }\n\n    ::slotted([slot="secondary-toolbar-slot"]) {\n      position: relative;\n      width: 100vw;\n      top: 44px;\n    }\n\n    :host([is-tall]) ::slotted([slot="secondary-toolbar-slot"]) {\n      top: 92px;\n    }\n\n    :host(:not([is-tall])) ::slotted([slot="secondary-toolbar-slot"]) {\n      text-align: center;\n    }\n  </style>\n  <header>\n    <div id="title-holder" class="content-wrapper">\n      <slot></slot>\n    </div>\n    <slot name="left-button-slot"></slot>\n    <slot name="right-button-slot"></slot>\n    <slot name="secondary-toolbar-slot"></slot>\n  </header>\n';
+    template.innerHTML = '\n  <style>\n    ' + __WEBPACK_IMPORTED_MODULE_2__utils_centerer_js__["a" /* centeredStyles */] + '\n\n    :host {\n      width: 100%;\n      background-color: var(--ui-theme-primary-dark-color, blue);\n      color: var(--ui-theme-light-text-color, #fff);\n      height: 70px;\n      display: block;\n    }\n\n    :host([is-tall]) {\n      height: 192px;\n    }\n\n    :host(:not([is-tall]).has-secondary) {\n      margin-bottom: 56px;\n    }\n\n    header {\n      height: 100%;\n      width: 100%;\n    }\n\n    #title-holder {\n      position: relative;\n      margin-left: auto;\n      margin-right: auto;\n      max-width: 80%;\n      text-align: center;\n      text-transform: capitalize;\n      overflow: hidden;\n      text-overflow: ellipsis;\n      white-space: nowrap;\n      font-size: 22px;\n    }\n\n    :host([is-tall]) #title-holder {\n      font-size: 40px;\n    }\n\n    header ::slotted([slot="left-button-slot"]) {\n      position: relative;\n      top: -18px;\n      left: 10px;\n      float: left;\n    }\n\n    :host([is-tall]) header ::slotted([slot="left-button-slot"]) {\n      top: -35px;\n    }\n\n    header ::slotted([slot="right-button-slot"]) {\n      position: relative;\n      top: -18px;\n      right: 30px;\n      float: right;\n    }\n\n\n    :host([is-tall]) header ::slotted([slot="right-button-slot"]) {\n      top: -35px;\n    }\n\n    header ::slotted([slot="secondary-toolbar-slot"]) {\n      position: relative;\n      width: 100vw;\n      top: 44px;\n    }\n\n    :host([is-tall]) header ::slotted([slot="secondary-toolbar-slot"]) {\n      top: 92px;\n    }\n\n    :host(:not([is-tall])) header ::slotted([slot="secondary-toolbar-slot"]) {\n      text-align: center;\n    }\n  </style>\n  <header>\n    <div id="title-holder" class="content-wrapper">\n      <slot></slot>\n    </div>\n    <slot name="left-button-slot"></slot>\n    <slot name="right-button-slot"></slot>\n    <slot name="secondary-toolbar-slot"></slot>\n  </header>\n';
 
     /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_3__utils_dom_js__["b" /* defineUIComponent */])({
       name: 'ui-toolbar',
@@ -4457,16 +4661,16 @@ var __run = function __run() {
         function Toolbar() {
           _classCallCheck(this, Toolbar);
 
-          var _this69 = _possibleConstructorReturn(this, (Toolbar.__proto__ || Object.getPrototypeOf(Toolbar)).call(this));
+          var _this71 = _possibleConstructorReturn(this, (Toolbar.__proto__ || Object.getPrototypeOf(Toolbar)).call(this));
 
-          _this69._secondaryToolbar = null;
-          return _this69;
+          _this71._secondaryToolbar = null;
+          return _this71;
         }
 
         _createClass(Toolbar, [{
           key: 'init',
           value: function init() {
-            var _this70 = this;
+            var _this72 = this;
 
             _get(Toolbar.prototype.__proto__ || Object.getPrototypeOf(Toolbar.prototype), 'init', this).call(this);
             this.attr('role', 'toolbar');
@@ -4482,8 +4686,8 @@ var __run = function __run() {
             }
 
             secondarySlot.addEventListener('slotchange', function (e) {
-              _this70._secondaryToolbar = _this70.querySelector('[slot="secondary-toolbar-slot"]');
-              if (_this70._secondaryToolbar) _this70.classList.add('has-secondary');
+              _this72._secondaryToolbar = _this72.querySelector('[slot="secondary-toolbar-slot"]');
+              if (_this72._secondaryToolbar) _this72.classList.add('has-secondary');
             });
 
             this.on('attribute-change', function (_ref55) {
@@ -4493,14 +4697,14 @@ var __run = function __run() {
 
               if (name === 'is-tall') {
                 if (now == null) {
-                  if (_this70._secondaryToolbar) {
-                    _this70._secondaryToolbar.classList.add('tabs-centered');
+                  if (_this72._secondaryToolbar) {
+                    _this72._secondaryToolbar.classList.add('tabs-centered');
                   }
                 } else if (!now || now === "false") {
-                  _this70.isTall = null;
+                  _this72.isTall = null;
                 } else {
-                  if (_this70._secondaryToolbar) {
-                    _this70._secondaryToolbar.classList.remove('tabs-centered');
+                  if (_this72._secondaryToolbar) {
+                    _this72._secondaryToolbar.classList.remove('tabs-centered');
                   }
                 }
               }
