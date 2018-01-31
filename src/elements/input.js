@@ -5,11 +5,12 @@
  *
  */
 
-import UIBase from '../utils/ui-component-base.js';
 import Text from './text.js';
-import Focusable from '../utils/focusable.js';
 import { FormBehavior } from './form.js';
-import { document, defineUIComponent } from '../utils/dom.js';
+
+import Focusable from '../utils/focusable.js';
+import { UIBase, document, defineUIComponent } from '../utils/ui-component-base.js';
+
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import { extractType } from '../../node_modules/extracttype/extracttype.js';
 
@@ -35,8 +36,7 @@ const reflectedAttrs = [
    // NOTE: unlike placeholder which merely displays text to the user,
    // this is a true default value, i.e. it will be the value property/attribute
    // of the input if empty, will be the value if a form is submitted, etc.
-   // Will override placeholder if both are set. Different input elements
-   // implementing this interface should validate the value appropriately.
+   // Will override placeholder if both are set.
   'default-value',
 ];
 
@@ -198,6 +198,7 @@ template.innerHTML = `
       height: 25px;
       font-size: 16px;
       color: inherit;
+      background-color: inherit; /* firefox changes the color */
     }
 
     .text-moved {
@@ -380,6 +381,7 @@ export const Input = defineUIComponent({
           case 'name':
             this._input.name = now;
             this.name = now;
+            this.selectInternalElement('label').setAttribute('for', this.name);
             break;
 
           case 'value':

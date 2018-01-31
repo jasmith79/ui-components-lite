@@ -1,5 +1,4 @@
-import UIBase from '../utils/ui-component-base.js';
-import { defineUIComponent, document } from '../utils/dom.js';
+import { defineUIComponent, document, UIBase } from '../utils/ui-component-base.js';
 
 const template = document.createElement('template');
 template.innerHTML = `
@@ -24,8 +23,8 @@ const Backdrop = defineUIComponent({
     constructor () {
       super();
 
-       // Elements that use this element should set this property to themselves as a
-       // debugging aid.
+      // Elements that use this element should set this property to themselves as a
+      // debugging aid.
       this.for = null;
     }
 

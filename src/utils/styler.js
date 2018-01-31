@@ -1,6 +1,7 @@
+import { document } from './dom.js';
+
 import extractType from '../../node_modules/extracttype/extracttype.js';
 import { toSnakeCase, random } from '../../node_modules/jsstring/src/jsstring.js';
-import { document } from './dom.js';
 
 const toCSSVar = s => `--ui-theme-${toSnakeCase(s, '-')}`;
 

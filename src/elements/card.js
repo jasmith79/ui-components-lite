@@ -1,6 +1,6 @@
-import UIBase from '../utils/ui-component-base.js';
 import Floats from '../utils/float.js';
-import { defineUIComponent, document } from '../utils/dom.js';
+import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';
+
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 const template = document.createElement('template');

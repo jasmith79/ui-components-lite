@@ -1,14 +1,10 @@
-import UIBase from '../utils/ui-component-base.js';
+import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';
+
 import extractType from '../../node_modules/extracttype/extracttype.js';
-import { defineUIComponent, document } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 // TODO external ui-input not getting cached data? input elements lose data sometimes
 // on multiple reloads?
-
-const formControlType = el => {
-
-};
 
 export const Form = (() => {
   const reflectedAttrs = ['action', 'method', 'autocomplete', 'response-type'];
@@ -39,7 +35,7 @@ export const Form = (() => {
           (() => {
             if (
               el.matches('input[name]') ||
-              el.matches(`input[form="${this.id}"]`)		
+              el.matches(`input[form="${this.id}"]`)
             ) return 'input';
 
             if (
@@ -107,14 +103,11 @@ export const Form = (() => {
       }
 
       appendChild (node) {
-        // const isEligible = this._formControlType(node);
-        // if (isEligible) {
         if (node) {
           super.appendChild(node);
           if (node.isUIComponent) {
             this._formUIComponents.push(node);
           }
-          // this[`_${isEligible}s`].push(node);
         }
 
         return node;

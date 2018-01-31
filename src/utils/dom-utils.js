@@ -1,11 +1,10 @@
-import processHTMLAttr from './attribute-analyzer.js';
-import extractType from '../../node_modules/extracttype/extracttype.js';
 import * as DOM from './dom.js';
+import processHTMLAttr from './attribute-analyzer.js';
+
+import extractType from '../../node_modules/extracttype/extracttype.js';
 
 const attrConf = { attributes: true };
-
 const isHTMLElement = arg => Boolean(extractType(arg).match(/HTML[a-zA-Z]*Element/));
-
 export default superclass => class DOMutils extends superclass {
   constructor () {
     super();

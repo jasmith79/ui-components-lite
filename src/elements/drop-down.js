@@ -1,8 +1,9 @@
-import UIBase from '../utils/ui-component-base.js';
-import Focusable from '../utils/focusable.js';
-import { ListBehavior } from './list.js';
 import Text from './text.js';
-import { defineUIComponent, document } from '../utils/dom.js';
+import { ListBehavior } from './list.js';
+
+import Focusable from '../utils/focusable.js';
+import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';
+
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import { extractType } from '../../node_modules/extracttype/extracttype.js';
 
@@ -206,10 +207,10 @@ export default defineUIComponent({
       });
 
       this._beforeReady(_ => {
-        this._list = this.shadowRoot.querySelector('ui-list');
-        this._listHolder = this.shadowRoot.querySelector('#list-holder');
-        this._dummyItem = this.shadowRoot.querySelector('#dummy-item');
-        this._dummyItem.shadowRoot.querySelector('ui-checkbox').style.display = 'none';
+        this._list = this.selectInternalElement('ui-list');
+        this._listHolder = this.selectInternalElement('#list-holder');
+        this._dummyItem = this.selectInternalElement('#dummy-item');
+        this._dummyItem.selectInternalElement('ui-checkbox').style.display = 'none';
 
         this._items.forEach(item => {
           if (item.isSelected) this.selected = item;

@@ -1,6 +1,7 @@
-import UIBase from '../utils/ui-component-base.js';
 import { Item, ListBehavior } from './list.js';
-import { defineUIComponent, document } from '../utils/dom.js';
+
+import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';
+
 import extractType from '../../node_modules/extracttype/extracttype.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 

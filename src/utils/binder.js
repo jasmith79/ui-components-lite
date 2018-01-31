@@ -1,4 +1,3 @@
-
 export default superclass => class DataBinder extends superclass {
 
   constructor () {

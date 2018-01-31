@@ -1,11 +1,8 @@
-import UIBase from '../utils/ui-component-base.js';
-import { defineUIComponent, document, global } from '../utils/dom.js';
-import extractType from '../../node_modules/extracttype/extracttype.js';
+import { UIBase, defineUIComponent, document, global } from '../utils/ui-component-base.js';
 import { parseURL, toQueryString } from '../utils/url.js';
-import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
-// TODO ui-component-ready handler being called more than once on each route?
-// weird skips in the back button handling?
+import extractType from '../../node_modules/extracttype/extracttype.js';
+import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 export const Router = (() => {
   let historyManager = null;
@@ -169,7 +166,7 @@ export const Router = (() => {
         super.init();
 
         this._beforeReady(_ => {
-          this._contentSlot = this.shadowRoot.querySelector('slot');
+          this._contentSlot = this.selectInternalElement('slot');
           let selected = null;
           let { route, data } = parseURL(window.location.href);
           if (route) selected = route;
@@ -308,7 +305,7 @@ export const Route = (() => {
         this.onReady(_ => {
           this._dataElements = this.shadowRoot ?
             [
-              ...this.shadowRoot.querySelectorAll('[is-data-element]'),
+              ...this.selectInternalAll('[is-data-element]'),
               ...this.selectAll('[is-data-element]')
             ] :
             this.selectAll('[is-data-element]');

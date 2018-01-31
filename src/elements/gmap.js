@@ -1,5 +1,4 @@
-import UIBase from '../utils/ui-component-base.js';
-import { defineUIComponent, document, global } from '../utils/dom.js';
+import { UIBase, defineUIComponent, document, global } from '../utils/ui-component-base.js';
 
 const tooLongMessage = `Sorry but google maps is taking longer than expected to load.
   If this message does not disappear in the next couple of seconds please refresh the page.`;
@@ -100,7 +99,7 @@ export const GoogleMap = defineUIComponent({
       super.init();
 
       mapsAPILoaded.then(_ => {
-        this._mapContainer = this.shadowRoot.querySelector('#map-container');
+        this._mapContainer = this.selectInternalElement('#map-container');
         const options = {
           zoom: 11,
           center: new global.google.maps.LatLng(39.75, -86.16),

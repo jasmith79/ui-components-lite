@@ -1,4 +1,5 @@
 import { document, defineUIComponent } from '../utils/dom.js';
+
 import extractType from '../../node_modules/extracttype/extracttype.js';
 
 const rippleEvents = ['click', 'tap', 'dblclick', 'enter-key'];

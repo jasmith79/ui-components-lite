@@ -5,11 +5,13 @@
  *
  */
 
-import UIBase from '../utils/ui-component-base.js';
-import Ripples from '../animations/rippler.js';
-import Focusable from '../utils/focusable.js';
-import { defineUIComponent, document } from '../utils/dom.js';
 import { FormBehavior } from './form.js';
+
+import Ripples from '../animations/rippler.js';
+
+import Focusable from '../utils/focusable.js';
+import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';
+
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 const template = document.createElement('template');

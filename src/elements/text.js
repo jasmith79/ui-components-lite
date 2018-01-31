@@ -1,5 +1,4 @@
-import UIBase from '../utils/ui-component-base.js';
-import { defineUIComponent, document } from '../utils/dom.js';
+import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';
 
 const reflectedAttrs = ['view-text'];
 const template = document.createElement('template');
@@ -38,7 +37,7 @@ const Text = defineUIComponent({
 
     init () {
       super.init();
-      this._textHolder = this.shadowRoot.querySelector('#text-holder');
+      this._textHolder = this.selectInternalElement('#text-holder');
       this.watchAttribute(this, 'view-text', val => {
         this._textHolder.textContent = val || this.innerHTML; // render innerHTML as a fallback
       });

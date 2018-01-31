@@ -1,4 +1,5 @@
 import Button from './button.js';
+
 import { defineUIComponent, document } from '../utils/dom.js';
 
 const reflectedAttrs = ['line-color'];
@@ -54,12 +55,12 @@ export default defineUIComponent({
   definition: class Hamburger extends Button {
     init () {
       super.init();
-      this.shadowRoot
-        .querySelector('.content-wrapper')
+      this
+        .selectInternalElement('.content-wrapper')
         .appendChild(document.importNode(lineDivTemplate.content, true));
 
       this.watchAttribute(this, 'line-color', now => {
-        [...this.shadowRoot.querySelectorAll('.line')].forEach(el => {
+        [...this.selectInternalAll('.line')].forEach(el => {
           el.style.backgroundColor = now;
         });
       });

@@ -1,8 +1,8 @@
-import UIBase from '../utils/ui-component-base.js';
 import Floats from '../utils/float.js';
-import { centeredStyles } from '../utils/centerer.js';
-import { defineUIComponent, document } from '../utils/dom.js';
 import processHTMLAttr from '../utils/attribute-analyzer.js';
+import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';
+import { centeredStyles } from '../utils/centerer.js';
+
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 const reflectedAttrs = [
@@ -112,7 +112,7 @@ export default defineUIComponent({
     init () {
       super.init();
       this.attr('role', 'toolbar');
-      const secondarySlot = this.shadowRoot.querySelector('[name="secondary-toolbar-slot"]');
+      const secondarySlot = this.selectInternalElement('[name="secondary-toolbar-slot"]');
       const slotted = secondarySlot.assignedNodes();
       if (slotted.length) {
         this._secondaryToolbar = slotted[0];

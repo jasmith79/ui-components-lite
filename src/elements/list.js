@@ -1,15 +1,15 @@
-import UIBase from '../utils/ui-component-base.js';
-import Ripples from '../animations/rippler.js';
-import Focusable from '../utils/focusable.js';
 import Checkbox from './checkbox.js';
 import { FormBehavior } from './form.js';
-import { defineUIComponent, document } from '../utils/dom.js';
-import { mix } from '../../node_modules/mixwith/src/mixwith.js';
+
+import Ripples from '../animations/rippler.js';
+
+import Focusable from '../utils/focusable.js';
+import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';
+
 import extractType from '../../node_modules/extracttype/extracttype.js';
+import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 const handlerCache = new WeakMap();
-
-
 export const ListBehavior = superclass => defineUIComponent({
   name: 'ui-list-behavior',
   reflectedAttrs: ['multiple', 'selected-index'],
@@ -250,8 +250,8 @@ export const Item = (() => {
         super.init();
         this.attr('role', 'listoption');
         this._beforeReady(_ => {
-          this._checkbox = this.shadowRoot.querySelector('ui-checkbox');
-          this._content = this.shadowRoot.querySelector('#content');
+          this._checkbox = this.selectInternalElement('ui-checkbox');
+          this._content = this.selectInternalElement('#content');
           if (!this.value || this.value.toString() === 'true') this.value = this.textContent;
           if (!this.isSelected) this.isSelected = false;
         });

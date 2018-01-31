@@ -1,9 +1,10 @@
-import UIBase from '../utils/ui-component-base.js';
 import Ripples from '../animations/rippler.js';
+
 import Floats from '../utils/float.js';
 import Centerable from '../utils/centerer.js';
 import Focusable from '../utils/focusable.js';
-import { defineUIComponent, document } from '../utils/dom.js';
+import { defineUIComponent, document, UIBase } from '../utils/ui-component-base.js';
+
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 const template = document.createElement('template');

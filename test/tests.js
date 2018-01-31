@@ -103,7 +103,6 @@ const tests = {
             } else {
               output.innerHTML += `<p class="fail">Dropdown change event fired ${count} times`;
             }
-            // document.body.removeChild(dd);
             resolve(true);
           }, 500);
         });
@@ -172,21 +171,6 @@ const tests = {
           output.innerHTML += `<p class="fail">${name} has unexpected text "${val}" after null set.</p>`;
         }
 
-        document.body.removeChild(ip);
-      });
-      document.body.appendChild(ip);
-    },
-
-    'Input name as placeholder': (name, output) => {
-      let ip = document.createElement('ui-input');
-      ip.attr('name', 'foobar');
-      ip.onReady(_ => {
-        let val = ip.selectInternalElement('input').getAttribute('placeholder');
-        if (val === 'foobar') {
-          output.innerHTML += `<p class="ok">${name} has expected text for ${name}.</p>`;
-        } else {
-          output.innerHTML += `<p class="fail">${name} has unexpected text "${val}" for ${name}.</p>`;
-        }
         document.body.removeChild(ip);
       });
       document.body.appendChild(ip);

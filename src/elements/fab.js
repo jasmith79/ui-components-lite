@@ -1,4 +1,5 @@
 import Button from './button.js';
+
 import { defineUIComponent, document } from '../utils/dom.js';
 
 const template = document.createElement('template');

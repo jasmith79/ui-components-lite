@@ -1,5 +1,4 @@
-import UIBase from '../utils/ui-component-base.js';
-import { defineUIComponent, document, global } from '../utils/dom.js';
+import { UIBase, defineUIComponent, document, global } from '../utils/ui-component-base.js';
 
 import './form.js';
 import './input.js';

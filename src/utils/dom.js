@@ -63,7 +63,7 @@ const defineUIComponent = ({
       super.init();
       this.classList.add(name);
       this._beforeReady(_ => {
-        if (global._usingShady && this.shadowRoot && this.shadowRoot.querySelector('style')) {
+        if (global._usingShady && this.shadowRoot && this.selectInternalElement('style')) {
           ShadyCSS.styleElement(this);
         }
       });

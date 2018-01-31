@@ -1,5 +1,6 @@
-import './button.js';
+import Button from './button.js';
 import Dialog from './dialog.js';
+
 import { document, defineUIComponent } from '../utils/dom.js';
 
 const template = document.createElement('template');
@@ -51,11 +52,11 @@ const Alert = defineUIComponent({
     }
 
     get textContent () {
-      return this.shadowRoot.querySelector('#content').textContent;
+      return this.selectInternalElement('#content').textContent;
     }
 
     set textContent (txt) {
-      this.shadowRoot.querySelector('#content').textContent = txt;
+      this.selectInternalElement('#content').textContent = txt;
       return this;
     }
 

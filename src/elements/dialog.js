@@ -1,10 +1,10 @@
-import Floats from '../utils/float.js';
-
 import Card from './card.js';
-import './backdrop.js';
-import './button.js';
+import Backdrop from './backdrop.js';
+import Button from './button.js';
 
+import Floats from '../utils/float.js';
 import { defineUIComponent, document, global } from '../utils/dom.js';
+
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
 const template = document.createElement('template');

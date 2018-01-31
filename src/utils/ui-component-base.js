@@ -3,7 +3,7 @@ import DataBinder from './binder.js';
 import DOMutils from './dom-utils.js';
 import processHTMLAttr from './attribute-analyzer.js';
 import event2Promise from './promise-from-event.js';
-import { baseClass, global } from './dom.js';
+import { baseClass, global, document, defineUIComponent } from './dom.js';
 import { toSnakeCase, toCamelCase } from '../../node_modules/jsstring/src/jsstring.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 
@@ -155,3 +155,11 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
 }
 
 export default UIBase;
+
+// re-export stuff from dom.js for convenience
+export {
+  global,
+  document,
+  UIBase,
+  defineUIComponent,
+};
