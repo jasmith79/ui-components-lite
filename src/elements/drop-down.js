@@ -1,11 +1,12 @@
 import UIBase from '../utils/ui-component-base.js';
 import Focusable from '../utils/focusable.js';
 import { ListBehavior } from './list.js';
+import Text from './text.js';
 import { defineUIComponent, document } from '../utils/dom.js';
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import { extractType } from '../../node_modules/extracttype/extracttype.js';
 
-const reflectedAttrs = ['selected-index', 'is-open', 'multiple', 'placeholder'];
+const reflectedAttrs = ['selected-index', 'is-open', 'multiple', 'label'];
 const template = document.createElement('template');
 template.innerHTML = `
   <style>
@@ -89,7 +90,23 @@ template.innerHTML = `
       display: none;
     }
 
+    label {
+      /* janky, I know. TODO: find a way to make this work with transform: translate */
+      transition-property: top, left;
+      transition-timing-function: ease;
+      transition-duration: 1s;
+      position: relative;
+      top: 0px;
+      left: 0px;
+    }
+
+    .text-moved {
+      top: 20px;
+      left: 10px;
+    }
+
   </style>
+  <label><ui-text view-text="{{label}}"></ui-text></label>
   <ui-item id="dummy-item" class="default">
     <span id="dummy-item-content">...</span>
     <div class="arrow down"></div>
@@ -119,10 +136,7 @@ export default defineUIComponent({
     }
 
     set textContent (val) {
-      const txt = val ||
-        this.placeholder ||
-        this.name ||
-        '...';
+      const txt = val || '...';
 
       this._textContent = txt;
       if (!this._dummyItem) this._dummyItem = this.selectInternalElement('#dummy-item');
@@ -174,6 +188,21 @@ export default defineUIComponent({
 
       this.on('enter-key', e => {
         this.open();
+      });
+
+      if (this.attr('name')) {
+        if (!this.attr('label')) this.attr('label', this.attr('name'));
+        this.selectInternalElement('label').setAttribute('for', this.attr('name'));
+      }
+
+      if (this.attr('label')) this.selectInternalElement('label').classList.add('text-moved');
+      this.on('focus', e => this.selectInternalElement('label').classList.remove('text-moved'));
+      this.on('blur', e => {
+        setTimeout(() => { // Checked 1-31, doesn't work without
+          if (this.label && !this.value) {
+            this.selectInternalElement('label').classList.add('text-moved');
+          }
+        }, 1);
       });
 
       this._beforeReady(_ => {
