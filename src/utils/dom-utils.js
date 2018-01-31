@@ -184,4 +184,18 @@ export default superclass => class DOMutils extends superclass {
       return this;
     }
   }
+
+  appendFirst(node, shadow) {
+    const parent = shadow ? this.shadowRoot : this;
+    if (!parent) {
+      throw new TypeError(`Attempted to append to shadowRoot but none exists on element ${this.identity}`);
+    }
+    if (parent.children.length) {
+      parent.insertBefore(parent, parent.children[0]);
+    } else {
+      parent.appendChild(node);
+    }
+
+    return this;
+  }
 };

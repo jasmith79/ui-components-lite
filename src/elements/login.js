@@ -26,7 +26,6 @@ template.innerHTML = `
     ui-fab {
       float: right;
       position: relative;
-      top: 30px;
       left: 15px;
     }
 
@@ -64,8 +63,8 @@ template.innerHTML = `
   <ui-card>
     <h2 id="heading">Login</h2>
     <ui-form>
-      <ui-input name="user" placeholder="User" tabindex="1" required></ui-input>
-      <ui-input name="pass" placeholder="Password" type="password" tabindex="1" required></ui-input>
+      <ui-input name="user" label="User" tabindex="1" required></ui-input>
+      <ui-input name="pass" label="Password" type="password" tabindex="1" required></ui-input>
       <ui-fab tabindex="1"><div class="arrow"></div></ui-fab>
     </ui-form>
   </ui-card>

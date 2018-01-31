@@ -6,6 +6,7 @@
  */
 
 import UIBase from '../utils/ui-component-base.js';
+import Text from './text.js';
 import Focusable from '../utils/focusable.js';
 import { FormBehavior } from './form.js';
 import { document, defineUIComponent } from '../utils/dom.js';
@@ -22,6 +23,7 @@ const changeTriggers = [
 ];
 
 const reflectedAttrs = [
+  'label',
 
   // These values are here to mimic the behavior of the native, NOTE: incomplete.
   'type',
@@ -177,6 +179,16 @@ template.innerHTML = `
       color: #999;
     }
 
+    label {
+      /* janky, I know. TODO: find a way to make this work with transform: translate */
+      transition-property: top, left;
+      transition-timing-function: ease;
+      transition-duration: 1s;
+      position: relative;
+      top: 0px;
+      left: 0px;
+    }
+
     #input {
       border: none;
       outline: none;
@@ -187,7 +199,13 @@ template.innerHTML = `
       font-size: 16px;
       color: inherit;
     }
+
+    .text-moved {
+      top: 20px;
+      left: 10px;
+    }
   </style>
+  <label><ui-text view-text="{{label}}"></ui-text></label>
   <input id="input"/>
 `;
 
@@ -281,6 +299,7 @@ export const Input = defineUIComponent({
         this.classList.add('empty');
       } else {
         this.classList.remove('empty');
+        this.selectInternalElement('label').classList.remove('text-moved');
       }
 
       return (super.value = value == null ? '' : value);
@@ -288,13 +307,26 @@ export const Input = defineUIComponent({
 
     init () {
       super.init();
-      this._input = this.shadowRoot.querySelector('#input');
-      const placeholder = this.attr('placeholder') ||
-        this.attr('name') ||
-        this.attr('default-value') ||
-        null;
+      this._input = this.selectInternalElement('#input');
+      const placeholder = this.attr('placeholder') || this.attr('default-value') || null;
+
+      if (this.attr('name')) {
+        if (!this.attr('label')) this.attr('label', this.attr('name'));
+        this.selectInternalElement('label').setAttribute('for', this.attr('name'));
+      }
 
       if (placeholder) this.placeholder = placeholder;
+
+      if (this.attr('label') && !placeholder) this.selectInternalElement('label').classList.add('text-moved');
+      this.on('focus', e => this.selectInternalElement('label').classList.remove('text-moved'));
+      this.on('blur', e => {
+        setTimeout(() => { // Checked 1-31, doesn't work without
+          if (this.label && !this.placeholder && !this.value) {
+            this.selectInternalElement('label').classList.add('text-moved');
+          }
+        }, 1);
+      });
+
       if (!this.attr('type')) this.type = 'text';
       if (!((this.value && this.value.length) || this.attr('value'))) this.classList.add('empty');
 
@@ -348,7 +380,6 @@ export const Input = defineUIComponent({
           case 'name':
             this._input.name = now;
             this.name = now;
-            if (!this.attr('placeholder')) this._input.setAttribute('placeholder', now);
             break;
 
           case 'value':
