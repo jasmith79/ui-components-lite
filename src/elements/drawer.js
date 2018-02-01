@@ -37,7 +37,7 @@ template.innerHTML = `
 
 const reflectedAttrs = ['is-modal', 'is-open'];
 
-const Drawer = defineUIComponent({
+export default defineUIComponent({
   name: 'ui-drawer',
   template,
   reflectedAttrs,
