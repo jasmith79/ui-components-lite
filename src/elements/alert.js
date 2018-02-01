@@ -28,7 +28,7 @@ template.innerHTML = `
     }
   </style>
   <div id="content"></div>
-  <ui-button id="closer">Close</ui-button>
+  <ui-button id="closer" dialog-dismiss>Close</ui-button>
 `;
 
 const Alert = defineUIComponent({
@@ -46,7 +46,7 @@ const Alert = defineUIComponent({
       });
 
       const closer = this.selectInternalElement('#closer');
-      closer.on('click enter-key', e => this.close());
+      // closer.on('click enter-key', e => this.close());
 
       this.on('dialog-opened', e => closer.focus());
     }

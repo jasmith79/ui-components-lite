@@ -66,15 +66,15 @@ const incorporateButtonChild = (el, child) => {
     manipulators.set(el, manip);
   }
 
-  const [dismisser, closer] = manip;
-  if (child.attr('dialog-dismiss')) child.on('click', dismisser);
-  if (child.attr('dialog-confirm')) child.on('click', confirmer);
+  const [dismisser, confirmer] = manip;
+  if (child.attr('dialog-dismiss')) child.on('click enter-key', dismisser);
+  if (child.attr('dialog-confirm')) child.on('click enter-key', confirmer);
   child.watchAttribute(child, 'dialog-dismiss', now => {
-    now ? child.on('click', dismisser) : child.remove('click', dismisser);
+    now ? child.on('click enter-key', dismisser) : child.remove(dismisser);
   });
 
   child.watchAttribute(child, 'dialog-confirm', now => {
-    now ? child.on('click', confirmer) : child.remove('click', confirmer);
+    now ? child.on('click enter-key', confirmer) : child.remove(confirmer);
   });
 
   return el;
@@ -127,10 +127,8 @@ const Dialog = defineUIComponent({
       this._backdrop.for = this;
       document.body.appendChild(this._backdrop);
 
-      this._childrenUpgraded.then(children => {
-        children
-          .filter(el => el.matches && el.matches('.ui-button'))
-          .forEach(el => incorporateButtonChild(this, el));
+      this._beforeReady(_ => {
+        this.selectInternalAll('.ui-button').forEach(el => incorporateButtonChild(this, el));
       });
 
       const closer = e => this.close();

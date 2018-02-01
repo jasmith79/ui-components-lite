@@ -107,6 +107,7 @@ export default defineUIComponent({
       let { name } = this.credentials;
       this.logout();
       this._alert.alert(`User ${name} is now logged out. Please close this tab.`);
+      this._alert.selectInternalElement('#closer');
     }
 
     countDown (h) {
@@ -114,6 +115,7 @@ export default defineUIComponent({
       return global.setTimeout(() => {
         this.logout();
         this._alert.alert(`Session timed out. Please login again or close the tab.`);
+        this._alert.selectInternalElement('#closer');
       }, (this.sessionTimeout || 30 * 60 * 1000));
     }
 

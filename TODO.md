@@ -3,7 +3,6 @@ TODO:
 auto tests, especially dynamically added elements/children
 
 dynamic dialog construction fails.
-list unselection not working multi?
 
 DOCUMENT EVERYTHING
 
@@ -28,5 +27,3 @@ init called, all the way up
   --beforeReadyHandlers called
   --ui-ready-fires
   --onReady handlers invoked
-
-login, router, list, dd, form, dom, ui-base have _beforeReady
