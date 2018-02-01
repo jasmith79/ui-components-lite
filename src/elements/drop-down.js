@@ -2,7 +2,7 @@ import Text from './text.js';
 import { ListBehavior } from './list.js';
 
 import Focusable from '../utils/focusable.js';
-import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';
+import { UIBase, defineUIComponent, document, global } from '../utils/ui-component-base.js';
 
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import { extractType } from '../../node_modules/extracttype/extracttype.js';
@@ -156,7 +156,8 @@ export default defineUIComponent({
         super.appendChild(node);
         node.on('click', e => {
           if (!this.multiple) {
-            setTimeout(() => {
+            // wait for the animations to finish
+            global.setTimeout(() => {
               this.close();
             }, 300);
           }
@@ -199,7 +200,7 @@ export default defineUIComponent({
       if (this.attr('label')) this.selectInternalElement('label').classList.add('text-moved');
       this.on('focus', e => this.selectInternalElement('label').classList.remove('text-moved'));
       this.on('blur', e => {
-        setTimeout(() => { // Checked 1-31, doesn't work without
+        global.setTimeout(() => {
           if (this.label && !this.value) {
             this.selectInternalElement('label').classList.add('text-moved');
           }
@@ -216,7 +217,7 @@ export default defineUIComponent({
           if (item.isSelected) this.selected = item;
           item.on('click', e => {
             if (!this.multiple) {
-              setTimeout(() => {
+              global.setTimeout(() => {
                 this.close();
               }, 300);
             }
@@ -238,7 +239,7 @@ export default defineUIComponent({
       this.on('mouseenter', e => mouseon = true);
       this.on('mouseleave', e => {
         mouseon = false;
-        setTimeout(() => { if (!mouseon) this.isOpen = false; }, 1000);
+        global.setTimeout(() => { if (!mouseon) this.isOpen = false; }, 1000);
       });
 
       this.on('attribute-change', ({ changed: { now, name } }) => {

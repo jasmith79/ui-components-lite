@@ -28,3 +28,5 @@ init called, all the way up
   --beforeReadyHandlers called
   --ui-ready-fires
   --onReady handlers invoked
+
+login, router, list, dd, form, dom, ui-base have _beforeReady

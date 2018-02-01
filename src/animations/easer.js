@@ -57,7 +57,7 @@ export default superclass => defineUIComponent({
             ShadyCSS.styleSubtree(self);
           }
           return new Promise(res => {
-            setTimeout(() => {
+            global.setTimeout(() => {
               self.classList.remove(outClass);
               if (global._usingShady) {
                 ShadyCSS.styleSubtree(self);
@@ -74,7 +74,7 @@ export default superclass => defineUIComponent({
             ShadyCSS.styleSubtree(self);
           }
           return new Promise(res => {
-            setTimeout(() => {
+            global.setTimeout(() => {
               self.classList.remove(inClass);
               if (global._usingShady) {
                 ShadyCSS.styleSubtree(self);

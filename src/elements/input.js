@@ -9,7 +9,7 @@ import Text from './text.js';
 import { FormBehavior } from './form.js';
 
 import Focusable from '../utils/focusable.js';
-import { UIBase, document, defineUIComponent } from '../utils/ui-component-base.js';
+import { UIBase, document, defineUIComponent, global } from '../utils/ui-component-base.js';
 
 import { mix } from '../../node_modules/mixwith/src/mixwith.js';
 import { extractType } from '../../node_modules/extracttype/extracttype.js';
@@ -57,8 +57,8 @@ const debounce = (n, immed, f) => {
     if (timer === null && now) {
       fn.apply(this, args);
     }
-    clearTimeout(timer);
-    timer = setTimeout(() => fn.apply(this, args), n);
+    global.clearTimeout(timer);
+    timer = global.setTimeout(() => fn.apply(this, args), n);
     return timer;
   }
 };
@@ -321,7 +321,7 @@ export const Input = defineUIComponent({
       if (this.attr('label') && !placeholder) this.selectInternalElement('label').classList.add('text-moved');
       this.on('focus', e => this.selectInternalElement('label').classList.remove('text-moved'));
       this.on('blur', e => {
-        setTimeout(() => { // Checked 1-31, doesn't work without
+        global.setTimeout(() => {
           if (this.label && !this.placeholder && !this.value) {
             this.selectInternalElement('label').classList.add('text-moved');
           }

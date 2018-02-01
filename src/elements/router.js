@@ -108,7 +108,7 @@ export const Router = (() => {
           }
 
           // TODO: this makes maps work. Fix this.
-          setTimeout(() => { global.dispatchEvent(new Event('resize')); }, 0);
+          global.setTimeout(() => { global.dispatchEvent(new Event('resize')); }, 0);
 
           return elem;
         }

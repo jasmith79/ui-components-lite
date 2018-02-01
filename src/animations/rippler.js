@@ -1,4 +1,4 @@
-import { document, defineUIComponent } from '../utils/dom.js';
+import { document, defineUIComponent, global } from '../utils/dom.js';
 
 import extractType from '../../node_modules/extracttype/extracttype.js';
 
@@ -6,7 +6,7 @@ const rippleEvents = ['click', 'tap', 'dblclick', 'enter-key'];
 const handlerRegistry = new WeakMap();
 const registerHandler = f => {
   const cached = handlerRegistry.get(f);
-  let fn = cached || (e => { setTimeout(f, 500, e); });
+  let fn = cached || (e => { global.setTimeout(f, 500, e); });
   handlerRegistry.set(f, fn);
   return fn;
 };

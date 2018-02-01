@@ -27,7 +27,7 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     }
 
     // This is because the spec doesn't allow attribute changes in an element constructor.
-    setTimeout(() => {
+    global.setTimeout(() => {
       this.init();
     }, 0);
   }
@@ -63,10 +63,8 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     return p;
   }
 
+  // Should be called by extension elements via super.
   init () {
-    // Should be called by extension elements via super. setTimeout is so that any initialization
-    // and event handlers in the descendant classes can be attached before the reflected attribute
-    // setup.
     this.classList.add('is-ui-component');
 
     const elReady = el => el._isReady || Promise.resolve(el);
@@ -117,7 +115,6 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
 
   // If extension elements override the default connected and disconnected
   // Callbacks they need to call super to perform appropriate init/cleanup
-
   connectedCallback () {
     // This allows the elements to be detatched/reattached without losing
     // handlers.
@@ -126,9 +123,6 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     // Allows element to be detatched and reattached while automatically cleaning up
     // on eventual deletion.
     this._mutationObservers.forEach(([o, target, conf]) => o.observe(target, conf));
-
-    // This avoids Chrome firing the event before DOM is ready
-    // setTimeout(() => { this.init(); }, 10)
   }
 
   disconnectedCallback () {

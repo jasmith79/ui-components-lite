@@ -10,11 +10,11 @@ const failTimeout = 15000;
 
 export const mapsAPILoaded = (() => {
   return new Promise((res, rej) => {
-    const warnHandle = setTimeout(() => {
+    const warnHandle = global.setTimeout(() => {
       (document.querySelector('ui-alert') || global).alert(tooLongMessage);
     }, warnTimeout);
 
-    const failHandle = setTimeout(() => {
+    const failHandle = global.setTimeout(() => {
       (document.querySelector('ui-alert') || global).alert(failMessage);
     }, failTimeout);
 
@@ -174,7 +174,7 @@ export const GoogleMap = defineUIComponent({
         });
 
         global.addEventListener('resize', e => {
-          setTimeout(() => {
+          global.setTimeout(() => {
             this.map.setCenter(this._center);
           }, 0);
         });
