@@ -87,7 +87,6 @@ const Dialog = defineUIComponent({
   definition: class Dialog extends Card {
     constructor () {
       super();
-      this.hide();
       this._backdrop = null;
       global.addEventListener('logout', e => {
         this.close();
@@ -122,6 +121,7 @@ const Dialog = defineUIComponent({
 
     init () {
       super.init();
+      this.hide();
       this.attr('role', 'dialog');
       this._backdrop = document.createElement('ui-backdrop');
       this._backdrop.for = this;

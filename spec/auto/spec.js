@@ -23,45 +23,313 @@ Promise.all([
   customElements.whenDefined('ui-login'),
   customElements.whenDefined('ui-router'),
 ]).then(() => {
+  describe('ui-text', () => {
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should be able to be constructed via another element\'s innerHTML', done => {
+      div.innerHTML = '<ui-text></ui-text>';
+      let text = div.querySelector('ui-text');
+      return text.onReady(_ => {
+        expect(true).toBe(true); // mostly testing for errors
+      }).then(done).catch(done);
+    });
+
+    it('should be able to be appended to another element.', done => {
+      let text = document.createElement('ui-text');
+      div.appendChild(text);
+      return text.onReady(_ => {
+        expect(true).toBe(true);
+      }).then(done).catch(done);
+    });
+  });
+
+  describe('ui-card', () => {
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should be able to be constructed via another element\'s innerHTML', done => {
+      div.innerHTML = '<ui-card></ui-card>';
+      let card = div.querySelector('ui-card');
+      return card.onReady(_ => {
+        expect(true).toBe(true); // mostly testing for errors
+      }).then(done).catch(done);
+    });
+
+    it('should be able to be appended to another element.', done => {
+      let card = document.createElement('ui-card');
+      div.appendChild(card);
+      return card.onReady(_ => {
+        expect(true).toBe(true);
+      }).then(done).catch(done);
+    });
+  });
+
+  describe('ui-checkbox', () => {
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should be able to be constructed via another element\'s innerHTML', done => {
+      div.innerHTML = '<ui-checkbox></ui-checkbox>';
+      let checkbox = div.querySelector('ui-checkbox');
+      return checkbox.onReady(_ => {
+        expect(true).toBe(true); // mostly testing for errors
+      }).then(done).catch(done);
+    });
+
+    it('should be able to be appended to another element.', done => {
+      let checkbox = document.createElement('ui-checkbox');
+      div.appendChild(checkbox);
+      return checkbox.onReady(_ => {
+        expect(true).toBe(true);
+      }).then(done).catch(done);
+    });
+  });
+
   describe('ui-fab', () => {
-    it('should ', done => {
-      expect(true).toBe(true);done();
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should be able to be constructed via another element\'s innerHTML', done => {
+      div.innerHTML = '<ui-fab></ui-fab>';
+      let fab = div.querySelector('ui-fab');
+      return fab.onReady(_ => {
+        expect(true).toBe(true); // mostly testing for errors
+      }).then(done).catch(done);
+    });
+
+    it('should be able to be appended to another element.', done => {
+      let fab = document.createElement('ui-fab');
+      div.appendChild(fab);
+      return fab.onReady(_ => {
+        expect(true).toBe(true);
+      }).then(done).catch(done);
     });
   });
 
   describe('ui-hamburger', () => {
-    it('should ', done => {
-      expect(true).toBe(true);done();
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should be able to be constructed via another element\'s innerHTML', done => {
+      div.innerHTML = '<ui-hamburger></ui-hamburger>';
+      let hamburger = div.querySelector('ui-hamburger');
+      return hamburger.onReady(_ => {
+        expect(true).toBe(true); // mostly testing for errors
+      }).then(done).catch(done);
+    });
+
+    it('should be able to be appended to another element.', done => {
+      let hamburger = document.createElement('ui-hamburger');
+      div.appendChild(hamburger);
+      return hamburger.onReady(_ => {
+        expect(true).toBe(true);
+      }).then(done).catch(done);
     });
   });
 
-  describe('ui-alert', () => {
-    it('should ', done => {
-      expect(true).toBe(true);done();
+  describe('ui-dialog', () => {
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should be able to be constructed via another element\'s innerHTML', done => {
+      div.innerHTML = '<ui-dialog></ui-dialog>';
+      let dialog = div.querySelector('ui-dialog');
+      return dialog.onReady(_ => {
+        expect(true).toBe(true); // mostly testing for errors
+      }).then(done).catch(done);
+    });
+
+    it('should be able to be appended to another element.', done => {
+      let dialog = document.createElement('ui-dialog');
+      div.appendChild(dialog);
+      return dialog.onReady(_ => {
+        expect(true).toBe(true);
+      }).then(done).catch(done);
     });
   });
 
   describe('ui-drawer', () => {
-    it('should ', done => {
-      expect(true).toBe(true);done();
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should be able to be constructed via another element\'s innerHTML', done => {
+      div.innerHTML = '<ui-drawer></ui-drawer>';
+      let drawer = div.querySelector('ui-drawer');
+      return drawer.onReady(_ => {
+        expect(true).toBe(true); // mostly testing for errors
+      }).then(done).catch(done);
+    });
+
+    it('should be able to be appended to another element.', done => {
+      let drawer = document.createElement('ui-drawer');
+      div.appendChild(drawer);
+      return drawer.onReady(_ => {
+        expect(true).toBe(true);
+      }).then(done).catch(done);
     });
   });
 
   describe('ui-toolbar', () => {
-    it('should ', done => {
-      expect(true).toBe(true);done();
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should be able to be constructed via another element\'s innerHTML', done => {
+      div.innerHTML = '<ui-toolbar></ui-toolbar>';
+      let toolbar = div.querySelector('ui-toolbar');
+      return toolbar.onReady(_ => {
+        expect(true).toBe(true); // mostly testing for errors
+      }).then(done).catch(done);
+    });
+
+    it('should be able to be appended to another element.', done => {
+      let toolbar = document.createElement('ui-toolbar');
+      div.appendChild(toolbar);
+      return toolbar.onReady(_ => {
+        expect(true).toBe(true);
+      }).then(done).catch(done);
     });
   });
 
   describe('ui-tab', () => {
-    it('should ', done => {
-      expect(true).toBe(true);done();
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should be able to be constructed via another element\'s innerHTML', done => {
+      div.innerHTML = '<ui-tab></ui-tab>';
+      let tab = div.querySelector('ui-tab');
+      return tab.onReady(_ => {
+        expect(true).toBe(true); // mostly testing for errors
+      }).then(done).catch(done);
+    });
+
+    it('should be able to be appended to another element.', done => {
+      let tab = document.createElement('ui-tab');
+      div.appendChild(tab);
+      return tab.onReady(_ => {
+        expect(true).toBe(true);
+      }).then(done).catch(done);
     });
   });
 
-  describe('ui-text', () => {
-    it('should ', done => {
-      expect(true).toBe(true);done();
+  describe('ui-tabs', () => {
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should be able to be constructed via another element\'s innerHTML', done => {
+      div.innerHTML = '<ui-tabs></ui-tabs>';
+      let tabs = div.querySelector('ui-tabs');
+      return tabs.onReady(_ => {
+        expect(true).toBe(true); // mostly testing for errors
+      }).then(done).catch(done);
+    });
+
+    it('should be able to be appended to another element.', done => {
+      let tabs = document.createElement('ui-tabs');
+      div.appendChild(tabs);
+      return tabs.onReady(_ => {
+        expect(true).toBe(true);
+      }).then(done).catch(done);
     });
   });
 
@@ -277,14 +545,95 @@ Promise.all([
   });
 
   describe('ui-login', () => {
-    it('should ', done => {
-      expect(true).toBe(true);done();
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should be able to be constructed via another element\'s innerHTML', done => {
+      div.innerHTML = '<ui-login></ui-login>';
+      let login = div.querySelector('ui-login');
+      return login.onReady(_ => {
+        expect(true).toBe(true); // mostly testing for errors
+      }).then(done).catch(done);
+    });
+
+    it('should be able to be appended to another element.', done => {
+      let login = document.createElement('ui-login');
+      div.appendChild(login);
+      return login.onReady(_ => {
+        expect(true).toBe(true);
+      }).then(done).catch(done);
     });
   });
 
   describe('ui-router', () => {
-    it('should ', done => {
-      expect(true).toBe(true);done();
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should be able to be constructed via another element\'s innerHTML', done => {
+      div.innerHTML = '<ui-router></ui-router>';
+      let router = div.querySelector('ui-router');
+      return router.onReady(_ => {
+        expect(true).toBe(true); // mostly testing for errors
+      }).then(done).catch(done);
+    });
+
+    it('should be able to be appended to another element.', done => {
+      let router = document.createElement('ui-router');
+      div.appendChild(router);
+      return router.onReady(_ => {
+        expect(true).toBe(true);
+      }).then(done).catch(done);
+    });
+  });
+
+  describe('ui-route', () => {
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should be able to be constructed via another element\'s innerHTML', done => {
+      div.innerHTML = '<ui-route></ui-route>';
+      let route = div.querySelector('ui-route');
+      return route.onReady(_ => {
+        expect(true).toBe(true); // mostly testing for errors
+      }).then(done).catch(done);
+    });
+
+    it('should be able to be appended to another element.', done => {
+      let route = document.createElement('ui-route');
+      div.appendChild(route);
+      return route.onReady(_ => {
+        expect(true).toBe(true);
+      }).then(done).catch(done);
     });
   });
 });
