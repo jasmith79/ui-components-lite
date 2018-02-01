@@ -9,6 +9,8 @@ export default superclass => class DOMutils extends superclass {
   constructor () {
     super();
     this._mutationObservers = [];
+    this._prevDisplay = '';
+    this._isHidden = false;
   }
 
   get isVisible () {
@@ -152,18 +154,19 @@ export default superclass => class DOMutils extends superclass {
   }
 
   hide () {
-    let inlineStyles = this.attr('style') || '';
-    if (inlineStyles === true) inlineStyles = ''; // Because style="" returns true
-    inlineStyles += 'display:none !important;';
-    this.attr('style', inlineStyles);
+    if (!this._isHidden) {
+      this._prevDisplay = this.style.display;
+      this._isHidden = true;
+      this.style.display = 'none';
+    }
     return this;
   }
 
   show () {
-    let inlineStyles = this.attr('style') || '';
-    if (inlineStyles === true) inlineStyles = ''; // Because style="" returns true
-    inlineStyles = inlineStyles.replace(/display:none\s*!important;/g, '');
-    this.attr('style', inlineStyles);
+    if (this._isHidden) {
+      this.style.display = this._prevDisplay;
+      this._isHidden = false;
+    }
     return this;
   }
 

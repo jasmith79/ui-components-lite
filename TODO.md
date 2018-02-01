@@ -14,8 +14,6 @@ Responsive styles and MQs and breakpoints
 
 Fix default theme colors
 
-move tests to Jasmine
-
 attempt to re-architect to avoid need for defineUIComponent, simplify lifecycle?
 
 ensure works on npm install

@@ -128,10 +128,15 @@ const Dialog = defineUIComponent({
       document.body.appendChild(this._backdrop);
 
       this._beforeReady(_ => {
-        this.selectInternalAll('.ui-button').forEach(el => incorporateButtonChild(this, el));
+        [
+          ...this.selectInternalAll('.ui-button'),
+          ...this.selectAll('.ui-button'),
+        ].forEach(el => incorporateButtonChild(this, el));
       });
 
-      const closer = e => this.close();
+      const closer = e => {
+        this.close();
+      };
 
       this.on('attribute-change', ({ changed: { now, name } }) => {
         switch (name) {
