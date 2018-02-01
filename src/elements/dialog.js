@@ -60,8 +60,15 @@ const incorporateButtonChild = (el, child) => {
   let manip = manipulators.get(el);
   if (!manip) {
     manip = [
-      e => { el.close(); el.dispatchEvent(new CustomEvent('dialog-dismiss')) },
-      e => { el.close(); el.dispatchEvent(new CustomEvent('dialog-confirm')) },
+      e => {
+        el.close();
+        el.dispatchEvent(new CustomEvent('dialog-dismiss'));
+      },
+
+      e => {
+        el.close();
+        el.dispatchEvent(new CustomEvent('dialog-confirm'));
+      },
     ];
     manipulators.set(el, manip);
   }

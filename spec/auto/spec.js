@@ -23,6 +23,37 @@ Promise.all([
   customElements.whenDefined('ui-login'),
   customElements.whenDefined('ui-router'),
 ]).then(() => {
+  describe('ui-card', () => {
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should be able to be constructed via another element\'s innerHTML', done => {
+      div.innerHTML = '<ui-card></ui-card>';
+      let card = div.querySelector('ui-card');
+      return card.onReady(_ => {
+        expect(true).toBe(true); // mostly testing for errors
+      }).then(done).catch(done);
+    });
+
+    it('should be able to be appended to another element.', done => {
+      let card = document.createElement('ui-card');
+      div.appendChild(card);
+      return card.onReady(_ => {
+        expect(true).toBe(true);
+      }).then(done).catch(done);
+    });
+  });
+
   describe('ui-text', () => {
     let div;
     beforeEach(() => {
@@ -52,36 +83,61 @@ Promise.all([
         expect(true).toBe(true);
       }).then(done).catch(done);
     });
-  });
 
-  describe('ui-card', () => {
-    let div;
-    beforeEach(() => {
-      div = document.createElement('div');
-      div.classList.add('remove-me');
-      document.body.appendChild(div);
+    it('should take any initial text content as view-text', done => {
+      div.innerHTML = '<ui-text>foo</ui-text>';
+      let text = div.querySelector('ui-text');
+      return text.onReady(_ => {
+        expect(text.selectInternalElement('span').textContent.trim()).toBe('foo');
+        expect(text.viewText).toBe('foo');
+        expect(text.attr('view-text')).toBe('foo');
+        expect(text.textContent).toBe('foo');
+      }).then(done).catch(done);
     });
 
-    afterEach(() => {
-      [...document.querySelectorAll('.remove-me')].forEach(el => {
-        document.body.removeChild(el);
-      });
+    it('should have it\'s content changed via the view-text property/attr *and* textContent', done => {
+      div.innerHTML = '<ui-text></ui-text>';
+      let text = div.querySelector('ui-text');
+      return text.onReady(_ => {
+        text.viewText = 'foo';
+        expect(text.selectInternalElement('span').textContent.trim()).toBe('foo');
+        expect(text.viewText).toBe('foo');
+        expect(text.textContent).toBe('foo');
+        expect(text.attr('view-text')).toBe('foo');
+
+        text.attr('view-text', 'bar');
+        expect(text.selectInternalElement('span').textContent.trim()).toBe('bar');
+        expect(text.viewText).toBe('bar');
+        expect(text.textContent).toBe('bar');
+        expect(text.attr('view-text')).toBe('bar');
+
+        text.textContent = 'baz';
+        expect(text.selectInternalElement('span').textContent.trim()).toBe('baz');
+        expect(text.viewText).toBe('baz');
+        expect(text.textContent).toBe('baz');
+        expect(text.attr('view-text')).toBe('baz');
+      }).then(done).catch(done);
     });
 
-    it('should be able to be constructed via another element\'s innerHTML', done => {
-      div.innerHTML = '<ui-card></ui-card>';
+    it('should be able to data-bind to a ui-component parent\'s attributes', done => {
+      div.innerHTML = '<ui-card foo="bar"><ui-text view-text="{{foo}}"></ui-text></ui-card>';
+      let text = div.querySelector('ui-text');
       let card = div.querySelector('ui-card');
-      return card.onReady(_ => {
-        expect(true).toBe(true); // mostly testing for errors
-      }).then(done).catch(done);
-    });
+      Promise.all([text._isReady, card._isReady]).then(_ => {
+        expect(text.selectInternalElement('span').textContent.trim()).toBe('bar');
+        expect(text.viewText).toBe('bar');
+        expect(text.textContent).toBe('bar');
+        expect(text.attr('view-text')).toBe('bar');
 
-    it('should be able to be appended to another element.', done => {
-      let card = document.createElement('ui-card');
-      div.appendChild(card);
-      return card.onReady(_ => {
-        expect(true).toBe(true);
-      }).then(done).catch(done);
+        card.attr('foo', 'baz');
+        setTimeout(() => { // let the MutationObserver and callbacks fire TODO: get this synchronous?
+          expect(text.selectInternalElement('span').textContent.trim()).toBe('baz');
+          expect(text.viewText).toBe('baz');
+          expect(text.textContent).toBe('baz');
+          expect(text.attr('view-text')).toBe('baz');
+          done();
+        }, 0);
+      }).catch(done);
     });
   });
 
@@ -116,6 +172,37 @@ Promise.all([
     });
   });
 
+  describe('ui-button', () => {
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should be able to be constructed via another element\'s innerHTML', done => {
+      div.innerHTML = '<ui-button></ui-button>';
+      let button = div.querySelector('ui-button');
+      return button.onReady(_ => {
+        expect(true).toBe(true); // mostly testing for errors
+      }).then(done).catch(done);
+    });
+
+    it('should be able to be appended to another element.', done => {
+      let button = document.createElement('ui-button');
+      div.appendChild(button);
+      return button.onReady(_ => {
+        expect(true).toBe(true);
+      }).then(done).catch(done);
+    });
+  });
+
   describe('ui-fab', () => {
     let div;
     beforeEach(() => {
@@ -143,6 +230,16 @@ Promise.all([
       div.appendChild(fab);
       return fab.onReady(_ => {
         expect(true).toBe(true);
+      }).then(done).catch(done);
+    });
+
+    it('should be floating', done => {
+      div.innerHTML = '<ui-fab></ui-fab>';
+      let fab = div.querySelector('ui-fab');
+      return fab.onReady(_ => {
+        expect(fab.floatingY).toBe(true);
+        let boxShadow = window.getComputedStyle(fab).boxShadow;
+        expect(Boolean(boxShadow)).toBe(true);
       }).then(done).catch(done);
     });
   });
@@ -176,6 +273,23 @@ Promise.all([
         expect(true).toBe(true);
       }).then(done).catch(done);
     });
+
+    it('should change color in response to the line-color property/attribute', done => {
+      div.innerHTML = '<ui-hamburger line-color="blue"></ui-hamburger>';
+      let hamburger = div.querySelector('ui-hamburger');
+      return hamburger.onReady(_ => {
+        expect(window.getComputedStyle(hamburger.selectInternalElement('.line')).backgroundColor)
+          .toBe('rgb(0, 0, 255)');
+
+        hamburger.lineColor = 'red';
+        expect(window.getComputedStyle(hamburger.selectInternalElement('.line')).backgroundColor)
+          .toBe('rgb(255, 0, 0)');
+
+        hamburger.attr('line-color', 'purple');
+        expect(window.getComputedStyle(hamburger.selectInternalElement('.line')).backgroundColor)
+          .toBe('rgb(128, 0, 128)');
+      }).then(done).catch(done);
+    });
   });
 
   describe('ui-dialog', () => {
@@ -207,6 +321,290 @@ Promise.all([
         expect(true).toBe(true);
       }).then(done).catch(done);
     });
+
+    it('emit an event on opening', done => {
+      div.innerHTML = '<ui-dialog></ui-dialog>';
+      let dialog = div.querySelector('ui-dialog');
+      return dialog.onReady(_ => {
+        let flag = false;
+        dialog.on('dialog-opened', e => {
+          expect(true).toBe(true);
+          flag = true;
+          done();
+        });
+
+        setTimeout(() => {
+          if (!flag) {
+            throw new Error('event did not fire');
+          }
+        }, 10);
+
+        dialog.open();
+      }).catch(done);
+    });
+
+    it('emit an event on closing', done => {
+      div.innerHTML = '<ui-dialog></ui-dialog>';
+      let dialog = div.querySelector('ui-dialog');
+      return dialog.onReady(_ => {
+        let flag = false;
+        dialog.on('dialog-closed', e => {
+          expect(true).toBe(true);
+          flag = true;
+          done();
+        });
+
+        setTimeout(() => {
+          if (!flag) {
+            throw new Error('event did not fire');
+          }
+        }, 10);
+
+        dialog.open();
+        dialog.close();
+      }).catch(done);
+    });
+
+    it('should respond to a confirmer, including emitting an appropiate event', done => {
+      div.innerHTML = '<ui-dialog><ui-button dialog-confirm>Confirm</ui-button></ui-dialog>';
+      let dialog = div.querySelector('ui-dialog');
+      return dialog.onReady(_ => {
+        let flag = false;
+        dialog.on('dialog-confirm', e => {
+          expect(true).toBe(true);
+          flag = true;
+          done();
+        });
+
+        setTimeout(() => {
+          if (!flag) {
+            throw new Error('event did not fire');
+          }
+        }, 505); // need to wait for ripple animation on button
+
+        dialog.open();
+        dialog.querySelector('ui-button').click();
+      }).catch(done);
+    });
+
+    it('should respond to a dismisser, including emitting an appropiate event', done => {
+      div.innerHTML = '<ui-dialog><ui-button dialog-dismiss>Confirm</ui-button></ui-dialog>';
+      let dialog = div.querySelector('ui-dialog');
+      return dialog.onReady(_ => {
+        let flag = false;
+        dialog.on('dialog-dismiss', e => {
+          expect(true).toBe(true);
+          flag = true;
+          done();
+        });
+
+        setTimeout(() => {
+          if (!flag) {
+            throw new Error('event did not fire');
+          }
+        }, 505); // need to wait for ripple animation on button
+
+        dialog.open();
+        dialog.querySelector('ui-button').click();
+      }).catch(done);
+    });
+
+    it('should be modal if specified', done => {
+      div.innerHTML = '<ui-dialog is-modal></ui-dialog>';
+      let dialog = div.querySelector('ui-dialog');
+      return dialog.onReady(_ => {
+        let flag = false;
+        expect(dialog.isModal).toBe(true);
+        dialog.open();
+        dialog.on('dialog-closed', e => {
+          flag = true;
+          done();
+        });
+
+        setTimeout(() => {
+          dialog._backdrop.click();
+        }, 505);
+
+        setTimeout(() => {
+          if (!flag) throw new Error('modal fail.');
+        }, 1100);
+      }).catch(done);
+    });
+  });
+
+  describe('ui-alert', () => {
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should be able to be constructed via another element\'s innerHTML', done => {
+      div.innerHTML = '<ui-alert></ui-alert>';
+      let alert = div.querySelector('ui-alert');
+      return alert.onReady(_ => {
+        expect(true).toBe(true); // mostly testing for errors
+      }).then(done).catch(done);
+    });
+
+    it('should be able to be appended to another element.', done => {
+      let alert = document.createElement('ui-alert');
+      div.appendChild(alert);
+      return alert.onReady(_ => {
+        expect(true).toBe(true);
+      }).then(done).catch(done);
+    });
+
+    it('emit an event on opening', done => {
+      div.innerHTML = '<ui-alert></ui-alert>';
+      let alert = div.querySelector('ui-alert');
+      return alert.onReady(_ => {
+        let flag = false;
+        alert.on('dialog-opened', e => {
+          expect(true).toBe(true);
+          flag = true;
+          done();
+        });
+
+        setTimeout(() => {
+          if (!flag) {
+            throw new Error('event did not fire');
+          }
+        }, 10);
+
+        alert.open();
+      }).catch(done);
+    });
+
+    it('emit an event on closing', done => {
+      div.innerHTML = '<ui-alert></ui-alert>';
+      let alert = div.querySelector('ui-alert');
+      return alert.onReady(_ => {
+        let flag = false;
+        alert.on('dialog-closed', e => {
+          expect(true).toBe(true);
+          flag = true;
+          done();
+        });
+
+        setTimeout(() => {
+          if (!flag) {
+            throw new Error('event did not fire');
+          }
+        }, 10);
+
+        alert.open();
+        alert.close();
+      }).catch(done);
+    });
+
+    it('should respond to a confirmer, including emitting an appropiate event', done => {
+      div.innerHTML = '<ui-alert><ui-button dialog-confirm>Confirm</ui-button></ui-alert>';
+      let alert = div.querySelector('ui-alert');
+      return alert.onReady(_ => {
+        let flag = false;
+        alert.on('dialog-confirm', e => {
+          expect(true).toBe(true);
+          flag = true;
+          done();
+        });
+
+        setTimeout(() => {
+          if (!flag) {
+            throw new Error('event did not fire');
+          }
+        }, 505); // need to wait for ripple animation on button
+
+        alert.open();
+        alert.querySelector('ui-button').click();
+      }).catch(done);
+    });
+
+    it('should respond to a dismisser, including emitting an appropiate event', done => {
+      div.innerHTML = '<ui-alert></ui-alert>';
+      let alert = div.querySelector('ui-alert');
+      return alert.onReady(_ => {
+        let flag = false;
+        alert.on('dialog-dismiss', e => {
+          expect(true).toBe(true);
+          flag = true;
+          done();
+        });
+
+        setTimeout(() => {
+          if (!flag) {
+            throw new Error('event did not fire');
+          }
+        }, 700);
+
+        alert.open();
+        alert.selectInternalElement('ui-button').click();
+      }).catch(done);
+    });
+
+    it('should be modal', done => {
+      div.innerHTML = '<ui-alert></ui-alert>';
+      let alert = div.querySelector('ui-alert');
+      return alert.onReady(_ => {
+        let flag = false;
+        expect(alert.isModal).toBe(true);
+        alert.open();
+        alert.on('dialog-closed', e => {
+          flag = true;
+          done();
+        });
+
+        setTimeout(() => {
+          alert._backdrop.click();
+        }, 550);
+
+        setTimeout(() => {
+          if (!flag) throw new Error('modal fail.');
+        }, 1200);
+      }).catch(done);
+    });
+
+    it('should have an alert method that opens the dialog and sets content appropriately', done => {
+      div.innerHTML = '<ui-alert></ui-alert>';
+      let alert = div.querySelector('ui-alert');
+      return alert.onReady(_ => {
+        alert.alert('foobar');
+        setTimeout(() => {
+          expect(alert.isOpen).toBe(true);
+          expect(alert.textContent).toBe('foobar');
+          done();
+        }, 505);
+      }).catch(done);
+    });
+
+    it('should have the closer focused on open', done => {
+      div.innerHTML = '<ui-alert></ui-alert>';
+      let alert = div.querySelector('ui-alert');
+      return alert.onReady(_ => {
+        let flag = false;
+        alert.on('dialog-dismiss', e => {
+          flag = true;
+          done();
+        });
+
+        alert.alert('foobar');
+        setTimeout(() => {
+          expect(alert.isOpen).toBe(true);
+          console.log(alert.shadowRoot.activeElement);
+          alert.shadowRoot.activeElement.click();
+          setTimeout(() => {
+            if (!flag) throw new Error('closer not focused');
+          }, 600);
+        }, 505);
+      }).catch(done);
+    });
   });
 
   describe('ui-drawer', () => {
@@ -237,6 +635,69 @@ Promise.all([
       return drawer.onReady(_ => {
         expect(true).toBe(true);
       }).then(done).catch(done);
+    });
+
+    it('should be able to be toggled by an appropriate element already in DOM', done => {
+      div.innerHTML = '<ui-hamburger drawer-toggle></ui-hamburger><ui-drawer></ui-drawer>';
+      let drawer = div.querySelector('ui-drawer');
+      let hamburger = div.querySelector('ui-hamburger');
+      return drawer.onReady(_ => {
+        hamburger.click();
+        setTimeout(() => {
+          expect(drawer.isOpen).toBe(true);
+          done();
+        }, 505); // slide animation, ripple on button
+      }).catch(done);
+    });
+
+    it('should emit appropriate events', done => {
+      div.innerHTML = '<ui-drawer></ui-drawer>';
+      let drawer = div.querySelector('ui-drawer');
+      return drawer.onReady(_ => {
+        let counter = 0;
+        drawer.on('drawer-opened', e => {
+          counter++;
+        });
+
+        drawer.on('drawer-closed', e => {
+          counter++;
+          expect(counter).toBe(2);
+          done();
+        });
+
+        drawer.open();
+        drawer.close();
+
+        setTimeout(() => {
+          if (!counter) {
+            throw new Error('event did not fire');
+          }
+        }, 1100);
+      }).catch(done);
+    });
+
+    it('should be modal if specified', done => {
+      div.innerHTML = '<ui-drawer is-modal></ui-drawer>';
+      let drawer = div.querySelector('ui-drawer');
+      return drawer.onReady(_ => {
+        let flag = false;
+        expect(drawer.isModal).toBe(true);
+        drawer.open();
+        drawer.on('drawer-closed', e => {
+          flag = true;
+          done();
+        });
+
+        setTimeout(() => {
+          drawer._backdrop.click();
+        }, 505);
+
+        setTimeout(() => {
+          if (!flag) {
+            throw new Error('event did not fire');
+          }
+        }, 1100);
+      }).catch(done);
     });
   });
 

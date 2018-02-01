@@ -17,7 +17,7 @@ export default superclass => defineUIComponent({
       this._animations = [];
     }
 
-    defineSlideAnimation ({direction, timing=300, fn='ease-in', distance='100%'}) {
+    defineSlideAnimation ({direction, timing=500, fn='ease', distance='100%'}) {
       if (!this._animations.sliding) this._animations.sliding = {};
       const [xy, min] = orientations[direction];
       const minus = min && distance.match('-') ? '' : min;
@@ -26,18 +26,19 @@ export default superclass => defineUIComponent({
       const animationStyles = document.createElement('template');
       animationStyles.innerHTML = `
         <style>
-          :host(.${inClass}) {
-            transform: translate${xy}(${minus}${distance});
+          :host {
             transition-property: transform;
             transition-duration: ${timing}ms;
             transition-timing-function: ${fn};
+            transform: translate3d(0, 0, 0);
+          }
+
+          :host(.${inClass}) {
+            transform: translate${xy}(${minus}${distance});
           }
 
           :host(.${outClass}) {
             transform: translate${xy}(0);
-            transition-property: transform;
-            transition-duration: ${timing}ms;
-            transition-timing-function: ${fn === 'ease-in' ? 'ease-out' : fn};
           }
         </style>
       `;

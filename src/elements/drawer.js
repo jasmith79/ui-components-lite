@@ -103,9 +103,14 @@ export default defineUIComponent({
           case 'is-open':
             if (now) {
               if (this.isModal) this._backdrop.show();
-              animator.easeIn();
+              animator.easeIn().then(_ => {
+                this.dispatchEvent(new CustomEvent('drawer-opened'));
+              });
             } else {
-              animator.easeOut().then(_ => this._backdrop.hide());
+              animator.easeOut().then(_ => {
+                this._backdrop.hide();
+                this.dispatchEvent(new CustomEvent('drawer-closed'));
+              });
             }
             break;
         }

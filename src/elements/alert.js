@@ -46,9 +46,9 @@ const Alert = defineUIComponent({
       });
 
       const closer = this.selectInternalElement('#closer');
-      // closer.on('click enter-key', e => this.close());
-
-      this.on('dialog-opened', e => closer.focus());
+      this.on('dialog-opened', e => {
+        closer.focus();
+      });
     }
 
     get textContent () {
