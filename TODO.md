@@ -14,8 +14,6 @@ Responsive styles and MQs and breakpoints
 
 Fix default theme colors
 
-attempt to re-architect to avoid need for defineUIComponent, simplify lifecycle?
-
 ensure works on npm install
 
 lifecycle description:
@@ -29,3 +27,65 @@ init called, all the way up
   --beforeReadyHandlers called
   --ui-ready-fires
   --onReady handlers invoked
+
+So... refactoring to remove the dependence on defineUIComponent is definitely possible in the long run, unfortunately right now the ShadyCSS polyfill has the limitation of only supporting one call to ShadyCSS.prepareTemplate per tag name. Once that restriction is removed
+
+https://github.com/webcomponents/shadycss/issues/153
+
+then we should be able to do something like this:
+
+```javascript
+const template = document.createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: block;
+      background-color: purple;
+    }
+  </style>
+`;
+
+class SomeElement extends HTMLElement {
+  constructor () {
+    super();
+
+    let tmpl = template.cloneNode(true);
+    this.attachShadow({ mode: 'open' });
+    if (usingShadyCSS) {
+      ShadyCSS.prepareTemplate(tmpl, this.tagName.toLowerCase());
+      ShadyCSS.styleElement(this);
+    }
+
+    this.shadowRoot.appendChild(tmpl);
+  }
+}
+
+const fooTemplate = document.createElement('template');
+fooTemplate.innerHTML = `
+  <style>
+    :host {
+      width: 200px;
+    }
+  </style>
+`;
+
+class Foo extends SomeElement {
+  constructor () {
+    super();
+
+    let tmpl = fooTemplate.cloneNode(true);
+    if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
+    if (usingShadyCSS) {
+      ShadyCSS.prepareTemplate(tmpl, this.tagName.toLowerCase());
+      ShadyCSS.styleElement(this);
+    }
+
+    this.shadowRoot.appendChild(tmpl);
+  }
+}
+
+customElements.define('some-element', SomeElement);
+customElements.define('foo-element', Foo);
+
+document.createElement('foo-element'); // has display:block, background-color:purple, width:200px
+```
