@@ -14,8 +14,6 @@ Responsive styles and MQs and breakpoints
 
 Fix default theme colors
 
-Dropdown mini text with name/placeholder
-
 lifecycle description:
 
 constructor called, super all the way up.
