@@ -121,6 +121,8 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
       .then(_ => {
         this.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: false }));
         this._pendingDOM = null;
+      }).catch(err => {
+        throw err;
       });
   }
 

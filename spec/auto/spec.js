@@ -489,6 +489,63 @@ Promise.all([
         throw err;
       });
     });
+
+    it('should allow imperative as well as declarative 1-way binding', done => {
+      div.innerHTML = '<foo-x id="foo" foo-bar="3"><foo-x id="bar"></foo-x></foo-x>';
+      let foo = div.querySelector('#foo');
+      let bar = div.querySelector('#bar');
+      Promise.all([foo._isReady, bar._isReady]).then(_ => {
+        bar.bindAttribute('foo-bar', 'foo-bar');
+      }).then(_ => {
+        expect(bar.attr('foo-bar')).toBe(3);
+        foo.fooBar = 4;
+      }).then(_ => {
+        expect(bar.attr('foo-bar')).toBe(4);
+        bar.fooBar = 5; // shouldn't be able to set, triggers console warning and fails
+      }).then(_ => {
+        expect(bar.attr('foo-bar')).toBe(4);
+        foo.fooBar = 3;
+      }).then(_ => {
+        expect(bar.attr('foo-bar')).toBe(3);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('should support 2-way data-binding of attributes to a UIComponent parent.', done => {
+      div.innerHTML = '<foo-x id="foo" foo-bar="3"><foo-x id="bar"></foo-x></foo-x>';
+      let foo = div.querySelector('#foo');
+      let bar = div.querySelector('#bar');
+      Promise.all([foo._isReady, bar._isReady]).then(_ => {
+        bar.bindAttribute('foo-bar', 'foo-bar', true);
+      }).then(_ => {
+        expect(bar.attr('foo-bar')).toBe(3);
+        foo.fooBar = 4;
+      }).then(_ => {
+        expect(bar.attr('foo-bar')).toBe(4);
+        bar.fooBar = 5;
+      }).then(_ => {
+        expect(foo.attr('foo-bar')).toBe(5);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    // may change this in the future
+    it('should throw when attempting to data-bind non-UI parent', done => {
+      div.innerHTML = '<div id ="foo"><foo-x id="bar"></foo-x></div>';
+      let foo = div.querySelector('#foo');
+      let bar = div.querySelector('#bar');
+      expect(() => {
+        bar.bindAttribute('foo-bar', 'foo-bar');
+        done();
+      }).toThrow();
+      done();
+    });
   });
 
   describe('ui-card', () => {

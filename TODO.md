@@ -5,6 +5,8 @@ refactor styler
 
 add append, insertBefore, etc. overrides for elements that need them
 
+add toast, tooltip, toggle
+
 see if data-binding can happen earlier in the lifecycle?
 
 auto tests, especially dynamically added elements/children
