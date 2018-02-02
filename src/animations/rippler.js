@@ -1,3 +1,13 @@
+/*
+ * rippler.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * rippler animation component for ui-components-lite.
+ */
 import { document, defineUIComponent, global } from '../utils/dom.js';
 
 import extractType from '../../node_modules/extracttype/extracttype.js';

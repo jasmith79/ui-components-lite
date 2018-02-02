@@ -1,3 +1,17 @@
+/*
+ * drop-down.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * drop-down component for ui-components-lite.
+ *
+ * NOTE: it is not currently (and may never) be possible to extend built-in elements like select.
+ * If it does become possible this can be refactored to support extending HTMLSelectElement.
+ */
+
 import Text from './text.js';
 import { ListBehavior } from './list.js';
 

@@ -1,3 +1,14 @@
+/*
+ * toolbar.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * toolbar component for ui-components-lite.
+ */
+
 import Floats from '../utils/float.js';
 import processHTMLAttr from '../utils/attribute-analyzer.js';
 import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';

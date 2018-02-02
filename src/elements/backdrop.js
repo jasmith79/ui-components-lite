@@ -1,3 +1,14 @@
+/*
+ * backdrop.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * backdrop component for ui-components-lite. Meant primarily for use in modal components.
+ */
+
 import { defineUIComponent, document, UIBase } from '../utils/ui-component-base.js';
 
 const template = document.createElement('template');

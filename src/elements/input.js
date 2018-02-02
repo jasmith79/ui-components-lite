@@ -1,8 +1,15 @@
 /*
- * NOTE: it is not currently possible to extend specific HTMLElements, leading
- * to this element being rather convoluted. Once it's possible to extend input
- * directly this should be refactored.
+ * input.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
  *
+ * input component for ui-components-lite.
+ *
+ * NOTE: it is not currently (and may never) be possible to extend built-in elements like Input
+ * If it does become possible this can be refactored to support extending HTMLInputElement.
  */
 
 import Text from './text.js';

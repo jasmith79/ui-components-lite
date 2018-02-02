@@ -1,3 +1,14 @@
+/*
+ * router.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * router component for ui-components-lite.
+ */
+
 import { UIBase, defineUIComponent, document, global } from '../utils/ui-component-base.js';
 import { parseURL, toQueryString } from '../utils/url.js';
 

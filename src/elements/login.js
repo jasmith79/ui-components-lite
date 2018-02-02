@@ -1,10 +1,21 @@
-import { UIBase, defineUIComponent, document, global } from '../utils/ui-component-base.js';
+/*
+ * login.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * login component for ui-components-lite.
+ */
 
-import './form.js';
-import './input.js';
-import './card.js';
-import './fab.js';
-import './alert.js';
+import Card from './card.js';
+import Fab from './fab.js';
+import Alert from './alert.js';
+import { Form } from './form.js';
+import { Input } from './input.js';
+
+import { UIBase, defineUIComponent, document, global } from '../utils/ui-component-base.js';
 
 const INVALID = `Invalid login credentials. Please double-check your username and password.`;
 const FAILURE = `Could not connect to the server to verify your identity. Please check the console for details.`;

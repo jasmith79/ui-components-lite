@@ -1,3 +1,14 @@
+/*
+ * drawer.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * sliding drawer component for ui-components-lite. Works in conjunction with a menu button.
+ */
+
 import Backdrop from './backdrop.js';
 
 import Easer from '../animations/easer.js';

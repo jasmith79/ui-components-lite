@@ -1,3 +1,14 @@
+/*
+ * easer.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * easer animation component for ui-components-lite.
+ */
+
 import { defineUIComponent, document, global } from '../utils/dom.js';
 import { generateCSSClassName } from '../utils/styler.js';
 

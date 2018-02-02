@@ -1,8 +1,16 @@
 /*
+ * checkbox.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * checkbox component for ui-components-lite.
+
  * NOTE: it is not currently possible to extend specific HTMLElements, leading
  * to this element being rather convoluted. Once it's possible to extend input
  * directly this should be refactored.
- *
  */
 
 import { FormBehavior } from './form.js';
