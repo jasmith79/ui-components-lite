@@ -8,6 +8,9 @@ CONCAT_SUFFIX := "};if(window.customElements){__run();}else{var __listener=funct
 
 all: $(ES) build/loader.min.js build/es5.min.js build/concat.min.js
 
+serve:
+	node src/utils/server.js
+
 clean:
 	rm -rf ./build
 
@@ -51,4 +54,4 @@ build/loader.min.js: src/utils/loader.js
 	@mkdir -p $(@D)
 	minify $< > $@
 
-.PHONY: all clean
+.PHONY: all clean serve
