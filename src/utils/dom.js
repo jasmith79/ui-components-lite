@@ -9,7 +9,7 @@
  * utility file for ui-components-lite.
  */
 
-import { toCamelCase, toSnakeCase } from '../../node_modules/jsstring/src/jsstring.js';
+import { toCamelCase, toSnakeCase } from '../../../jsstring/src/jsstring.js';
 
 const global = new Function('return this')();
 const document = global.document;

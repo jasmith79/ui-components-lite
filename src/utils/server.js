@@ -56,7 +56,12 @@ app.get('*', function(request, response, next) {
   console.log(`URL: ${request.url}`);
   if (request.url.match(/\.[0-9a-zA-Z]*$/)) {
     console.log(`File ${request.url} requested, serving...`);
-    response.sendFile(`${workingDirectory}/${request.url}`);
+    let npmDep = ['mixwith', 'jsstring', 'extracttype'].find(x => request.url.match(x));
+    let path = npmDep ?
+      `${workingDirectory}/node_modules/${request.url}` :
+      `${workingDirectory}/${request.url}`;
+      
+    response.sendFile(path);
     console.log('done.');
     return;
   } else {

@@ -12,8 +12,8 @@
 import { UIBase, defineUIComponent, document, global } from '../utils/ui-component-base.js';
 import { parseURL, toQueryString } from '../utils/url.js';
 
-import extractType from '../../node_modules/extracttype/extracttype.js';
-import { mix } from '../../node_modules/mixwith/src/mixwith.js';
+import extractType from '../../../extracttype/extracttype.js';
+import { mix } from '../../../mixwith/src/mixwith.js';
 
 export const Router = (() => {
   let historyManager = null;

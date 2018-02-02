@@ -18,8 +18,8 @@ import { ListBehavior } from './list.js';
 import Focusable from '../utils/focusable.js';
 import { UIBase, defineUIComponent, document, global } from '../utils/ui-component-base.js';
 
-import { mix } from '../../node_modules/mixwith/src/mixwith.js';
-import { extractType } from '../../node_modules/extracttype/extracttype.js';
+import { mix } from '../../../mixwith/src/mixwith.js';
+import { extractType } from '../../../extracttype/extracttype.js';
 
 const reflectedAttrs = ['selected-index', 'is-open', 'multiple', 'label'];
 const template = document.createElement('template');

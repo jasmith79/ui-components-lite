@@ -20,8 +20,8 @@ import Ripples from '../animations/rippler.js';
 import Focusable from '../utils/focusable.js';
 import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';
 
-import extractType from '../../node_modules/extracttype/extracttype.js';
-import { mix } from '../../node_modules/mixwith/src/mixwith.js';
+import extractType from '../../../extracttype/extracttype.js';
+import { mix } from '../../../mixwith/src/mixwith.js';
 
 const handlerCache = new WeakMap();
 export const ListBehavior = superclass => defineUIComponent({

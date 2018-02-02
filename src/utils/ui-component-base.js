@@ -15,8 +15,8 @@ import DOMutils from './dom-utils.js';
 import processHTMLAttr from './attribute-analyzer.js';
 import event2Promise from './promise-from-event.js';
 import { baseClass, global, document, defineUIComponent } from './dom.js';
-import { toSnakeCase, toCamelCase } from '../../node_modules/jsstring/src/jsstring.js';
-import { mix } from '../../node_modules/mixwith/src/mixwith.js';
+import { toSnakeCase, toCamelCase } from '../../../jsstring/src/jsstring.js';
+import { mix } from '../../../mixwith/src/mixwith.js';
 
 let flag = true;
 class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {

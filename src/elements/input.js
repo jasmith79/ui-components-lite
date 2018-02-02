@@ -18,8 +18,8 @@ import { FormBehavior } from './form.js';
 import Focusable from '../utils/focusable.js';
 import { UIBase, document, defineUIComponent, global } from '../utils/ui-component-base.js';
 
-import { mix } from '../../node_modules/mixwith/src/mixwith.js';
-import { extractType } from '../../node_modules/extracttype/extracttype.js';
+import { mix } from '../../../mixwith/src/mixwith.js';
+import { extractType } from '../../../extracttype/extracttype.js';
 
 // This is here to make input event consistent across browsers, all of these
 // if the value is different than the last onfocus will trigger change event.

@@ -14,7 +14,7 @@ import processHTMLAttr from '../utils/attribute-analyzer.js';
 import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';
 import { centeredStyles } from '../utils/centerer.js';
 
-import { mix } from '../../node_modules/mixwith/src/mixwith.js';
+import { mix } from '../../../mixwith/src/mixwith.js';
 
 const reflectedAttrs = [
   'is-tall',

@@ -16,7 +16,7 @@ import Button from './button.js';
 import Floats from '../utils/float.js';
 import { defineUIComponent, document, global } from '../utils/dom.js';
 
-import { mix } from '../../node_modules/mixwith/src/mixwith.js';
+import { mix } from '../../../mixwith/src/mixwith.js';
 
 const template = document.createElement('template');
 template.innerHTML = `

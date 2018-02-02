@@ -13,8 +13,8 @@ import { Item, ListBehavior } from './list.js';
 
 import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';
 
-import extractType from '../../node_modules/extracttype/extracttype.js';
-import { mix } from '../../node_modules/mixwith/src/mixwith.js';
+import extractType from '../../../extracttype/extracttype.js';
+import { mix } from '../../../mixwith/src/mixwith.js';
 
 export const Tab = (() => {
   const template = document.createElement('template');

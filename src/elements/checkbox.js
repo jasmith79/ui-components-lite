@@ -20,7 +20,7 @@ import Ripples from '../animations/rippler.js';
 import Focusable from '../utils/focusable.js';
 import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';
 
-import { mix } from '../../node_modules/mixwith/src/mixwith.js';
+import { mix } from '../../../mixwith/src/mixwith.js';
 
 const template = document.createElement('template');
 template.innerHTML = `

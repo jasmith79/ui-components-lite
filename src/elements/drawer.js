@@ -16,7 +16,7 @@ import Easer from '../animations/easer.js';
 import Floats from '../utils/float.js';
 import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';
 
-import { mix } from '../../node_modules/mixwith/src/mixwith.js';
+import { mix } from '../../../mixwith/src/mixwith.js';
 
 const template = document.createElement('template');
 template.innerHTML = `

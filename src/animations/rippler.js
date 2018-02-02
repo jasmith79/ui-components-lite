@@ -10,7 +10,7 @@
  */
 import { document, defineUIComponent, global } from '../utils/dom.js';
 
-import extractType from '../../node_modules/extracttype/extracttype.js';
+import extractType from '../../../extracttype/extracttype.js';
 
 const rippleEvents = ['click', 'tap', 'dblclick', 'enter-key'];
 const handlerRegistry = new WeakMap();

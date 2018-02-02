@@ -12,7 +12,7 @@
  * than a string.
  */
 
-import extractType from '../../node_modules/extracttype/extracttype.js';
+import extractType from '../../../extracttype/extracttype.js';
 
 const processHTMLAttr = attr => {
   switch (extractType(attr)) {

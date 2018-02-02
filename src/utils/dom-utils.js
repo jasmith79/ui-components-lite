@@ -12,7 +12,7 @@
 import * as DOM from './dom.js';
 import processHTMLAttr from './attribute-analyzer.js';
 
-import extractType from '../../node_modules/extracttype/extracttype.js';
+import extractType from '../../../extracttype/extracttype.js';
 
 const attrConf = { attributes: true };
 const isHTMLElement = arg => Boolean(extractType(arg).match(/HTML[a-zA-Z]*Element/));
