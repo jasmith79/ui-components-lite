@@ -1,3 +1,14 @@
+/*
+ * dom-utils.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * DOM manipulation mixin for ui-components-lite.
+ */
+
 import * as DOM from './dom.js';
 import processHTMLAttr from './attribute-analyzer.js';
 

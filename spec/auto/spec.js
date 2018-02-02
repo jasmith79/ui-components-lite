@@ -1,3 +1,14 @@
+/*
+ * spec.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * automated tests for ui-components-lite.
+ */
+
 import Fab from '../../src/elements/fab.js';
 import Hamburger from '../../src/elements/hamburger.js';
 import Alert from '../../src/elements/alert.js';

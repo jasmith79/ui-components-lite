@@ -1,8 +1,13 @@
 TODO:
 
+refactor attribute-analyzer: can use hasAttribute to eliminate the empty string === true bit?
+refactor styler
+
+see if data-binding can happen earlier in the lifecycle?
+
 auto tests, especially dynamically added elements/children
 
-dynamic dialog construction fails.
+add flow types
 
 DOCUMENT EVERYTHING
 

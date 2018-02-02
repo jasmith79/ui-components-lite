@@ -1,3 +1,17 @@
+/*
+ * promise-from-event.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * Utility function that returns a Promise that resolves as soon as the associated event fires.
+ *
+ * NOTE: the listener is automatically removed when the event fires, so no memory leak and
+ * side effects will only happen once.
+ */
+
 export default ({ eventName, element, callback, timeout }) => {
   if (!eventName || !element) {
     throw new TypeError(`Missing required arguments to function.`);

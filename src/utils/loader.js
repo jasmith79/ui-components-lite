@@ -1,7 +1,7 @@
 /*
  * loader.js
  * @author jarsmith79@gmail.com
- * @copyright 2018
+ * @copyright Jared Smith
  * @license MIT
  *
  * Loads all of the basic ui-components and associated libraries and polyfills.

@@ -1,4 +1,17 @@
 #!/usr/bin/env node
+/*
+ * server.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * development server for ui-components-lite. Python's simpleHTTPServer/http.server chokes when
+ * Chrome tries to load a bunch of `imports` all at once, so I wrote a quicky express server to
+ * handle it.
+ */
+
 'use strict';
 
 const express = require('express');

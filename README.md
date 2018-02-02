@@ -2,6 +2,11 @@
 
 A set of fairly lightweight UI WebComponents.
 
+## **NOTE**:
+
+API is in flux. I will remove this warning until it stabilizes but right now caveat emptor.
+
+
 ### Goals
 
 * Use the platform. Everything must be standards-based with broad pledged support from all major browser vendors (meaning no HTML imports, CSS `@apply`, or extending built-in elements).

@@ -1,3 +1,14 @@
+/*
+ * url.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * url processing utility for ui-components-lite.
+ */
+
 // At some point could use the following with named capture groups?
 // const urlMatcher = /(?:(https?):\/\/)?(?:(\w+)\.)?(\w+)\.(\w+)(\/[\w\/]+)?(?:\?(.+))?/
 const matchProtocol = /https?/i;

@@ -1,8 +1,10 @@
 /*
  * focusable.js
- * @author jasmith79@gmail.com
- * @copyright 2018
+ * @author jasmith79
+ * @copyright Jared Smith
  * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
  *
  * Mixin for custom elements that can receive keyboard focus.
  */

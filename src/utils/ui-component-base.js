@@ -1,3 +1,14 @@
+/*
+ * ui-component-base.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * base class for ui-components-lite custom elements.
+ */
+
 import './styler.js';
 import DataBinder from './binder.js';
 import DOMutils from './dom-utils.js';

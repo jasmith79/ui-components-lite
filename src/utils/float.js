@@ -1,3 +1,15 @@
+/*
+ * float.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * floating mixin for ui-components-lite. Allows elements to easily add a vertical or horizontal
+ * floating effect.
+ */
+
 import { defineUIComponent, document } from './dom.js';
 
 const template = document.createElement('template');
