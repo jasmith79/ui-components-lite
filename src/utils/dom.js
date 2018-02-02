@@ -21,7 +21,7 @@ const toPropertyObj = propList => {
     const property = toCamelCase(prop);
     acc[property] = {
       get: function() {
-        return this[`_${property}`];
+        return this[`_${property}`] === undefined ? null : this[`_${property}`];
       },
       set: function(val) {
         this[`_${property}`] = val;

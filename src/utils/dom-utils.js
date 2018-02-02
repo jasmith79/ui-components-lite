@@ -204,7 +204,7 @@ export default superclass => class DOMutils extends superclass {
       throw new TypeError(`Attempted to append to shadowRoot but none exists on element ${this.identity}`);
     }
     if (parent.children.length) {
-      parent.insertBefore(parent, parent.children[0]);
+      parent.insertBefore(node, parent.children[0]);
     } else {
       parent.appendChild(node);
     }

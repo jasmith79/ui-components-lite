@@ -23,8 +23,10 @@ const processHTMLAttr = attr => {
     case 'String':
       if (!attr) return true; // empty string, e.g. <ui-drawer is-modal></ui-drawer>
       let val;
+      if (attr === 'NaN') return NaN;
+      if (attr === 'undefined') return undefined;
       try {
-        val = JSON.parse(attr); // numbers, bools, etc
+        val = JSON.parse(attr); // numbers, bools, null, etc
       } catch (e) {
         val = attr;
       }

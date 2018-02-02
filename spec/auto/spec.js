@@ -9,17 +9,50 @@
  * automated tests for ui-components-lite.
  */
 
+import {
+  document,
+  global,
+  defineUIComponent,
+  UIBase
+} from '../../src/utils/ui-component-base.js';
 import Fab from '../../src/elements/fab.js';
 import Hamburger from '../../src/elements/hamburger.js';
 import Alert from '../../src/elements/alert.js';
 import Drawer from '../../src/elements/drawer.js';
 import Toolbar from '../../src/elements/toolbar.js';
-import { Tabs, Tab } from '../../src/elements/tabs.js';
+import {
+  Tabs,
+  Tab
+} from '../../src/elements/tabs.js';
 import Text from '../../src/elements/text.js';
-import { Input, DATE_TYPE_SUPPORTED, TIME_TYPE_SUPPORTED } from '../../src/elements/input.js';
+import {
+  Input,
+  DATE_TYPE_SUPPORTED,
+  TIME_TYPE_SUPPORTED
+} from '../../src/elements/input.js';
 import Dropdown from '../../src/elements/drop-down.js';
 import Login from '../../src/elements/login.js';
-import { Router } from '../../src/elements/router.js';
+import {
+  Router
+} from '../../src/elements/router.js';
+import extractType from '../../node_modules/extracttype/extracttype.js';
+
+const reflectedAttrs = ['foo-bar'];
+const template = document.createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+`;
+
+const FooX = defineUIComponent({
+  name: 'foo-x',
+  template,
+  reflectedAttrs,
+  definition: class FooX extends UIBase {},
+});
 
 Promise.all([
   customElements.whenDefined('ui-fab'),
@@ -33,7 +66,431 @@ Promise.all([
   customElements.whenDefined('ui-drop-down'),
   customElements.whenDefined('ui-login'),
   customElements.whenDefined('ui-router'),
+  customElements.whenDefined('foo-x'),
 ]).then(() => {
+  describe('defineUIComponent', () => {
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should be constructable via innerHTML', done => {
+      div.innerHTML = '<foo-x></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.onReady(_ => {
+        expect(true).toBe(true);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('should be constructable via document.createElement', done => {
+      let foo = document.createElement('foo-x');
+      foo.onReady(_ => {
+        expect(true).toBe(true);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+      div.appendChild(foo);
+    });
+
+
+    it('should reflect reflectedAttributes to a JavaScript object property', done => {
+      div.innerHTML = '<foo-x foo-bar="baz"></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.onReady(_ => {
+        expect(foo.fooBar).toBe('baz');
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('should reflect reflected JavaScript object properties to an HTML attribute', done => {
+      div.innerHTML = '<foo-x foo-bar="baz"></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.onReady(_ => {
+        foo.fooBar = 'qux';
+        setTimeout(() => {
+          expect(foo.attr('foo-bar')).toBe('qux');
+          done();
+        }, 0);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('should reflect reflectedAttributes the correct JavaScript type', done => {
+      div.innerHTML = '<foo-x foo-bar="3"></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.onReady(_ => {
+        expect(foo.attr('foo-bar')).toBe(3);
+        expect(extractType(foo.attr('foo-bar'))).toBe('Number');
+        foo.attr('foo-bar', 'NaN');
+        expect(Number.isNaN(foo.attr('foo-bar'))).toBe(true);
+        expect(extractType(foo.attr('foo-bar'))).toBe('Number');
+        foo.attr('foo-bar', true);
+        expect(foo.attr('foo-bar')).toBe(true);
+        expect(extractType(foo.attr('foo-bar'))).toBe('Boolean');
+        foo.attr('foo-bar', false);
+        expect(foo.attr('foo-bar')).toBe(false);
+        expect(extractType(foo.attr('foo-bar'))).toBe('Boolean');
+        foo.attr('foo-bar', null);
+        expect(foo.attr('foo-bar')).toBe(null);
+        expect(extractType(foo.attr('foo-bar'))).toBe('Null');
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('should reflect missing attribute as null', done => {
+      div.innerHTML = '<foo-x></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.onReady(_ => {
+        expect(foo.fooBar).toBeNull();
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('selectAll method should return array of all children matching a selector', done => {
+      div.innerHTML = '<foo-x><div class="find-me"></div><div class="find-me"></div></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.onReady(_ => {
+        let arr = foo.selectAll('.find-me');
+        expect(Array.isArray(arr)).toBe(true);
+        expect(arr.length).toBe(2);
+        expect(arr.every(x => extractType(x) === 'HTMLDivElement')).toBe(true);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('isVisible property should reflect visibility', done => {
+      div.innerHTML = '<foo-x></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.onReady(_ => {
+        expect(foo.isVisible).toBe(true);
+        foo.style.opacity = '0';
+        expect(foo.isVisible).toBe(false);
+        foo.style.opacity = '';
+        expect(foo.isVisible).toBe(true);
+        foo.style.visibility = 'hidden';
+        expect(foo.isVisible).toBe(false);
+        foo.style.visibility = '';
+        expect(foo.isVisible).toBe(true);
+        foo.style.display = 'none';
+        expect(foo.isVisible).toBe(false);
+        foo.style.display = '';
+        expect(foo.isVisible).toBe(true);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('selectInternalElement method should select a child of the element\'s shadowRoot', done => {
+      div.innerHTML = '<foo-x></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.shadowRoot.innerHTML += '<div class="find-me"></div>';
+      foo.onReady(_ => {
+        let d = foo.selectInternalElement('.find-me');
+        expect(d).not.toBeNull();
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('selectInternalAll method should be same as selectAll but for shadowRoot', done => {
+      div.innerHTML = '<foo-x></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.shadowRoot.innerHTML += '<div class="find-me"></div><div class="find-me"></div>';
+      foo.onReady(_ => {
+        let arr = foo.selectInternalAll('.find-me');
+        expect(Array.isArray(arr)).toBe(true);
+        expect(arr.length).toBe(2);
+        expect(arr.every(x => extractType(x) === 'HTMLDivElement')).toBe(true);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('identity property should return the tagName, id, and css class selectors joined', done => {
+      div.innerHTML = '<foo-x></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.onReady(_ => {
+        expect(foo.identity).toBe('foo-x.is-ui-component');
+        foo.id = 'foo';
+        foo.classList.add('bar');
+        foo.classList.add('baz');
+        expect(foo.identity).toBe('foo-x#foo.is-ui-component.bar.baz');
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('isUIComponent property should be true', () => {
+      div.innerHTML = '<foo-x></foo-x>';
+      let foo = div.querySelector('foo-x');
+      expect(foo.isUIComponent).toBe(true);
+    });
+
+    it('on method should allow attaching event handlers', done => {
+      div.innerHTML = '<foo-x></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.onReady(_ => {
+        foo.on('click', e => {
+          expect(true).toBe(true);
+          done();
+        });
+        foo.click();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('on method should autoremove and reattach handlers', done => {
+      div.innerHTML = '<foo-x></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.onReady(_ => {
+        let counter = 0;
+        foo.on('click', e => {
+          counter++;
+        });
+        foo.click();
+        div.removeChild(foo);
+        foo.click();
+        expect(counter).toBe(1);
+        div.appendChild(foo);
+        foo.click();
+        expect(counter).toBe(2);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('on method should handle a space-delimited list of multiple events', done => {
+      div.innerHTML = '<foo-x></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.onReady(_ => {
+        let counter = 0;
+        foo.on('click keydown', e => {
+          counter++;
+        });
+        foo.click();
+        foo.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'enter'
+        }));
+        expect(counter).toBe(2);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('on method should not register the same handler more than once', done => {
+      div.innerHTML = '<foo-x></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.onReady(_ => {
+        let counter = 0;
+        let listener = e => counter++;
+        foo.on('click', listener);
+        foo.on('click', listener);
+        foo.click();
+        expect(counter).toBe(1);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('remove method no args removes this from parent', () => {
+      div.innerHTML = '<foo-x></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.remove();
+      expect(div.querySelector('foo-x')).toBeNull();
+    });
+
+    it('remove method node arguments removes that child from this', done => {
+      div.innerHTML = '<foo-x><div class="find-me"></div></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.onReady(_ => {
+        let found = foo.querySelector('.find-me');
+        foo.remove(found);
+        expect(foo.querySelector('.find-me')).toBeNull();
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('remove method multiple node args removes them all from this', done => {
+      div.innerHTML = '<foo-x><div class="find-me"></div><div class="find-me"></div></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.onReady(_ => {
+        let found = foo.selectAll('.find-me');
+        expect(found.length).toBe(2);
+        foo.remove(...found);
+        expect(foo.querySelector('.find-me')).toBeNull();
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('remove method function argument removes that listener from all events', done => {
+      div.innerHTML = '<foo-x></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.onReady(_ => {
+        let counter = 0;
+        let listener = e => counter++;
+        foo.on('click keydown', listener);
+        foo.click();
+        foo.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'enter'
+        }));
+        expect(counter).toBe(2);
+        foo.remove(listener);
+        foo.click();
+        foo.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'enter'
+        }));
+        expect(counter).toBe(2);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('remove method event, listener removes that listener for that event only', done => {
+      div.innerHTML = '<foo-x></foo-x>';
+      let foo = div.querySelector('foo-x');
+      foo.onReady(_ => {
+        let counter = 0;
+        let listener = e => counter++;
+        foo.on('click keydown', listener);
+        foo.click();
+        foo.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'enter'
+        }));
+        expect(counter).toBe(2);
+        foo.remove('click', listener);
+        foo.click();
+        foo.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'enter'
+        }));
+        expect(counter).toBe(3);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('appendFirst method appends the node before the first child', done => {
+      let arr = [],
+        a, b;
+      div.innerHTML = '<foo-x><div class="find-me"></div></foo-x>';
+      let foo = div.querySelector('foo-x');
+      arr.push(foo.onReady(_ => {
+        a = document.createElement('div');
+        foo.appendFirst(a);
+      }));
+
+      div.innerHTML += '<foo-x id="bar"></foo-x>';
+      let bar = div.querySelector('#bar');
+      arr.push(bar.onReady(() => {
+        b = document.createElement('div');
+        bar.appendFirst(b);
+      }));
+
+      Promise.all(arr).then(_ => {
+        expect(foo.children[0]).toEqual(a);
+        expect(bar.children[0]).toEqual(b);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('should support 1-way data-binding to attribute of a UIComponent parent.', done => {
+      div.innerHTML = '<foo-x id="foo" foo-bar="3"><foo-x id="bar" foo-bar="{{foo-bar}}"></foo-x></foo-x>';
+      let foo = div.querySelector('#foo');
+      let bar = div.querySelector('#bar');
+      Promise.all([foo._isReady, bar._isReady]).then(_ => {
+        expect(bar.attr('foo-bar')).toBe(3);
+        foo.fooBar = 4;
+      }).then(_ => {
+        expect(bar.attr('foo-bar')).toBe(4);
+        bar.fooBar = 5; // shouldn't be able to set, triggers console warning and fails
+      }).then(_ => {
+        expect(bar.attr('foo-bar')).toBe(4);
+        foo.fooBar = 3;
+      }).then(_ => {
+        expect(bar.attr('foo-bar')).toBe(3);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('should support 2-way data-binding of attributes to a UIComponent parent.', done => {
+      div.innerHTML = '<foo-x id="foo" foo-bar="3"><foo-x id="bar" foo-bar="{{{foo-bar}}}"></foo-x></foo-x>';
+      let foo = div.querySelector('#foo');
+      let bar = div.querySelector('#bar');
+      Promise.all([foo._isReady, bar._isReady]).then(_ => {
+        expect(bar.attr('foo-bar')).toBe(3);
+        foo.fooBar = 4;
+      }).then(_ => {
+        expect(bar.attr('foo-bar')).toBe(4);
+        bar.fooBar = 5;
+      }).then(_ => {
+        expect(foo.attr('foo-bar')).toBe(5);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+  });
+
   describe('ui-card', () => {
     let div;
     beforeEach(() => {
@@ -53,15 +510,23 @@ Promise.all([
       let card = div.querySelector('ui-card');
       return card.onReady(_ => {
         expect(true).toBe(true); // mostly testing for errors
-      }).then(done).catch(done);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be appended to another element.', done => {
       let card = document.createElement('ui-card');
       div.appendChild(card);
       return card.onReady(_ => {
-        expect(true).toBe(true);
-      }).then(done).catch(done);
+        expect(true).toBe(true); // mostly testing for errors
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 
@@ -84,7 +549,10 @@ Promise.all([
       let text = div.querySelector('ui-text');
       return text.onReady(_ => {
         expect(true).toBe(true); // mostly testing for errors
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be appended to another element.', done => {
@@ -92,7 +560,10 @@ Promise.all([
       div.appendChild(text);
       return text.onReady(_ => {
         expect(true).toBe(true);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should take any initial text content as view-text', done => {
@@ -103,7 +574,10 @@ Promise.all([
         expect(text.viewText).toBe('foo');
         expect(text.attr('view-text')).toBe('foo');
         expect(text.textContent).toBe('foo');
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should have it\'s content changed via the view-text property/attr *and* textContent', done => {
@@ -127,7 +601,10 @@ Promise.all([
         expect(text.viewText).toBe('baz');
         expect(text.textContent).toBe('baz');
         expect(text.attr('view-text')).toBe('baz');
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to data-bind to a ui-component parent\'s attributes', done => {
@@ -148,7 +625,10 @@ Promise.all([
           expect(text.attr('view-text')).toBe('baz');
           done();
         }, 0);
-      }).catch(done);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 
@@ -171,7 +651,10 @@ Promise.all([
       let checkbox = div.querySelector('ui-checkbox');
       return checkbox.onReady(_ => {
         expect(true).toBe(true); // mostly testing for errors
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be appended to another element.', done => {
@@ -179,7 +662,10 @@ Promise.all([
       div.appendChild(checkbox);
       return checkbox.onReady(_ => {
         expect(true).toBe(true);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 
@@ -202,7 +688,10 @@ Promise.all([
       let button = div.querySelector('ui-button');
       return button.onReady(_ => {
         expect(true).toBe(true); // mostly testing for errors
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be appended to another element.', done => {
@@ -210,7 +699,10 @@ Promise.all([
       div.appendChild(button);
       return button.onReady(_ => {
         expect(true).toBe(true);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 
@@ -233,7 +725,10 @@ Promise.all([
       let fab = div.querySelector('ui-fab');
       return fab.onReady(_ => {
         expect(true).toBe(true); // mostly testing for errors
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be appended to another element.', done => {
@@ -241,7 +736,10 @@ Promise.all([
       div.appendChild(fab);
       return fab.onReady(_ => {
         expect(true).toBe(true);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be floating', done => {
@@ -251,7 +749,10 @@ Promise.all([
         expect(fab.floatingY).toBe(true);
         let boxShadow = window.getComputedStyle(fab).boxShadow;
         expect(Boolean(boxShadow)).toBe(true);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 
@@ -274,7 +775,10 @@ Promise.all([
       let hamburger = div.querySelector('ui-hamburger');
       return hamburger.onReady(_ => {
         expect(true).toBe(true); // mostly testing for errors
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be appended to another element.', done => {
@@ -282,7 +786,10 @@ Promise.all([
       div.appendChild(hamburger);
       return hamburger.onReady(_ => {
         expect(true).toBe(true);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should change color in response to the line-color property/attribute', done => {
@@ -299,7 +806,10 @@ Promise.all([
         hamburger.attr('line-color', 'purple');
         expect(window.getComputedStyle(hamburger.selectInternalElement('.line')).backgroundColor)
           .toBe('rgb(128, 0, 128)');
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 
@@ -322,7 +832,10 @@ Promise.all([
       let dialog = div.querySelector('ui-dialog');
       return dialog.onReady(_ => {
         expect(true).toBe(true); // mostly testing for errors
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be appended to another element.', done => {
@@ -330,7 +843,10 @@ Promise.all([
       div.appendChild(dialog);
       return dialog.onReady(_ => {
         expect(true).toBe(true);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('emit an event on opening', done => {
@@ -351,7 +867,10 @@ Promise.all([
         }, 10);
 
         dialog.open();
-      }).catch(done);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('emit an event on closing', done => {
@@ -373,7 +892,10 @@ Promise.all([
 
         dialog.open();
         dialog.close();
-      }).catch(done);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should respond to a confirmer, including emitting an appropiate event', done => {
@@ -395,7 +917,10 @@ Promise.all([
 
         dialog.open();
         dialog.querySelector('ui-button').click();
-      }).catch(done);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should respond to a dismisser, including emitting an appropiate event', done => {
@@ -417,7 +942,10 @@ Promise.all([
 
         dialog.open();
         dialog.querySelector('ui-button').click();
-      }).catch(done);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be modal if specified', done => {
@@ -439,7 +967,10 @@ Promise.all([
         setTimeout(() => {
           if (!flag) throw new Error('modal fail.');
         }, 1100);
-      }).catch(done);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 
@@ -462,7 +993,10 @@ Promise.all([
       let alert = div.querySelector('ui-alert');
       return alert.onReady(_ => {
         expect(true).toBe(true); // mostly testing for errors
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be appended to another element.', done => {
@@ -470,7 +1004,10 @@ Promise.all([
       div.appendChild(alert);
       return alert.onReady(_ => {
         expect(true).toBe(true);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('emit an event on opening', done => {
@@ -491,7 +1028,10 @@ Promise.all([
         }, 10);
 
         alert.open();
-      }).catch(done);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('emit an event on closing', done => {
@@ -513,7 +1053,10 @@ Promise.all([
 
         alert.open();
         alert.close();
-      }).catch(done);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should respond to a confirmer, including emitting an appropiate event', done => {
@@ -535,7 +1078,10 @@ Promise.all([
 
         alert.open();
         alert.querySelector('ui-button').click();
-      }).catch(done);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should respond to a dismisser, including emitting an appropiate event', done => {
@@ -557,7 +1103,10 @@ Promise.all([
 
         alert.open();
         alert.selectInternalElement('ui-button').click();
-      }).catch(done);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be modal', done => {
@@ -579,7 +1128,10 @@ Promise.all([
         setTimeout(() => {
           if (!flag) throw new Error('modal fail.');
         }, 1200);
-      }).catch(done);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should have an alert method that opens the dialog and sets content appropriately', done => {
@@ -592,7 +1144,10 @@ Promise.all([
           expect(alert.textContent).toBe('foobar');
           done();
         }, 505);
-      }).catch(done);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should have the closer focused on open', done => {
@@ -608,13 +1163,15 @@ Promise.all([
         alert.alert('foobar');
         setTimeout(() => {
           expect(alert.isOpen).toBe(true);
-          console.log(alert.shadowRoot.activeElement);
           alert.shadowRoot.activeElement.click();
           setTimeout(() => {
             if (!flag) throw new Error('closer not focused');
           }, 600);
         }, 505);
-      }).catch(done);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 
@@ -637,7 +1194,10 @@ Promise.all([
       let drawer = div.querySelector('ui-drawer');
       return drawer.onReady(_ => {
         expect(true).toBe(true); // mostly testing for errors
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be appended to another element.', done => {
@@ -645,7 +1205,10 @@ Promise.all([
       div.appendChild(drawer);
       return drawer.onReady(_ => {
         expect(true).toBe(true);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be toggled by an appropriate element already in DOM', done => {
@@ -658,7 +1221,10 @@ Promise.all([
           expect(drawer.isOpen).toBe(true);
           done();
         }, 505); // slide animation, ripple on button
-      }).catch(done);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should emit appropriate events', done => {
@@ -684,7 +1250,10 @@ Promise.all([
             throw new Error('event did not fire');
           }
         }, 1100);
-      }).catch(done);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be modal if specified', done => {
@@ -708,7 +1277,10 @@ Promise.all([
             throw new Error('event did not fire');
           }
         }, 1100);
-      }).catch(done);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 
@@ -731,7 +1303,10 @@ Promise.all([
       let toolbar = div.querySelector('ui-toolbar');
       return toolbar.onReady(_ => {
         expect(true).toBe(true); // mostly testing for errors
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be appended to another element.', done => {
@@ -739,7 +1314,10 @@ Promise.all([
       div.appendChild(toolbar);
       return toolbar.onReady(_ => {
         expect(true).toBe(true);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 
@@ -762,7 +1340,10 @@ Promise.all([
       let tab = div.querySelector('ui-tab');
       return tab.onReady(_ => {
         expect(true).toBe(true); // mostly testing for errors
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be appended to another element.', done => {
@@ -770,7 +1351,10 @@ Promise.all([
       div.appendChild(tab);
       return tab.onReady(_ => {
         expect(true).toBe(true);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 
@@ -793,7 +1377,10 @@ Promise.all([
       let tabs = div.querySelector('ui-tabs');
       return tabs.onReady(_ => {
         expect(true).toBe(true); // mostly testing for errors
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be appended to another element.', done => {
@@ -801,7 +1388,10 @@ Promise.all([
       div.appendChild(tabs);
       return tabs.onReady(_ => {
         expect(true).toBe(true);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 
@@ -828,7 +1418,10 @@ Promise.all([
         let value = ip.selectInternalElement('input').value;
         expect(value).toBe('pizza');
         expect(ip.attr('value')).toBe('pizza');
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be appended to another element.', done => {
@@ -840,7 +1433,10 @@ Promise.all([
         let value = ip.selectInternalElement('input').value;
         expect(value).toBe('pizza');
         expect(ip.attr('value')).toBe('pizza');
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should support a default value', done => {
@@ -857,7 +1453,10 @@ Promise.all([
 
         val = ip.selectInternalElement('input').value;
         expect(val).toBe('foobar');
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
 
       div.appendChild(ip);
     });
@@ -871,7 +1470,10 @@ Promise.all([
         ip.value = '3';
         ip.remove(listen);
         expect(count).toBe(1);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
 
       div.appendChild(ip);
     });
@@ -913,7 +1515,10 @@ Promise.all([
         date1.value = new Date('foo');
         expect(date1.value).toBeNull();
         expect(date1.classList.contains('empty')).toBe(true);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should work for appendChild', done => {
@@ -938,7 +1543,10 @@ Promise.all([
         date1.value = new Date('foo');
         expect(date1.value).toBeNull();
         expect(date1.classList.contains('empty')).toBe(true);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 
@@ -969,7 +1577,10 @@ Promise.all([
       return dd.onReady(_ => {
         expect(dd.value).toBe('passed');
         expect(dd.textContent.trim()).toBe('Bar');
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be appended to another element.', done => {
@@ -992,7 +1603,10 @@ Promise.all([
       dd.onReady(_ => {
         expect(dd.value).toBe('passed');
         expect(dd.textContent.trim()).toBe('Bar');
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should fire change event exactly once on value changes', done => {
@@ -1010,7 +1624,10 @@ Promise.all([
           expect(count).toBe(1);
           done();
         }, 10);
-      }).catch(done);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
 
       div.appendChild(dd);
     });
@@ -1035,7 +1652,10 @@ Promise.all([
       let login = div.querySelector('ui-login');
       return login.onReady(_ => {
         expect(true).toBe(true); // mostly testing for errors
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be appended to another element.', done => {
@@ -1043,7 +1663,10 @@ Promise.all([
       div.appendChild(login);
       return login.onReady(_ => {
         expect(true).toBe(true);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 
@@ -1066,7 +1689,10 @@ Promise.all([
       let router = div.querySelector('ui-router');
       return router.onReady(_ => {
         expect(true).toBe(true); // mostly testing for errors
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be appended to another element.', done => {
@@ -1074,7 +1700,10 @@ Promise.all([
       div.appendChild(router);
       return router.onReady(_ => {
         expect(true).toBe(true);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 
@@ -1097,7 +1726,10 @@ Promise.all([
       let route = div.querySelector('ui-route');
       return route.onReady(_ => {
         expect(true).toBe(true); // mostly testing for errors
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
     it('should be able to be appended to another element.', done => {
@@ -1105,7 +1737,10 @@ Promise.all([
       div.appendChild(route);
       return route.onReady(_ => {
         expect(true).toBe(true);
-      }).then(done).catch(done);
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 });

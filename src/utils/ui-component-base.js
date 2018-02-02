@@ -49,7 +49,7 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
   }
 
   get componentName () {
-    return `ui-${toSnakeCase(this.constructor.name, '-')}`;
+    return this.tagName.toLowerCase();
   }
 
   get isUIComponent () {

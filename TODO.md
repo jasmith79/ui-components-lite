@@ -3,6 +3,8 @@ TODO:
 refactor attribute-analyzer: can use hasAttribute to eliminate the empty string === true bit?
 refactor styler
 
+add append, insertBefore, etc. overrides for elements that need them
+
 see if data-binding can happen earlier in the lifecycle?
 
 auto tests, especially dynamically added elements/children
