@@ -1,3 +1,4 @@
+import { global } from './ui-component-base.js';
 import extractType from '../../../extracttype/extracttype.js';
 
 const changeTriggers = [
@@ -46,4 +47,3 @@ export const inputNormalizer = input => {
     before = input.value;
   });
 };
-

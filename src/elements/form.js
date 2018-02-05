@@ -86,7 +86,6 @@ export const Form = (() => {
       get data () {
         return this.elements.reduce((formdata, el) => {
           let name = el.getAttribute('name');
-          console.log(`name: ${name}, value: ${el.value}`);
           if (name) formdata.append(name, el.value == null ? '' : el.value);
           return formdata
         }, new FormData);
@@ -176,7 +175,6 @@ export const Form = (() => {
           const data = this.serialize();
           const parsed = parseURL(global.location.href);
           const { path, route, hashBang } = parsed;
-          console.log(parsed);
           let url = path;
           if (hashBang) url += '#!';
           if (route) url += route;

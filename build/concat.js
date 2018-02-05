@@ -61,7 +61,7 @@ var __run=function(){
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 19);
+/******/ 	return __webpack_require__(__webpack_require__.s = 21);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -70,17 +70,28 @@ var __run=function(){
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return UIBase; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__styler_js__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__binder_js__ = __webpack_require__(21);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__dom_utils_js__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__styler_js__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__binder_js__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__dom_utils_js__ = __webpack_require__(24);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__attribute_analyzer_js__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__promise_from_event_js__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__promise_from_event_js__ = __webpack_require__(25);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__dom_js__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return __WEBPACK_IMPORTED_MODULE_5__dom_js__["d"]; });
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return __WEBPACK_IMPORTED_MODULE_5__dom_js__["c"]; });
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_5__dom_js__["b"]; });
+/*
+ * ui-component-base.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * base class for ui-components-lite custom elements.
+ */
+
 
 
 
@@ -109,8 +120,17 @@ class UIBase extends Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_sr
       this.shadowRoot.appendChild(__WEBPACK_IMPORTED_MODULE_5__dom_js__["d" /* global */].document.importNode(tmpl.content, true));
     }
 
+    let rfs = this.constructor.observedAttributes;
+    if (rfs.length) {
+      this.on('attribute-change', ({ changed: { name, now } }) => {
+        if (rfs.includes(name)) {
+          this[Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__["b" /* toCamelCase */])(name)] = now;
+        }
+      });
+    }
+
     // This is because the spec doesn't allow attribute changes in an element constructor.
-    setTimeout(() => {
+    __WEBPACK_IMPORTED_MODULE_5__dom_js__["d" /* global */].setTimeout(() => {
       this.init();
     }, 0);
   }
@@ -121,7 +141,7 @@ class UIBase extends Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_sr
   }
 
   get componentName () {
-    return `ui-${Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__["c" /* toSnakeCase */])(this.constructor.name, '-')}`;
+    return this.tagName.toLowerCase();
   }
 
   get isUIComponent () {
@@ -146,42 +166,33 @@ class UIBase extends Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_sr
     return p;
   }
 
+  // Should be called by extension elements via super.
   init () {
-    // Should be called by extension elements via super. setTimeout is so that any initialization
-    // and event handlers in the descendant classes can be attached before the reflected attribute
-    // setup.
     this.classList.add('is-ui-component');
 
     const elReady = el => el._isReady || Promise.resolve(el);
     const children = [...[...this.children].map(elReady)];
     if (this.shadowRoot) children.push.apply(children, [...this.shadowRoot.children].map(elReady));
 
+    [...this.attributes].forEach(({ name: attr, value: val}) => {
+      const twoWay = val && val.match(/^\{\{\{(.+)\}\}\}$/);
+      const oneWay = val && val.match(/^\{\{(.+)\}\}$/);
+      const matched = twoWay ? twoWay[1] : oneWay ? oneWay[1] : null;
+      const attrToWatch = matched ? Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__["c" /* toSnakeCase */])(matched, '-') : null;
+      if (attrToWatch) {
+        this.bindAttribute(attr, attrToWatch, twoWay);
+      }
+    });
+
     Promise.all(children)
       .then(chlds => {
-        let tg = this.tagName.toLowerCase();
-        if (this._reflectedAttributes.length) {
-          this.on('attribute-change', ({ changed: { name, now } }) => {
-            if (this._reflectedAttributes.includes(name)) {
-              this[Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__["b" /* toCamelCase */])(name)] = now;
-            }
-          });
-        }
-
-        this.constructor.observedAttributes.forEach(attr => {
+        // have to wait for children to be ready in case they're listening
+        let rfs = this.constructor.observedAttributes;
+        rfs.forEach(attr => {
           if (this.attr(attr)) {
             const evt = new CustomEvent('attribute-change');
             evt.changed = { name: attr, now: this.attr(attr), was: null };
             this.dispatchEvent(evt);
-          }
-        });
-
-        [...this.attributes].forEach(({ name: attr, value: val}) => {
-          const twoWay = val && val.match(/^\{\{\{(.+)\}\}\}$/);
-          const oneWay = val && val.match(/^\{\{(.+)\}\}$/);
-          const matched = twoWay ? twoWay[1] : oneWay ? oneWay[1] : null;
-          const attrToWatch = matched ? Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__["c" /* toSnakeCase */])(matched, '-') : null;
-          if (attrToWatch) {
-            this.bindAttribute(attr, attrToWatch, twoWay);
           }
         });
 
@@ -195,12 +206,13 @@ class UIBase extends Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_sr
       .then(_ => {
         this.dispatchEvent(new CustomEvent('ui-component-ready', { bubbles: false }));
         this._pendingDOM = null;
+      }).catch(err => {
+        throw err;
       });
   }
 
   // If extension elements override the default connected and disconnected
   // Callbacks they need to call super to perform appropriate init/cleanup
-
   connectedCallback () {
     // This allows the elements to be detatched/reattached without losing
     // handlers.
@@ -209,9 +221,6 @@ class UIBase extends Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_sr
     // Allows element to be detatched and reattached while automatically cleaning up
     // on eventual deletion.
     this._mutationObservers.forEach(([o, target, conf]) => o.observe(target, conf));
-
-    // This avoids Chrome firing the event before DOM is ready
-    // setTimeout(() => { this.init(); }, 10)
   }
 
   disconnectedCallback () {
@@ -377,6 +386,17 @@ class MixinBuilder {
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return defineUIComponent; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return global; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(8);
+/*
+ * dom.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * utility file for ui-components-lite.
+ */
+
 
 
 const global = new Function('return this')();
@@ -389,11 +409,15 @@ const toPropertyObj = propList => {
     const property = Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_jsstring_src_jsstring_js__["b" /* toCamelCase */])(prop);
     acc[property] = {
       get: function() {
-        return this[`_${property}`];
+        return this[`_${property}`] === undefined ? null : this[`_${property}`];
       },
       set: function(val) {
-        this[`_${property}`] = val;
-        this.attr(Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_jsstring_src_jsstring_js__["c" /* toSnakeCase */])(property, '-'), val);
+        if (this[`_${property}`] !== val) {
+          this[`_${property}`] = val;
+          this.attr(Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_jsstring_src_jsstring_js__["c" /* toSnakeCase */])(property, '-'), val);
+        }
+
+        return val;
       }
     };
     return acc;
@@ -431,11 +455,6 @@ const defineUIComponent = ({
       let temp = tmpl ? tmpl.cloneNode(true) : null;
       if (temp && global._usingShady) global.ShadyCSS.prepareTemplate(temp, name);
       return temp;
-    }
-
-    get _reflectedAttributes () {
-      let rfs = super._reflectedAttributes || [];
-      return [...rfs, ...reflectedAttributes];
     }
 
     init () {
@@ -619,51 +638,19 @@ const isSameType = function isSameType(a, b) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__dom_js__ = __webpack_require__(2);
 /*
- * focusable.js
- * @author jasmith79@gmail.com
- * @copyright 2018
+ * float.js
+ * @author jasmith79
+ * @copyright Jared Smith
  * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
  *
- * Mixin for custom elements that can receive keyboard focus.
+ * floating mixin for ui-components-lite. Allows elements to easily add a vertical or horizontal
+ * floating effect.
  */
 
-/* harmony default export */ __webpack_exports__["a"] = (superclass => class Focusable extends superclass {
-  constructor () {
-    super();
-  }
-
-  setActive () {
-    const index = this.attr('tabindex');
-    if (index === null || index < 0) this.attr('tabindex', '0');
-    return this;
-  }
-
-  setInactive () {
-    this.attr('tabindex', '-1');
-    return this;
-  }
-
-  init () {
-    super.init();
-    if (this.attr('tabindex') === null) this.attr('tabindex', '-1');
-    this.on('keydown', e => {
-      if (e.keyCode === 13) {
-        const evt = new CustomEvent('enter-key');
-        evt.keyCode = 13;
-        this.dispatchEvent(evt);
-      }
-    });
-  }
-});
-
-
-/***/ }),
-/* 5 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__dom_js__ = __webpack_require__(2);
 
 
 const template = __WEBPACK_IMPORTED_MODULE_0__dom_js__["c" /* document */].createElement('template');
@@ -735,13 +722,157 @@ const reflectedAttributes = [
 
 
 /***/ }),
+/* 5 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/*
+ * focusable.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * Mixin for custom elements that can receive keyboard focus.
+ */
+
+/* harmony default export */ __webpack_exports__["a"] = (superclass => class Focusable extends superclass {
+  constructor () {
+    super();
+  }
+
+  setActive () {
+    const index = this.attr('tabindex');
+    if (index === null || index < 0) this.attr('tabindex', '0');
+    return this;
+  }
+
+  setInactive () {
+    this.attr('tabindex', '-1');
+    return this;
+  }
+
+  init () {
+    super.init();
+    if (this.attr('tabindex') === null) this.attr('tabindex', '-1');
+    this.on('keydown', e => {
+      if (e.keyCode === 13) {
+        const evt = new CustomEvent('enter-key');
+        evt.keyCode = 13;
+        this.dispatchEvent(evt);
+      }
+    });
+  }
+});
+
+
+/***/ }),
 /* 6 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_animations_rippler_js__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_utils_float_js__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_utils_centerer_js__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_utils_focusable_js__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+/*
+ * button.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * button component for ui-components-lite.
+ *
+ * NOTE: it is not currently (and may never) be possible to extend built-in elements like Button.
+ * If it does become possible this can be refactored to support extending HTMLButtonElement.
+ */
+
+
+
+
+
+
+
+
+
+
+const template = __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: block;
+      height: 50px;
+      width: 120px;
+      text-align: center;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      border-radius: 5%;
+      background-color: var(--ui-theme-secondary-dark-color, blue);
+      color: var(--ui-theme-light-text-color, #fff);
+      margin: 5px;
+    }
+
+    :host(:hover) {
+      box-shadow: inset 0 0 0 99999px rgba(150,150,150,0.2);
+    }
+  </style>
+`;
+
+const reflectedAttributes = [
+  'dialog-dismiss',
+  'dialog-confirm',
+  'submit',
+];
+
+const Button = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  name: 'ui-button',
+  template,
+  reflectedAttributes,
+  definition: class Button extends Object(__WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_2__temp_utils_centerer_js__["b" /* default */], __WEBPACK_IMPORTED_MODULE_1__temp_utils_float_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_0__temp_animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_3__temp_utils_focusable_js__["a" /* default */]) {
+    init () {
+      super.init();
+      this.attr('role', 'button');
+      const index = this.attr('tabindex');
+      if (index === null || index < 0) this.attr('tabindex', '0');
+    }
+  }
+});
+
+/* harmony default export */ __webpack_exports__["a"] = (Button);
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_utils_normalizer_js__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+/*
+ * form.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * form component for ui-components-lite.
+ *
+ * NOTE: it is not currently (and may never) be possible to extend built-in elements like Form.
+ * If it does become possible this can be refactored to support extending HTMLFormElement.
+ */
+
+
+
 
 
 
@@ -751,8 +882,8 @@ const reflectedAttributes = [
 // on multiple reloads?
 
 const Form = (() => {
-  const reflectedAttributes = ['action', 'method', 'autocomplete', 'response-type'];
-  const template = __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["c" /* document */].createElement('template');
+  const reflectedAttributes = ['action', 'method', 'autocomplete', 'response-type', 'updates-history'];
+  const template = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
   template.innerHTML = `
     <style>
       :host {
@@ -762,11 +893,11 @@ const Form = (() => {
     <slot></slot>
   `;
 
-  return Object(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  return Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
     name: 'ui-form',
     template,
     reflectedAttributes,
-    definition: class Form extends __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* UIBase */] {
+    definition: class Form extends __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["a" /* UIBase */] {
       constructor () {
         super();
         this._form = null;
@@ -800,8 +931,8 @@ const Form = (() => {
         return this.id ?
           [
             ...new Set([
-              ...this.selectAll('input[name], select[name], .ui-form-behavior'),
-              ...__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["c" /* document */].querySelectorAll(`[form="${this.id}"]`)
+              ...this.selectAll('input[name], select[name], .ui-form-behavior[name]'),
+              ...__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].querySelectorAll(`[form="${this.id}"]`)
             ])
           ] :
           this.selectAll('input[name], select[name], .ui-form-behavior');
@@ -813,7 +944,8 @@ const Form = (() => {
 
       get data () {
         return this.elements.reduce((formdata, el) => {
-          if (el.name) formdata.append(el.name, el.value || '');
+          let name = el.getAttribute('name');
+          if (name) formdata.append(name, el.value == null ? '' : el.value);
           return formdata
         }, new FormData);
       }
@@ -858,21 +990,19 @@ const Form = (() => {
       }
 
       serialize () {
-        return [...this.data.entries()].reduce((acc, [k, v]) => {
-          if (k in acc) {
-            if (Array.isArray(acc[k])) {
-              acc[k].push(v);
-            } else {
-              acc[k] = [acc[k], v];
-            }
-          } else {
-            acc[k] = v;
+        return this.elements.reduce((acc, el) => {
+          let val;
+          try {
+            val = JSON.parse(el.value);
+          } catch (e) {
+            val = el.value;
           }
+          acc[el.getAttribute('name')] = val;
           return acc;
         }, {});
       }
 
-      submit ({ url: argURL, method: meth, headers, responseType}) {
+      submit ({ url: argURL, method: meth, headers, responseType}={}) {
         const url = argURL || this.action;
         const method = meth || this.method || 'POST';
         const opts = {
@@ -885,7 +1015,7 @@ const Form = (() => {
         const evt = new Event('submit');
         evt.pendingResult = result;
         this.dispatchEvent(evt);
-        switch ((responseType || this.responseType || '').toLowerCase()) {
+        switch ((responseType || this.responseType || 'text').toLowerCase()) {
           case 'text':
           case 'html':
             return result.then(resp => resp.text());
@@ -900,16 +1030,29 @@ const Form = (() => {
         this.attr('is-data-element', true);
         this.attr('role', 'form');
 
+        const historyListener = e => {
+          const data = this.serialize();
+          const parsed = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["a" /* parseURL */])(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].location.href);
+          const { path, route, hashBang } = parsed;
+          let url = path;
+          if (hashBang) url += '#!';
+          if (route) url += route;
+          url += Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["b" /* toQueryString */])(data);
+          __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].history.replaceState(data, '', url);
+        };
+
         this._beforeReady(_ => {
           this._formUIComponents = [...new Set([
               ...this.selectAll('.ui-form-behavior'),
-              ...(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["c" /* document */].querySelectorAll(`.ui-form-behavior[form="${this.id}"]`) || []),
+              ...(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].querySelectorAll(`[form="${this.id}"]`) || []),
             ])
           ];
 
           this._formUIComponents.forEach(el => {
-            el.addEventListener('change', e => {
-
+            if (el.tagName === 'INPUT') Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_normalizer_js__["a" /* inputNormalizer */])(el);
+            if (this.updatesHistory) el[el.on ? 'on' : 'addEventListener']('change', historyListener);
+            el[el.on ? 'on' : 'addEventListener']('change', e => {
+              if (this.id) __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].localStorage.setItem(this.id, JSON.stringify(this.serialize()));
             });
           });
         });
@@ -922,37 +1065,70 @@ const Form = (() => {
 
 const FormControlBehavior = (() => {
   const reflectedAttributes = ['name', 'value', 'required', 'is-valid', 'placeholder'];
-  return superclass => Object(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  return superclass => Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
     name: 'ui-form-behavior',
     registerElement: false,
     reflectedAttributes,
     definition: class extends superclass {
+      constructor () {
+        super();
+        this._validators = [];
+      }
+
+      _validate () {
+        let isValid = this._validators.length ?
+          this._validators.every(f => f(this.value)) :
+          true;
+
+        this.isValid = isValid;
+        this.classList.remove(isValid ? 'invalid' : 'valid');
+        this.classList.add(isValid ? 'valid' : 'invalid');
+        return isValid;
+      }
 
       validate (validator) {
-        return this.watchAttribute(this, 'value', (...args) => {
-          this.isValid = validator.apply(this, args);
-          this.classList.remove(this.isValid ? 'invalid' : 'valid');
-          this.classList.add(this.isValid ? 'valid' : 'invalid');
-        });
+        if (!this._validators.includes(validator)) {
+          this._validators.push(validator);
+          this._validate();
+        }
+        return this;
+      }
+
+      removeValidator (validator) {
+        this._validators = this._validators.filter(f => f !== validator);
+        this._validate();
+        return this;
       }
 
       init () {
         super.init();
-        this._beforeReady(_ => {
-          let val = this.value;
-          this.on('attribute-change', ({ changed: { now, name } }) => {
-            switch (name) {
-              case 'value':
-              case 'selected-index':
-                if (now !== val) {
-                  val = now;
-                  const evt = new Event('change');
-                  evt.value = this.value;
-                  this.dispatchEvent(evt);
-                }
-                break;
-            }
-          });
+        let val = this.value;
+        this.on('attribute-change', ({ changed: { now, name } }) => {
+          switch (name) {
+            case 'value':
+            case 'selected-index':
+              if (now !== val) {
+                val = now;
+                this._validate();
+
+                const evt = new Event('change');
+                evt.value = this.value;
+                evt.isValid = this.isValid;
+                this.dispatchEvent(evt);
+              }
+
+              break;
+
+            case 'required':
+              const reqHandler = value => value != null && value !== '';
+              if (now) {
+                this.validate(reqHandler);
+              } else {
+                this.removeValidator(reqHandler);
+              }
+
+              break;
+          }
         });
       }
     }
@@ -960,72 +1136,6 @@ const FormControlBehavior = (() => {
 })();
 /* harmony export (immutable) */ __webpack_exports__["a"] = FormControlBehavior;
 
-
-
-/***/ }),
-/* 7 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__animations_rippler_js__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utils_float_js__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils_centerer_js__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utils_focusable_js__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__utils_ui_component_base_js__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
-
-
-
-
-
-
-
-
-
-const template = __WEBPACK_IMPORTED_MODULE_4__utils_ui_component_base_js__["c" /* document */].createElement('template');
-template.innerHTML = `
-  <style>
-    :host {
-      display: block;
-      height: 50px;
-      width: 120px;
-      text-align: center;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      text-transform: uppercase;
-      border-radius: 5%;
-      background-color: var(--ui-theme-secondary-dark-color, blue);
-      color: var(--ui-theme-light-text-color, #fff);
-      margin: 5px;
-    }
-
-    :host(:hover) {
-      box-shadow: inset 0 0 0 99999px rgba(150,150,150,0.2);
-    }
-  </style>
-`;
-
-const reflectedAttributes = [
-  'dialog-dismiss',
-  'dialog-confirm',
-  'submit',
-];
-
-const Button = Object(__WEBPACK_IMPORTED_MODULE_4__utils_ui_component_base_js__["b" /* defineUIComponent */])({
-  name: 'ui-button',
-  template,
-  reflectedAttributes,
-  definition: class Button extends Object(__WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_4__utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_2__utils_centerer_js__["b" /* default */], __WEBPACK_IMPORTED_MODULE_1__utils_float_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_0__animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_3__utils_focusable_js__["a" /* default */]) {
-    init () {
-      super.init();
-      this.attr('role', 'button');
-      const index = this.attr('tabindex');
-      if (index === null || index < 0) this.attr('tabindex', '0');
-    }
-  }
-});
-
-/* harmony default export */ __webpack_exports__["a"] = (Button);
 
 
 /***/ }),
@@ -1216,6 +1326,20 @@ const random = {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+/*
+ * attribute-analyzer.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * attribute-analyzer utility for ui-components-lite. Takes the value returned by
+ * HTMLElement.getAttribute and returns an appropriate value: if the attribute is a valid string
+ * representation of e.g. a number or boolean, then this will return the number or boolean rather
+ * than a string.
+ */
+
 
 
 const processHTMLAttr = attr => {
@@ -1225,11 +1349,12 @@ const processHTMLAttr = attr => {
       return null;
 
     case 'String':
-      // return attr.toLowerCase() === 'false' ? false : attr || true;
       if (!attr) return true; // empty string, e.g. <ui-drawer is-modal></ui-drawer>
       let val;
+      if (attr === 'NaN') return NaN;
+      if (attr === 'undefined') return undefined;
       try {
-        val = JSON.parse(attr); // numbers, bools, etc
+        val = JSON.parse(attr); // numbers, bools, null, etc
       } catch (e) {
         val = attr;
       }
@@ -1247,66 +1372,18 @@ const processHTMLAttr = attr => {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(0);
-
-
-const reflectedAttributes = ['view-text'];
-const template = __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["c" /* document */].createElement('template');
-template.innerHTML = `
-  <style>
-    :host {
-      display: inline;
-    }
-
-    #text-holder {
-      color: inherit;
-    }
-  </style>
-  <span id="text-holder"></span>
-`;
-
-const Text = Object(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["b" /* defineUIComponent */])({
-  name: 'ui-text',
-  reflectedAttributes,
-  template,
-  definition: class Text extends __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* UIBase */] {
-    constructor () {
-      super();
-      this._textHolder = null;
-    }
-
-    // Override the default textContent property
-    get textContent () {
-      return this._textHolder.textContent;
-    }
-
-    set textContent (text) {
-      this.viewText = text;
-      return text;
-    }
-
-    init () {
-      super.init();
-      this._textHolder = this.selectInternalElement('#text-holder');
-      this.watchAttribute(this, 'view-text', val => {
-        this._textHolder.textContent = val || this.innerHTML; // render innerHTML as a fallback
-      });
-
-      if (this.innerHTML && !this.viewText) this.viewText = this.innerHTML;
-    }
-  }
-});
-
-/* unused harmony default export */ var _unused_webpack_default_export = (Text);
-
-
-/***/ }),
-/* 11 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils_dom_js__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+/*
+ * rippler.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * rippler animation component for ui-components-lite.
+ */
 
 
 
@@ -1315,12 +1392,12 @@ const rippleEvents = ['click', 'tap', 'dblclick', 'enter-key'];
 const handlerRegistry = new WeakMap();
 const registerHandler = f => {
   const cached = handlerRegistry.get(f);
-  let fn = cached || (e => { setTimeout(f, 500, e); });
+  let fn = cached || (e => { __WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__["d" /* global */].setTimeout(f, 500, e); });
   handlerRegistry.set(f, fn);
   return fn;
 };
 
-const template = __WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["c" /* document */].createElement('template');
+const template = __WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__["c" /* document */].createElement('template');
 template.innerHTML = `
   <style>
     :host {
@@ -1355,7 +1432,7 @@ template.innerHTML = `
   </style>
 `;
 
-/* harmony default export */ __webpack_exports__["a"] = (superclass => Object(__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["b" /* defineUIComponent */])({
+/* harmony default export */ __webpack_exports__["a"] = (superclass => Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__["b" /* defineUIComponent */])({
   name: 'ui-ripples',
   template,
   registerElement: false,
@@ -1394,7 +1471,130 @@ template.innerHTML = `
 
 
 /***/ }),
+/* 11 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+/*
+ * text.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * text-holder component for ui-components-lite.
+ *
+ * NOTE: it is not currently (and may never) be possible to extend built-in elements like Span.
+ * If it does become possible this can be refactored to support extending HTMLSpanElement.
+ */
+
+
+
+const reflectedAttributes = ['view-text'];
+const template = __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: inline;
+    }
+
+    #text-holder {
+      color: inherit;
+    }
+  </style>
+  <span id="text-holder"></span>
+`;
+
+const Text = Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  name: 'ui-text',
+  reflectedAttributes,
+  template,
+  definition: class Text extends __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["a" /* UIBase */] {
+    constructor () {
+      super();
+      this._textHolder = null;
+    }
+
+    // Override the default textContent property
+    get textContent () {
+      return this._textHolder.textContent;
+    }
+
+    set textContent (text) {
+      this.viewText = text;
+      return text;
+    }
+
+    init () {
+      super.init();
+      this._textHolder = this.selectInternalElement('#text-holder');
+      this.watchAttribute(this, 'view-text', val => {
+        this._textHolder.textContent = val || this.innerHTML; // render innerHTML as a fallback
+      });
+
+      if (this.innerHTML && !this.viewText) this.viewText = this.innerHTML;
+    }
+  }
+});
+
+/* unused harmony default export */ var _unused_webpack_default_export = (Text);
+
+
+/***/ }),
 /* 12 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+/*
+ * card.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * card component for ui-components-lite.
+ */
+
+
+
+
+
+
+const template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: block;
+      width: 200px;
+      height: 300px;
+      padding: 2%;
+    }
+  </style>
+  <slot></slot>
+`;
+
+const Card = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  name: 'ui-card',
+  template,
+  definition: class Card extends Object(__WEBPACK_IMPORTED_MODULE_2__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__["a" /* default */]) {
+    init () {
+      super.init();
+      this.floatingY = true;
+    }
+  }
+});
+
+/* harmony default export */ __webpack_exports__["a"] = (Card);
+
+
+/***/ }),
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1404,6 +1604,17 @@ template.innerHTML = `
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__dom_js__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(8);
+/*
+ * styler.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * themeing utility for ui-components-lite.
+ */
+
 
 
 
@@ -1469,21 +1680,330 @@ const generateCSSClassName = () => __WEBPACK_IMPORTED_MODULE_2__node_modules_jss
 
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__form_js__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils_focusable_js__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__ = __webpack_require__(2);
 /*
- * NOTE: it is not currently possible to extend specific HTMLElements, leading
- * to this element being rather convoluted. Once it's possible to extend input
- * directly this should be refactored.
+ * fab.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
  *
+ * floating action button component for ui-components-lite.
+ */
+
+
+
+
+
+const template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["c" /* document */].createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: block;
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      background-color: var(--ui-theme-accent-color, purple);
+    }
+  </style>
+`;
+
+/* unused harmony default export */ var _unused_webpack_default_export = (Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["b" /* defineUIComponent */])({
+  name: 'ui-fab',
+  template,
+  definition: class Fab extends __WEBPACK_IMPORTED_MODULE_0__button_js__["a" /* default */] {
+    init () {
+      super.init();
+      this.floatingY = true;
+    }
+  }
+}));
+
+
+/***/ }),
+/* 15 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return centeredStyles; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__dom_js__ = __webpack_require__(2);
+/*
+ * centerer.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * vertical centering mixin for ui-components-lite.
+ */
+
+
+
+const centeredStyles = `
+    :host {
+      transform-style: preserve-3d;
+    }
+
+    .content-wrapper {
+      position: relative;
+      top: 49%;
+      transform: translateY(-51%);
+    }
+`;
+
+const template = __WEBPACK_IMPORTED_MODULE_0__dom_js__["c" /* document */].createElement('template');
+template.innerHTML = `
+  <style>
+    ${centeredStyles}
+  </style>
+  <div class="content-wrapper">
+    <slot></slot>
+  </div>
+`;
+
+/* harmony default export */ __webpack_exports__["b"] = (superclass => Object(__WEBPACK_IMPORTED_MODULE_0__dom_js__["b" /* defineUIComponent */])({
+  name: 'ui-centered',
+  template,
+  registerElement: false,
+  definition: class Centered extends superclass {}
+}));
+
+
+
+
+
+/***/ }),
+/* 16 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+/*
+ * backdrop.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * backdrop component for ui-components-lite. Meant primarily for use in modal components.
+ */
+
+
+
+const template = __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: block;
+      height: 100vh;
+      width: 100vw;
+      background-color: rgba(0,0,0,0.7);
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      z-index: 10000;
+    }
+  </style>
+`;
+
+const Backdrop = Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  name: 'ui-backdrop',
+  template,
+  definition: class Backdrop extends __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["a" /* UIBase */] {
+    constructor () {
+      super();
+
+      // Elements that use this element should set this property to themselves as a
+      // debugging aid.
+      this.for = null;
+    }
+
+    init () {
+      super.init();
+      this.hide();
+    }
+  }
+});
+
+/* unused harmony default export */ var _unused_webpack_default_export = (Backdrop);
+
+
+/***/ }),
+/* 17 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__ui_component_base_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+
+
+
+const changeTriggers = [
+  'blur',
+  'keyup',
+  'paste',
+  'input',
+];
+
+const debounce = (n, immed, f) => {
+  let [fn, now] = (() => {
+    switch(Object(__WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__["a" /* default */])(immed)) {
+      case 'Boolean':
+        return [f, immed];
+      case 'Function':
+        return [immed, false];
+      default:
+        throw new TypeError(`Unrecognized arguments ${immed} and ${f} to function debounce.`);
+    }
+  })();
+
+  let timer = null;
+  return function (...args) {
+    if (timer === null && now) {
+      fn.apply(this, args);
+    }
+    __WEBPACK_IMPORTED_MODULE_0__ui_component_base_js__["d" /* global */].clearTimeout(timer);
+    timer = __WEBPACK_IMPORTED_MODULE_0__ui_component_base_js__["d" /* global */].setTimeout(() => fn.apply(this, args), n);
+    return timer;
+  }
+};
+
+// Makes input change event consistent across browsers
+const inputNormalizer = input => {
+  let before = null;
+  changeTriggers.forEach(evtName => input.addEventListener(evtName, debounce(500, e => {
+    if (input.value !== before) {
+      before = input.value;
+      const evt = new Event('change');
+      evt.value = input.value;
+      input.dispatchEvent('change');
+    }
+  })));
+
+  input.addEventListener('focus', e => {
+    before = input.value;
+  });
+};
+/* harmony export (immutable) */ __webpack_exports__["a"] = inputNormalizer;
+
+
+
+/***/ }),
+/* 18 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return parseURL; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return toQueryString; });
+/*
+ * url.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * url processing utility for ui-components-lite.
+ */
+
+// At some point could use the following with named capture groups?
+// const urlMatcher = /(?:(https?):\/\/)?(?:(\w+)\.)?(\w+)\.(\w+)(\/[\w\/]+)?(?:\?(.+))?/
+const matchProtocol = /https?/i;
+const matchDomain = /\/\/([\w\.]+)[\/\?#]{1}?/;
+const matchQueryString = /\?(.+)/;
+
+const parseQueryString = qs => {
+  return qs.split('&').reduce((acc, pair) => {
+    const [key, v] = pair.split('=').map(decodeURIComponent);
+    let value;
+    try {
+      value = JSON.parse(v);
+    } catch (e) {
+      value = v;
+    }
+    acc[key] = value;
+    return acc;
+  }, {});
+};
+
+const parseURL = url => {
+  let subdomain, domain, p, qs = '';
+  let secure = false;
+  let path = '';
+  let data = {};
+  let route = '';
+  let hashBang = url.match('#!');
+  let [first, rest] = url.split('://');
+  if (rest) secure = first.toLowerCase() === 'https';
+  const protocol = secure ? 'https' : 'http';
+  let [fullDomain, pAndQs] = (rest || first).split(/\/(.+)/);
+  rest = fullDomain.split('.');
+  subdomain = rest.length === 3 && rest[0];
+  domain = rest.length === 3 ? rest.slice(1).join('.') : fullDomain;
+  if (pAndQs) {
+    ([p, qs] = pAndQs.split('?'));
+    if (qs) data = parseQueryString(qs);
+    let [serverPath, clientPath] = p.split('#!');
+    if (clientPath) route = clientPath;
+    path = '/' + serverPath;
+  }
+
+  return {
+    protocol,
+    secure,
+    subdomain: subdomain || '',
+    domain: domain || '',
+    fullDomain,
+    data,
+    url,
+    path,
+    route,
+    queryString: qs,
+    hashBang,
+  };
+};
+
+const toQueryString = obj => '?' + Object.entries(obj)
+  .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+  .join('&');
+
+window.parseURL = parseURL;
+
+
+
+
+/***/ }),
+/* 19 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__form_js__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_utils_normalizer_js__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+/*
+ * input.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * input component for ui-components-lite.
+ *
+ * NOTE: it is not currently (and may never) be possible to extend built-in elements like Input
+ * If it does become possible this can be refactored to support extending HTMLInputElement.
  */
 
 
@@ -1495,14 +2015,6 @@ const generateCSSClassName = () => __WEBPACK_IMPORTED_MODULE_2__node_modules_jss
 
 
 
-// This is here to make input event consistent across browsers, all of these
-// if the value is different than the last onfocus will trigger change event.
-const changeTriggers = [
-  'blur',
-  'keyup',
-  'paste',
-  'input',
-];
 
 const reflectedAttributes = [
   'label',
@@ -1521,29 +2033,6 @@ const reflectedAttributes = [
   'default-value',
 ];
 
-const debounce = (n, immed, f) => {
-  let [fn, now] = (() => {
-    switch(Object(__WEBPACK_IMPORTED_MODULE_5__node_modules_extracttype_extracttype_js__["b" /* extractType */])(immed)) {
-      case 'Boolean':
-        return [f, immed];
-      case 'Function':
-        return [immed, false];
-      default:
-        throw new TypeError(`Unrecognized arguments ${immed} and ${f} to function debounce.`);
-    }
-  })();
-
-  let timer = null;
-  return function (...args) {
-    if (timer === null && now) {
-      fn.apply(this, args);
-    }
-    clearTimeout(timer);
-    timer = setTimeout(() => fn.apply(this, args), n);
-    return timer;
-  }
-};
-
 const pad = n => val => {
   const s = '' + val;
   if (Number.isNaN(+s)) {
@@ -1560,7 +2049,7 @@ const VALID_INPUT_DATE = /^\d{4}\-[0-1][1-9]\-[1-3][1-9]$/;
 const VALID_INPUT_TIME = /^[0-2][0-9]:[0-5][0-9]$/;
 
 const DATE_TYPE_SUPPORTED = (() => {
-  const input = __WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["c" /* document */].createElement('input');
+  const input = __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["c" /* document */].createElement('input');
   const notDate = 'not-a-date';
   input.setAttribute('type', 'date');
   input.setAttribute('value', notDate);
@@ -1571,7 +2060,7 @@ const DATE_TYPE_SUPPORTED = (() => {
 
 // Need this because Edge supports date but not time
 const TIME_TYPE_SUPPORTED = (() => {
-  const input = __WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["c" /* document */].createElement('input');
+  const input = __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["c" /* document */].createElement('input');
   const notTime = 'not-a-time';
   input.setAttribute('type', 'time');
   input.setAttribute('value', notTime);
@@ -1641,7 +2130,7 @@ const parseTimeString = s => {
   return [hr, m];
 };
 
-const template = __WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["c" /* document */].createElement('template');
+const template = __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
 template.innerHTML = `
   <style>
     :host {
@@ -1653,6 +2142,7 @@ template.innerHTML = `
       margin-top: 10px;
       max-width: 200px;
       color: var(--ui-theme-dark-text-color, #333);
+      outline-width: 0px;
     }
 
     :host(.focused) {
@@ -1695,18 +2185,18 @@ template.innerHTML = `
   <input id="input"/>
 `;
 
-const Input = Object(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["b" /* defineUIComponent */])({
+const Input = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
   name: 'ui-input',
   template,
   reflectedAttributes,
-  definition: class Input extends Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_1__form_js__["a" /* FormControlBehavior */], __WEBPACK_IMPORTED_MODULE_2__utils_focusable_js__["a" /* default */]) {
+  definition: class Input extends Object(__WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_1__form_js__["a" /* FormControlBehavior */], __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__["a" /* default */]) {
     constructor () {
       super();
       this._input = null;
     }
 
     get value () {
-      switch (this.attr('type').toLowerCase()) {
+      switch ((this.attr('type') || 'text').toLowerCase()) {
         case 'date':
           return input2Date(this._input.value);
           break;
@@ -1722,9 +2212,9 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["
 
     set value (val) {
       let value = '';
-      switch (this.attr('type').toLowerCase()) {
+      switch ((this.attr('type') || 'text').toLowerCase()) {
         case 'date':
-          switch (Object(__WEBPACK_IMPORTED_MODULE_5__node_modules_extracttype_extracttype_js__["b" /* extractType */])(val)) {
+          switch (Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__["b" /* extractType */])(val)) {
             case 'Null':
             case 'Undefined':
               value = null;
@@ -1748,7 +2238,7 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["
           break;
 
         case 'time':
-          switch (Object(__WEBPACK_IMPORTED_MODULE_5__node_modules_extracttype_extracttype_js__["b" /* extractType */])(val)) {
+          switch (Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__["b" /* extractType */])(val)) {
             case 'Array':
               value = val.length ? val.map(pad2).join(':') : '';
               break;
@@ -1770,7 +2260,7 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["
       }
 
       const empty = (() => {
-        switch (Object(__WEBPACK_IMPORTED_MODULE_5__node_modules_extracttype_extracttype_js__["b" /* extractType */])(value)) {
+        switch (Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__["b" /* extractType */])(value)) {
           case 'Array':
           case 'String':
             return value.length === 0;
@@ -1806,7 +2296,7 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["
       if (this.attr('label') && !placeholder) this.selectInternalElement('label').classList.add('text-moved');
       this.on('focus', e => this.selectInternalElement('label').classList.remove('text-moved'));
       this.on('blur', e => {
-        setTimeout(() => { // Checked 1-31, doesn't work without
+        __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(() => {
           if (this.label && !this.placeholder && !this.value) {
             this.selectInternalElement('label').classList.add('text-moved');
           }
@@ -1842,20 +2332,14 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["
       }
 
       this._input.addEventListener('focus', e => {
-        this._before = this._input.value;
         this.classList.add('focused');
       });
 
       this._input.addEventListener('blur', e => {
         this.classList.remove('focused');
-      })
+      });
 
-      changeTriggers.forEach(evtName => this._input.addEventListener(evtName, debounce(500, e => {
-        if (this._input.value !== this._before) {
-          this._before = this._input.value;
-          this.value = this._input.value;
-        }
-      })));
+      Object(__WEBPACK_IMPORTED_MODULE_3__temp_utils_normalizer_js__["a" /* inputNormalizer */])(this._input);
 
       this.on('focus', _ => {
         this._input.focus();
@@ -1906,181 +2390,31 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["
 
 
 /***/ }),
-/* 14 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils_float_js__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utils_ui_component_base_js__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
-
-
-
-
-
-const template = __WEBPACK_IMPORTED_MODULE_1__utils_ui_component_base_js__["c" /* document */].createElement('template');
-template.innerHTML = `
-  <style>
-    :host {
-      display: block;
-      width: 200px;
-      height: 300px;
-      padding: 2%;
-    }
-  </style>
-  <slot></slot>
-`;
-
-const Card = Object(__WEBPACK_IMPORTED_MODULE_1__utils_ui_component_base_js__["b" /* defineUIComponent */])({
-  name: 'ui-card',
-  template,
-  definition: class Card extends Object(__WEBPACK_IMPORTED_MODULE_2__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_1__utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_0__utils_float_js__["a" /* default */]) {
-    init () {
-      super.init();
-      this.floatingY = true;
-    }
-  }
-});
-
-/* harmony default export */ __webpack_exports__["a"] = (Card);
-
-
-/***/ }),
-/* 15 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__ = __webpack_require__(2);
-
-
-
-
-const template = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].createElement('template');
-template.innerHTML = `
-  <style>
-    :host {
-      display: block;
-      width: 74px;
-      height: 74px;
-      border-radius: 50%;
-      background-color: var(--ui-theme-accent-color, purple);
-    }
-  </style>
-`;
-
-/* unused harmony default export */ var _unused_webpack_default_export = (Object(__WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["b" /* defineUIComponent */])({
-  name: 'ui-fab',
-  template,
-  definition: class Fab extends __WEBPACK_IMPORTED_MODULE_0__button_js__["a" /* default */] {
-    init () {
-      super.init();
-      this.floatingY = true;
-    }
-  }
-}));
-
-
-/***/ }),
-/* 16 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return centeredStyles; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__dom_js__ = __webpack_require__(2);
-
-
-const centeredStyles = `
-    :host {
-      transform-style: preserve-3d;
-    }
-
-    .content-wrapper {
-      position: relative;
-      top: 49%;
-      transform: translateY(-51%);
-    }
-`;
-
-const template = __WEBPACK_IMPORTED_MODULE_0__dom_js__["c" /* document */].createElement('template');
-template.innerHTML = `
-  <style>
-    ${centeredStyles}
-  </style>
-  <div class="content-wrapper">
-    <slot></slot>
-  </div>
-`;
-
-/* harmony default export */ __webpack_exports__["b"] = (superclass => Object(__WEBPACK_IMPORTED_MODULE_0__dom_js__["b" /* defineUIComponent */])({
-  name: 'ui-centered',
-  template,
-  registerElement: false,
-  definition: class Centered extends superclass {}
-}));
-
-
-
-
-
-/***/ }),
-/* 17 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(0);
-
-
-const template = __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["c" /* document */].createElement('template');
-template.innerHTML = `
-  <style>
-    :host {
-      display: block;
-      height: 100vh;
-      width: 100vw;
-      background-color: rgba(0,0,0,0.7);
-      position: absolute;
-      top: 0px;
-      left: 0px;
-      z-index: 10000;
-    }
-  </style>
-`;
-
-const Backdrop = Object(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["b" /* defineUIComponent */])({
-  name: 'ui-backdrop',
-  template,
-  definition: class Backdrop extends __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* UIBase */] {
-    constructor () {
-      super();
-
-      // Elements that use this element should set this property to themselves as a
-      // debugging aid.
-      this.for = null;
-    }
-
-    init () {
-      super.init();
-      this.hide();
-    }
-  }
-});
-
-/* unused harmony default export */ var _unused_webpack_default_export = (Backdrop);
-
-
-/***/ }),
-/* 18 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__checkbox_js__ = __webpack_require__(27);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__form_js__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__animations_rippler_js__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utils_focusable_js__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__utils_ui_component_base_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__checkbox_js__ = __webpack_require__(29);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__form_js__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_animations_rippler_js__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_utils_focusable_js__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+/*
+ * list.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * list component for ui-components-lite.
+ *
+ * NOTE: it is not currently (and may never) be possible to extend built-in elements like <ul>.
+ * If it does become possible this can be refactored to support extending <ul> or <ol>.
+ */
+
 
 
 
@@ -2093,7 +2427,7 @@ const Backdrop = Object(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js_
 
 
 const handlerCache = new WeakMap();
-const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_4__utils_ui_component_base_js__["b" /* defineUIComponent */])({
+const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
   name: 'ui-list-behavior',
   reflectedAttributes: ['multiple', 'selected-index'],
   registerElement: false,
@@ -2109,7 +2443,7 @@ const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_4__utils_ui_
       let h = handlerCache.get(item);
       if (h) return h;
       let f = e => {
-        if (this.multiple) {
+        if (this.multiple === true) {
           if (!item.isSelected && !this.selected.includes(item)) {
             item.isSelected = true;
             this.selected = item; // pushes in setter
@@ -2172,7 +2506,7 @@ const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_4__utils_ui_
       if (selection) {
         selection.attr('aria-selected', true);
         selection.isSelected = true;
-        if (this.multiple) {
+        if (this.multiple === true) {
           this._selected.push(selection);
           this.dispatchEvent(new Event('change'));
         } else {
@@ -2189,7 +2523,7 @@ const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_4__utils_ui_
     }
 
     _deSelect (item) {
-      if (this.multiple) {
+      if (this.multiple === true) {
         this._selected = this._selected.filter(x => x !== item);
         this.dispatchEvent(new Event('change'));
       }
@@ -2226,7 +2560,7 @@ const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_4__utils_ui_
       this.on('attribute-change', ({ changed: { now, name } }) => {
         switch (name) {
           case 'multiple':
-            if (now) {
+            if (now === true) {
               this.selectedIndex = -1;
               this._selected = this._selected ? [this._selected] : [];
               this.attr('aria-multiselectable', true);
@@ -2263,7 +2597,7 @@ const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_4__utils_ui_
 
 
 const Item = (() => {
-  const template = __WEBPACK_IMPORTED_MODULE_4__utils_ui_component_base_js__["c" /* document */].createElement('template');
+  const template = __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
   const reflectedAttributes = ['is-selected', 'value'];
   template.innerHTML = `
     <style>
@@ -2320,11 +2654,11 @@ const Item = (() => {
     <span id="content"><slot></slot></span>
   `;
 
-  return Object(__WEBPACK_IMPORTED_MODULE_4__utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  return Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
     name: 'ui-item',
     template,
     reflectedAttributes,
-    definition: class Item extends Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_4__utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_2__animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_3__utils_focusable_js__["a" /* default */]) {
+    definition: class Item extends Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_2__temp_animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_3__temp_utils_focusable_js__["a" /* default */]) {
       constructor () {
         super();
         this._checkbox = null;
@@ -2366,7 +2700,7 @@ const Item = (() => {
 
 
 const List = (() => {
-  const template = __WEBPACK_IMPORTED_MODULE_4__utils_ui_component_base_js__["c" /* document */].createElement('template');
+  const template = __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
   template.innerHTML = `
     <style>
       :host {
@@ -2378,10 +2712,10 @@ const List = (() => {
     <slot></slot>
   `;
 
-  return Object(__WEBPACK_IMPORTED_MODULE_4__utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  return Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
     name: 'ui-list',
     template,
-    definition: class List extends Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_4__utils_ui_component_base_js__["a" /* UIBase */]).with(ListBehavior) {
+    definition: class List extends Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(ListBehavior) {
       init () {
         super.init();
         this.attr('role', 'list');
@@ -2394,35 +2728,46 @@ const List = (() => {
 
 
 /***/ }),
-/* 19 */
+/* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_elements_login_js__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__src_elements_fab_js__ = __webpack_require__(15);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__src_elements_drop_down_js__ = __webpack_require__(26);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__src_elements_drawer_js__ = __webpack_require__(28);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__src_elements_hamburger_js__ = __webpack_require__(30);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__src_elements_input_js__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__src_elements_router_js__ = __webpack_require__(31);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__src_elements_tabs_js__ = __webpack_require__(33);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__src_elements_text_js__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__src_elements_toolbar_js__ = __webpack_require__(34);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_elements_login_js__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_elements_fab_js__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_elements_drop_down_js__ = __webpack_require__(28);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_elements_drawer_js__ = __webpack_require__(30);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__temp_elements_hamburger_js__ = __webpack_require__(32);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__temp_elements_input_js__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__temp_elements_router_js__ = __webpack_require__(33);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__temp_elements_tabs_js__ = __webpack_require__(34);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__temp_elements_text_js__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__temp_elements_toolbar_js__ = __webpack_require__(35);
 
 
 
 /***/ }),
-/* 20 */
+/* 22 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__form_js__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__input_js__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__card_js__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__fab_js__ = __webpack_require__(15);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__alert_js__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__card_js__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__fab_js__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__alert_js__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__form_js__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__input_js__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+/*
+ * login.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * login component for ui-components-lite.
+ */
+
 
 
 
@@ -2435,7 +2780,7 @@ const INVALID = `Invalid login credentials. Please double-check your username an
 const FAILURE = `Could not connect to the server to verify your identity. Please check the console for details.`;
 
 const reflectedAttributes = ['is-logged-in', 'data-url', 'session-timeout'];
-const template = __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["c" /* document */].createElement('template');
+const template = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
 template.innerHTML = `
   <style>
     ui-card {
@@ -2494,11 +2839,11 @@ template.innerHTML = `
   </ui-card>
 `;
 
-/* unused harmony default export */ var _unused_webpack_default_export = (Object(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["b" /* defineUIComponent */])({
+/* unused harmony default export */ var _unused_webpack_default_export = (Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
   name: 'ui-login',
   reflectedAttributes,
   template,
-  definition: class Login extends __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* UIBase */] {
+  definition: class Login extends __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["a" /* UIBase */] {
     constructor () {
       super();
       this._alert = null;
@@ -2523,7 +2868,7 @@ template.innerHTML = `
       this.isLoggedIn = null;
       this.selectInternalElement('[name="user"]').value = '';
       this.selectInternalElement('[name="pass"]').value = '';
-      __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["d" /* global */].sessionStorage.setItem('ui-credentials', '');
+      __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].sessionStorage.setItem('ui-credentials', '');
       this.dispatchEvent(new CustomEvent('logout', { bubbles: true }));
       return this;
     }
@@ -2532,13 +2877,15 @@ template.innerHTML = `
       let { name } = this.credentials;
       this.logout();
       this._alert.alert(`User ${name} is now logged out. Please close this tab.`);
+      this._alert.selectInternalElement('#closer');
     }
 
     countDown (h) {
-      __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["d" /* global */].clearTimeout(h);
-      return __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["d" /* global */].setTimeout(() => {
+      __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].clearTimeout(h);
+      return __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(() => {
         this.logout();
         this._alert.alert(`Session timed out. Please login again or close the tab.`);
+        this._alert.selectInternalElement('#closer');
       }, (this.sessionTimeout || 30 * 60 * 1000));
     }
 
@@ -2546,15 +2893,15 @@ template.innerHTML = `
       super.init();
       this._beforeReady(_ => {
         this._form = this.selectInternalElement('ui-form');
-        this._alert = __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["c" /* document */].querySelector('ui-alert');
+        this._alert = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].querySelector('ui-alert');
         if (!this._alert) {
-          this._alert = __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["c" /* document */].createElement('ui-alert');
-          __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["c" /* document */].body.appendChild(this._alert);
+          this._alert = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-alert');
+          __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].body.appendChild(this._alert);
         }
 
         // Reset the session timeout on interaction.
         ['click', 'keydown'].forEach(evt => {
-          __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["c" /* document */].addEventListener(evt, e => {
+          __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].addEventListener(evt, e => {
             if (this.isLoggedIn) this._sessionTimeoutHandle = this.countDown(this._sessionTimeoutHandle);
           });
         });
@@ -2598,7 +2945,7 @@ template.innerHTML = `
       });
 
       this.onReady(_ => {
-        const bttn = __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["c" /* document */].querySelector('[logout-button]');
+        const bttn = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].querySelector('[logout-button]');
         // If added later event handling needs to be done manually.
         if (bttn) {
           bttn.on('click keydown', e => {
@@ -2610,8 +2957,8 @@ template.innerHTML = `
 
         // Wait a bit to allow handlers to be set if anything wants to listen for the login
         // event.
-        __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["d" /* global */].setTimeout(() => {
-          let cached = __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["d" /* global */].sessionStorage.getItem('ui-credentials');
+        __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(() => {
+          let cached = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].sessionStorage.getItem('ui-credentials');
           if (cached) {
             try {
               let credentials = JSON.parse(cached);
@@ -2632,10 +2979,21 @@ template.innerHTML = `
 
 
 /***/ }),
-/* 21 */
+/* 23 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/*
+ * binder.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * data-binding mixin for ui-components-lite.
+ */
+
 /* harmony default export */ __webpack_exports__["a"] = (superclass => class DataBinder extends superclass {
 
   constructor () {
@@ -2712,13 +3070,24 @@ template.innerHTML = `
 
 
 /***/ }),
-/* 22 */
+/* 24 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__dom_js__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__attribute_analyzer_js__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+/*
+ * dom-utils.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * DOM manipulation mixin for ui-components-lite.
+ */
+
 
 
 
@@ -2730,6 +3099,8 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
   constructor () {
     super();
     this._mutationObservers = [];
+    this._prevDisplay = '';
+    this._isHidden = false;
   }
 
   get isVisible () {
@@ -2873,18 +3244,19 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
   }
 
   hide () {
-    let inlineStyles = this.attr('style') || '';
-    if (inlineStyles === true) inlineStyles = ''; // Because style="" returns true
-    inlineStyles += 'display:none !important;';
-    this.attr('style', inlineStyles);
+    if (!this._isHidden) {
+      this._prevDisplay = this.style.display;
+      this._isHidden = true;
+      this.style.display = 'none';
+    }
     return this;
   }
 
   show () {
-    let inlineStyles = this.attr('style') || '';
-    if (inlineStyles === true) inlineStyles = ''; // Because style="" returns true
-    inlineStyles = inlineStyles.replace(/display:none\s*!important;/g, '');
-    this.attr('style', inlineStyles);
+    if (this._isHidden) {
+      this.style.display = this._prevDisplay;
+      this._isHidden = false;
+    }
     return this;
   }
 
@@ -2911,7 +3283,7 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
       throw new TypeError(`Attempted to append to shadowRoot but none exists on element ${this.identity}`);
     }
     if (parent.children.length) {
-      parent.insertBefore(parent, parent.children[0]);
+      parent.insertBefore(node, parent.children[0]);
     } else {
       parent.appendChild(node);
     }
@@ -2922,10 +3294,24 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
 
 
 /***/ }),
-/* 23 */
+/* 25 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/*
+ * promise-from-event.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * Utility function that returns a Promise that resolves as soon as the associated event fires.
+ *
+ * NOTE: the listener is automatically removed when the event fires, so no memory leak and
+ * side effects will only happen once.
+ */
+
 /* harmony default export */ __webpack_exports__["a"] = (({ eventName, element, callback, timeout }) => {
   if (!eventName || !element) {
     throw new TypeError(`Missing required arguments to function.`);
@@ -2952,19 +3338,29 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
 
 
 /***/ }),
-/* 24 */
+/* 26 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__dialog_js__ = __webpack_require__(25);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__dialog_js__ = __webpack_require__(27);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__ = __webpack_require__(2);
+/*
+ * alert.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * alert component for ui-components-lite.
+ */
 
 
 
 
 
-const template = __WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["c" /* document */].createElement('template');
+const template = __WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__["c" /* document */].createElement('template');
 template.innerHTML = `
   <style>
     :host {
@@ -2989,10 +3385,10 @@ template.innerHTML = `
     }
   </style>
   <div id="content"></div>
-  <ui-button id="closer">Close</ui-button>
+  <ui-button id="closer" dialog-dismiss>Close</ui-button>
 `;
 
-const Alert = Object(__WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["b" /* defineUIComponent */])({
+const Alert = Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__["b" /* defineUIComponent */])({
   name: 'ui-alert',
   template,
   definition: class Alert extends __WEBPACK_IMPORTED_MODULE_1__dialog_js__["a" /* default */] {
@@ -3007,9 +3403,9 @@ const Alert = Object(__WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["b" /* defineUI
       });
 
       const closer = this.selectInternalElement('#closer');
-      closer.on('click enter-key', e => this.close());
-
-      this.on('dialog-opened', e => closer.focus());
+      this.on('dialog-opened', e => {
+        closer.focus();
+      });
     }
 
     get textContent () {
@@ -3032,16 +3428,26 @@ const Alert = Object(__WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["b" /* defineUI
 
 
 /***/ }),
-/* 25 */
+/* 27 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__card_js__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__backdrop_js__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__button_js__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utils_float_js__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__card_js__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__backdrop_js__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__button_js__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_utils_float_js__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+/*
+ * dialog.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * dialog component for ui-components-lite.
+ */
 
 
 
@@ -3051,7 +3457,8 @@ const Alert = Object(__WEBPACK_IMPORTED_MODULE_2__utils_dom_js__["b" /* defineUI
 
 
 
-const template = __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["c" /* document */].createElement('template');
+
+const template = __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["c" /* document */].createElement('template');
 template.innerHTML = `
   <style>
     :host {
@@ -3104,36 +3511,42 @@ const incorporateButtonChild = (el, child) => {
   let manip = manipulators.get(el);
   if (!manip) {
     manip = [
-      e => { el.close(); el.dispatchEvent(new CustomEvent('dialog-dismiss')) },
-      e => { el.close(); el.dispatchEvent(new CustomEvent('dialog-confirm')) },
+      e => {
+        el.close();
+        el.dispatchEvent(new CustomEvent('dialog-dismiss'));
+      },
+
+      e => {
+        el.close();
+        el.dispatchEvent(new CustomEvent('dialog-confirm'));
+      },
     ];
     manipulators.set(el, manip);
   }
 
-  const [dismisser, closer] = manip;
-  if (child.attr('dialog-dismiss')) child.on('click', dismisser);
-  if (child.attr('dialog-confirm')) child.on('click', confirmer);
+  const [dismisser, confirmer] = manip;
+  if (child.attr('dialog-dismiss')) child.on('click enter-key', dismisser);
+  if (child.attr('dialog-confirm')) child.on('click enter-key', confirmer);
   child.watchAttribute(child, 'dialog-dismiss', now => {
-    now ? child.on('click', dismisser) : child.remove('click', dismisser);
+    now ? child.on('click enter-key', dismisser) : child.remove(dismisser);
   });
 
   child.watchAttribute(child, 'dialog-confirm', now => {
-    now ? child.on('click', confirmer) : child.remove('click', confirmer);
+    now ? child.on('click enter-key', confirmer) : child.remove(confirmer);
   });
 
   return el;
 };
 
-const Dialog = Object(__WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["b" /* defineUIComponent */])({
+const Dialog = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["b" /* defineUIComponent */])({
   name: 'ui-dialog',
   template,
   reflectedAttributes,
   definition: class Dialog extends __WEBPACK_IMPORTED_MODULE_0__card_js__["a" /* default */] {
     constructor () {
       super();
-      this.hide();
       this._backdrop = null;
-      __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["d" /* global */].addEventListener('logout', e => {
+      __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["d" /* global */].addEventListener('logout', e => {
         this.close();
       });
     }
@@ -3166,18 +3579,22 @@ const Dialog = Object(__WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["b" /* defineU
 
     init () {
       super.init();
+      this.hide();
       this.attr('role', 'dialog');
-      this._backdrop = __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["c" /* document */].createElement('ui-backdrop');
+      this._backdrop = __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["c" /* document */].createElement('ui-backdrop');
       this._backdrop.for = this;
-      __WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["c" /* document */].body.appendChild(this._backdrop);
+      __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["c" /* document */].body.appendChild(this._backdrop);
 
-      this._childrenUpgraded.then(children => {
-        children
-          .filter(el => el.matches && el.matches('.ui-button'))
-          .forEach(el => incorporateButtonChild(this, el));
+      this._beforeReady(_ => {
+        [
+          ...this.selectInternalAll('.ui-button'),
+          ...this.selectAll('.ui-button'),
+        ].forEach(el => incorporateButtonChild(this, el));
       });
 
-      const closer = e => this.close();
+      const closer = e => {
+        this.close();
+      };
 
       this.on('attribute-change', ({ changed: { now, name } }) => {
         switch (name) {
@@ -3224,16 +3641,30 @@ const Dialog = Object(__WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["b" /* defineU
 
 
 /***/ }),
-/* 26 */
+/* 28 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__list_js__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils_focusable_js__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__list_js__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+/*
+ * drop-down.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * drop-down component for ui-components-lite.
+ *
+ * NOTE: it is not currently (and may never) be possible to extend built-in elements like select.
+ * If it does become possible this can be refactored to support extending HTMLSelectElement.
+ */
+
 
 
 
@@ -3244,7 +3675,7 @@ const Dialog = Object(__WEBPACK_IMPORTED_MODULE_4__utils_dom_js__["b" /* defineU
 
 
 const reflectedAttributes = ['selected-index', 'is-open', 'multiple', 'label'];
-const template = __WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["c" /* document */].createElement('template');
+const template = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
 template.innerHTML = `
   <style>
     ui-list {
@@ -3355,11 +3786,11 @@ template.innerHTML = `
   </div>
 `;
 
-/* unused harmony default export */ var _unused_webpack_default_export = (Object(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["b" /* defineUIComponent */])({
+/* unused harmony default export */ var _unused_webpack_default_export = (Object(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
   name: 'ui-drop-down',
   reflectedAttributes,
   template,
-  definition: class DropDown extends Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_1__list_js__["b" /* ListBehavior */], __WEBPACK_IMPORTED_MODULE_2__utils_focusable_js__["a" /* default */]) {
+  definition: class DropDown extends Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_1__list_js__["b" /* ListBehavior */], __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__["a" /* default */]) {
     constructor () {
       super();
       this._list = null;
@@ -3392,7 +3823,8 @@ template.innerHTML = `
         super.appendChild(node);
         node.on('click', e => {
           if (!this.multiple) {
-            setTimeout(() => {
+            // wait for the animations to finish
+            __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(() => {
               this.close();
             }, 300);
           }
@@ -3435,7 +3867,7 @@ template.innerHTML = `
       if (this.attr('label')) this.selectInternalElement('label').classList.add('text-moved');
       this.on('focus', e => this.selectInternalElement('label').classList.remove('text-moved'));
       this.on('blur', e => {
-        setTimeout(() => { // Checked 1-31, doesn't work without
+        __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(() => {
           if (this.label && !this.value) {
             this.selectInternalElement('label').classList.add('text-moved');
           }
@@ -3452,7 +3884,7 @@ template.innerHTML = `
           if (item.isSelected) this.selected = item;
           item.on('click', e => {
             if (!this.multiple) {
-              setTimeout(() => {
+              __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(() => {
                 this.close();
               }, 300);
             }
@@ -3474,7 +3906,7 @@ template.innerHTML = `
       this.on('mouseenter', e => mouseon = true);
       this.on('mouseleave', e => {
         mouseon = false;
-        setTimeout(() => { if (!mouseon) this.isOpen = false; }, 1000);
+        __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(() => { if (!mouseon) this.isOpen = false; }, 1000);
       });
 
       this.on('attribute-change', ({ changed: { now, name } }) => {
@@ -3494,20 +3926,28 @@ template.innerHTML = `
 
 
 /***/ }),
-/* 27 */
+/* 29 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__form_js__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__animations_rippler_js__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils_focusable_js__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__form_js__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_animations_rippler_js__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
 /*
+ * checkbox.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * checkbox component for ui-components-lite.
+
  * NOTE: it is not currently possible to extend specific HTMLElements, leading
  * to this element being rather convoluted. Once it's possible to extend input
  * directly this should be refactored.
- *
  */
 
 
@@ -3519,7 +3959,7 @@ template.innerHTML = `
 
 
 
-const template = __WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["c" /* document */].createElement('template');
+const template = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
 template.innerHTML = `
   <style>
     :host {
@@ -3560,16 +4000,20 @@ template.innerHTML = `
 
 const reflectedAttributes = ['checked'];
 
-const Checkbox = Object(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["b" /* defineUIComponent */])({
+const Checkbox = Object(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
   name: 'ui-checkbox',
   template,
   reflectedAttributes,
-  definition: class Checkbox extends Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_1__animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_2__utils_focusable_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_0__form_js__["a" /* FormControlBehavior */]) {
+  definition: class Checkbox extends Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_1__temp_animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_0__form_js__["a" /* FormControlBehavior */]) {
     constructor () {
       super();
-      this._formElement = __WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["c" /* document */].createElement('input');
+      this._formElement = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('input');
       this._formElement.style.opacity = 0;
       this._formElement.type = 'checkbox';
+    }
+
+    get value () {
+      return this.checked != null;
     }
 
     init () {
@@ -3591,15 +4035,25 @@ const Checkbox = Object(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js_
 
 
 /***/ }),
-/* 28 */
+/* 30 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__backdrop_js__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__animations_easer_js__ = __webpack_require__(29);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils_float_js__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__backdrop_js__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_animations_easer_js__ = __webpack_require__(31);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_utils_float_js__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+/*
+ * drawer.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * sliding drawer component for ui-components-lite. Works in conjunction with a menu button.
+ */
 
 
 
@@ -3609,7 +4063,8 @@ const Checkbox = Object(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js_
 
 
 
-const template = __WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["c" /* document */].createElement('template');
+
+const template = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
 template.innerHTML = `
   <style>
     :host {
@@ -3639,14 +4094,14 @@ template.innerHTML = `
 
 const reflectedAttributes = ['is-modal', 'is-open'];
 
-const Drawer = Object(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["b" /* defineUIComponent */])({
+/* unused harmony default export */ var _unused_webpack_default_export = (Object(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
   name: 'ui-drawer',
   template,
   reflectedAttributes,
-  definition: class Drawer extends Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_2__utils_float_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_1__animations_easer_js__["a" /* default */]) {
+  definition: class Drawer extends Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_2__temp_utils_float_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_1__temp_animations_easer_js__["a" /* default */]) {
     constructor () {
       super();
-      this._backdrop = __WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["c" /* document */].createElement('ui-backdrop');
+      this._backdrop = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-backdrop');
       this._backdrop.for = this;
       this._backdrop.style.zIndex = '9000';
       this._toggleElem = null;
@@ -3688,12 +4143,12 @@ const Drawer = Object(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__[
       if (!this.rightOriented) this.leftOriented = true;
       this.floatingX = true;
 
-      __WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["c" /* document */].body.appendChild(this._backdrop);
+      __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].body.appendChild(this._backdrop);
       this._backdrop.on('click', e => this.close());
 
       // Check for the drawer toggle in the DOM. If not, you'll need to use the toggledBy method
       // or wire up the handlers yourself
-      this.toggledBy(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__["c" /* document */].querySelector('[drawer-toggle]'));
+      this.toggledBy(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].querySelector('[drawer-toggle]'));
 
       this._leftAnimator = this.defineSlideAnimation({ direction: 'right', distance: '350px'});
       this._rightAnimator = this.defineSlideAnimation({ direction: 'left', distance: '350px'});
@@ -3705,25 +4160,41 @@ const Drawer = Object(__WEBPACK_IMPORTED_MODULE_3__utils_ui_component_base_js__[
           case 'is-open':
             if (now) {
               if (this.isModal) this._backdrop.show();
-              animator.easeIn();
+              animator.easeIn().then(_ => {
+                this.dispatchEvent(new CustomEvent('drawer-opened'));
+              });
             } else {
-              animator.easeOut().then(_ => this._backdrop.hide());
+              animator.easeOut().then(_ => {
+                this._backdrop.hide();
+                this.dispatchEvent(new CustomEvent('drawer-closed'));
+              });
             }
             break;
         }
       });
     }
   }
-});
+}));
 
 
 /***/ }),
-/* 29 */
+/* 31 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils_dom_js__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utils_styler_js__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_utils_styler_js__ = __webpack_require__(13);
+/*
+ * easer.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * easer animation component for ui-components-lite.
+ */
+
 
 
 
@@ -3734,7 +4205,7 @@ const orientations = {
   'down': ['Y', ''],
 };
 
-/* harmony default export */ __webpack_exports__["a"] = (superclass => Object(__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["b" /* defineUIComponent */])({
+/* harmony default export */ __webpack_exports__["a"] = (superclass => Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__["b" /* defineUIComponent */])({
   name: 'ui-easer',
   registerElement: false,
   definition: class Easer extends superclass {
@@ -3743,34 +4214,35 @@ const orientations = {
       this._animations = [];
     }
 
-    defineSlideAnimation ({direction, timing=300, fn='ease-in', distance='100%'}) {
+    defineSlideAnimation ({direction, timing=500, fn='ease', distance='100%'}) {
       if (!this._animations.sliding) this._animations.sliding = {};
       const [xy, min] = orientations[direction];
       const minus = min && distance.match('-') ? '' : min;
-      const inClass = Object(__WEBPACK_IMPORTED_MODULE_1__utils_styler_js__["a" /* generateCSSClassName */])();
-      const outClass = Object(__WEBPACK_IMPORTED_MODULE_1__utils_styler_js__["a" /* generateCSSClassName */])();
-      const animationStyles = __WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["c" /* document */].createElement('template');
+      const inClass = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_styler_js__["a" /* generateCSSClassName */])();
+      const outClass = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_styler_js__["a" /* generateCSSClassName */])();
+      const animationStyles = __WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__["c" /* document */].createElement('template');
       animationStyles.innerHTML = `
         <style>
-          :host(.${inClass}) {
-            transform: translate${xy}(${minus}${distance});
+          :host {
             transition-property: transform;
             transition-duration: ${timing}ms;
             transition-timing-function: ${fn};
+            transform: translate3d(0, 0, 0);
+          }
+
+          :host(.${inClass}) {
+            transform: translate${xy}(${minus}${distance});
           }
 
           :host(.${outClass}) {
             transform: translate${xy}(0);
-            transition-property: transform;
-            transition-duration: ${timing}ms;
-            transition-timing-function: ${fn === 'ease-in' ? 'ease-out' : fn};
           }
         </style>
       `;
 
-      if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) __WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */].ShadyCSS.prepareTemplate(animationStyles, this.tagName.toLowerCase());
+      if (__WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__["d" /* global */]._usingShady) __WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__["d" /* global */].ShadyCSS.prepareTemplate(animationStyles, this.tagName.toLowerCase());
 
-      this.shadowRoot.appendChild(__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["c" /* document */].importNode(animationStyles.content, true));
+      this.shadowRoot.appendChild(__WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__["c" /* document */].importNode(animationStyles.content, true));
 
       const self = this;
       const obj = {
@@ -3779,13 +4251,13 @@ const orientations = {
         easeIn () {
           this._isIn = true;
           self.classList.add(inClass);
-          if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) {
+          if (__WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__["d" /* global */]._usingShady) {
             ShadyCSS.styleSubtree(self);
           }
           return new Promise(res => {
-            setTimeout(() => {
+            __WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__["d" /* global */].setTimeout(() => {
               self.classList.remove(outClass);
-              if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) {
+              if (__WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__["d" /* global */]._usingShady) {
                 ShadyCSS.styleSubtree(self);
               }
               res(true);
@@ -3796,13 +4268,13 @@ const orientations = {
         easeOut () {
           this._isIn = false;
           self.classList.add(outClass);
-          if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) {
+          if (__WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__["d" /* global */]._usingShady) {
             ShadyCSS.styleSubtree(self);
           }
           return new Promise(res => {
-            setTimeout(() => {
+            __WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__["d" /* global */].setTimeout(() => {
               self.classList.remove(inClass);
-              if (__WEBPACK_IMPORTED_MODULE_0__utils_dom_js__["d" /* global */]._usingShady) {
+              if (__WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__["d" /* global */]._usingShady) {
                 ShadyCSS.styleSubtree(self);
               }
               res(true);
@@ -3827,18 +4299,29 @@ const orientations = {
 
 
 /***/ }),
-/* 30 */
+/* 32 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__ = __webpack_require__(2);
+/*
+ * hamburger.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * menu-button component for ui-components-lite.
+ */
+
 
 
 
 
 const reflectedAttributes = ['line-color'];
-const template = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].createElement('template');
+const template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["c" /* document */].createElement('template');
 template.innerHTML = `
   <style>
     .line {
@@ -3874,7 +4357,7 @@ template.innerHTML = `
   </style>
 `;
 
-const lineDivTemplate = __WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].createElement('template');
+const lineDivTemplate = __WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["c" /* document */].createElement('template');
 lineDivTemplate.innerHTML = `
   <div>
     <div class="line top-line"></div>
@@ -3883,7 +4366,7 @@ lineDivTemplate.innerHTML = `
   </div>
 `;
 
-/* unused harmony default export */ var _unused_webpack_default_export = (Object(__WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["b" /* defineUIComponent */])({
+/* unused harmony default export */ var _unused_webpack_default_export = (Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["b" /* defineUIComponent */])({
   name: 'ui-hamburger',
   template,
   reflectedAttributes,
@@ -3892,7 +4375,7 @@ lineDivTemplate.innerHTML = `
       super.init();
       this
         .selectInternalElement('.content-wrapper')
-        .appendChild(__WEBPACK_IMPORTED_MODULE_1__utils_dom_js__["c" /* document */].importNode(lineDivTemplate.content, true));
+        .appendChild(__WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["c" /* document */].importNode(lineDivTemplate.content, true));
 
       this.watchAttribute(this, 'line-color', now => {
         [...this.selectInternalAll('.line')].forEach(el => {
@@ -3905,14 +4388,25 @@ lineDivTemplate.innerHTML = `
 
 
 /***/ }),
-/* 31 */
+/* 33 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utils_url_js__ = __webpack_require__(32);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__ = __webpack_require__(18);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+/*
+ * router.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * router component for ui-components-lite.
+ */
+
 
 
 
@@ -3936,14 +4430,14 @@ const Router = (() => {
     'hash-bang',
   ];
 
-  const template = __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["c" /* document */].createElement('template');
+  const template = __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
   template.innerHTML = `<slot name="router-content"></slot>`;
 
-  return Object(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  return Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
     name: 'ui-router',
     template,
     reflectedAttributes,
-    definition: class Router extends __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* UIBase */] {
+    definition: class Router extends __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["a" /* UIBase */] {
       constructor () {
         super();
         this._contentSlot = null;
@@ -3953,7 +4447,7 @@ const Router = (() => {
         this._login = null;
         this._popstateListener = ({ state: data }) => {
           // here we ignore querystring data, it may be stale
-          const { route } = Object(__WEBPACK_IMPORTED_MODULE_1__utils_url_js__["a" /* parseURL */])(window.location.href);
+          const { route } = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["a" /* parseURL */])(window.location.href);
 
           // detect if it was back or forward button:
           if (route === historyStack[historyStack.length - 2]) {
@@ -3962,7 +4456,7 @@ const Router = (() => {
 
           this._updateRoute(route);
           if (!historyStack.length || (historyStack.length === 1 && historyStack[0] === '/')) {
-            __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["d" /* global */].removeEventListener('popstate', this._popstateListener);
+            __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["d" /* global */].removeEventListener('popstate', this._popstateListener);
             this._managingHistory = false;
           }
         };
@@ -4023,7 +4517,7 @@ const Router = (() => {
           }
 
           // TODO: this makes maps work. Fix this.
-          setTimeout(() => { __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["d" /* global */].dispatchEvent(new Event('resize')); }, 0);
+          __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(() => { __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["d" /* global */].dispatchEvent(new Event('resize')); }, 0);
 
           return elem;
         }
@@ -4044,12 +4538,12 @@ const Router = (() => {
       }
 
       _updateHistory(route, url, data={}) {
-        __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["d" /* global */].history.pushState(data, '', url);
+        __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["d" /* global */].history.pushState(data, '', url);
         historyStack.push(route);
       }
 
       route (val, outsidedata) {
-        let { data: urldata, path } = Object(__WEBPACK_IMPORTED_MODULE_1__utils_url_js__["a" /* parseURL */])(window.location.href);
+        let { data: urldata, path } = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["a" /* parseURL */])(window.location.href);
         const data = outsidedata || urldata;
         const type = Object(__WEBPACK_IMPORTED_MODULE_2__node_modules_extracttype_extracttype_js__["a" /* default */])(val);
         let route = null;
@@ -4083,7 +4577,7 @@ const Router = (() => {
         this._beforeReady(_ => {
           this._contentSlot = this.selectInternalElement('slot');
           let selected = null;
-          let { route, data } = Object(__WEBPACK_IMPORTED_MODULE_1__utils_url_js__["a" /* parseURL */])(window.location.href);
+          let { route, data } = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["a" /* parseURL */])(window.location.href);
           if (route) selected = route;
 
           let flag = false;
@@ -4098,7 +4592,7 @@ const Router = (() => {
                 let login = el.querySelector('.ui-login');
                 this._login = login;
                 login.on('login', e => {
-                  const { route } = Object(__WEBPACK_IMPORTED_MODULE_1__utils_url_js__["a" /* parseURL */])(window.location.href);
+                  const { route } = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["a" /* parseURL */])(window.location.href);
                   this._updateRoute(route);
                 });
 
@@ -4172,10 +4666,10 @@ const Route = (() => {
     'warns-on-unload',
   ];
 
-  return Object(__WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  return Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
     name: 'ui-route',
     reflectedAttributes,
-    definition: class Route extends __WEBPACK_IMPORTED_MODULE_0__utils_ui_component_base_js__["a" /* UIBase */] {
+    definition: class Route extends __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["a" /* UIBase */] {
       constructor () {
         super();
         this._data = null;
@@ -4202,7 +4696,7 @@ const Route = (() => {
         this._fromChangeHandler = false;
 
         if (this.updatesHistory) {
-          const qs = Object(__WEBPACK_IMPORTED_MODULE_1__utils_url_js__["b" /* toQueryString */])(data);
+          const qs = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["b" /* toQueryString */])(data);
           if (qs !== '?') {
             history.replaceState(data, '', window.location.href, window.location.href + qs);
           }
@@ -4268,85 +4762,25 @@ const Route = (() => {
 
 
 /***/ }),
-/* 32 */
+/* 34 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return parseURL; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return toQueryString; });
-// At some point could use the following with named capture groups?
-// const urlMatcher = /(?:(https?):\/\/)?(?:(\w+)\.)?(\w+)\.(\w+)(\/[\w\/]+)?(?:\?(.+))?/
-const matchProtocol = /https?/i;
-const matchDomain = /\/\/([\w\.]+)[\/\?#]{1}?/;
-const matchQueryString = /\?(.+)/;
-
-const parseQueryString = qs => {
-  return qs.split('&').reduce((acc, pair) => {
-    const [key, v] = pair.split('=').map(decodeURIComponent);
-    let value;
-    try {
-      value = JSON.parse(v);
-    } catch (e) {
-      value = v;
-    }
-    acc[key] = value;
-    return acc;
-  }, {});
-};
-
-const parseURL = url => {
-  let subdomain, domain, p, qs = '';
-  let secure = false;
-  let path = '';
-  let data = {};
-  let route = '';
-  let [first, rest] = url.split('://');
-  if (rest) secure = first.toLowerCase() === 'https';
-  const protocol = secure ? 'https' : 'http';
-  let [fullDomain, pAndQs] = (rest || first).split(/\/(.+)/);
-  rest = fullDomain.split('.');
-  subdomain = rest.length === 3 && rest[0];
-  domain = rest.length === 3 ? rest.slice(1).join('.') : fullDomain;
-  if (pAndQs) {
-    ([p, qs] = pAndQs.split('?'));
-    if (qs) data = parseQueryString(qs);
-    let [serverPath, clientPath] = p.split('#!');
-    if (clientPath) route = clientPath;
-    path = '/' + serverPath;
-  }
-
-  return {
-    protocol,
-    secure,
-    subdomain: subdomain || '',
-    domain: domain || '',
-    fullDomain,
-    data,
-    url,
-    path,
-    route,
-    queryString: qs,
-  };
-};
-
-const toQueryString = obj => '?' + Object.entries(obj)
-  .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-  .join('&');
-
-window.parseURL = parseURL;
-
-
-
-
-/***/ }),
-/* 33 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__list_js__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utils_ui_component_base_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__list_js__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+/*
+ * tabs.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * ltabscomponent for ui-components-lite.
+ */
+
 
 
 
@@ -4355,7 +4789,7 @@ window.parseURL = parseURL;
 
 
 const Tab = (() => {
-  const template = __WEBPACK_IMPORTED_MODULE_1__utils_ui_component_base_js__["c" /* document */].createElement('template');
+  const template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
   template.innerHTML = `
     <style>
       #content {
@@ -4391,7 +4825,7 @@ const Tab = (() => {
     </style>
   `;
 
-  return Object(__WEBPACK_IMPORTED_MODULE_1__utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  return Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
     name: 'ui-tab',
     template,
     definition: class Tab extends __WEBPACK_IMPORTED_MODULE_0__list_js__["a" /* Item */] {
@@ -4412,7 +4846,7 @@ const Tabs = (() => {
     'for', // css selector, gets notified of changes
   ];
 
-  const template = __WEBPACK_IMPORTED_MODULE_1__utils_ui_component_base_js__["c" /* document */].createElement('template');
+  const template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
   template.innerHTML = `
     <style>
       :host {
@@ -4429,11 +4863,11 @@ const Tabs = (() => {
     <slot></slot>
   `;
 
-  return Object(__WEBPACK_IMPORTED_MODULE_1__utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  return Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
     name: 'ui-tabs',
     template,
     reflectedAttributes,
-    definition: class Tabs extends Object(__WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_1__utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_0__list_js__["b" /* ListBehavior */]) {
+    definition: class Tabs extends Object(__WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_0__list_js__["b" /* ListBehavior */]) {
       constructor () {
         super();
         this._for = null;
@@ -4453,7 +4887,7 @@ const Tabs = (() => {
             case 'for':
               if (now) {
                 this._for = now;
-                const elem = __WEBPACK_IMPORTED_MODULE_1__utils_ui_component_base_js__["c" /* document */].querySelector(this._for);
+                const elem = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].querySelector(this._for);
                 if (elem) {
                   const method = elem.on ? 'on' : 'addEventListener';
                   elem[method]('change', ({ value }) => {
@@ -4477,7 +4911,7 @@ const Tabs = (() => {
 
             case 'selected-index':
               if (now > -1 && this._for) {
-                __WEBPACK_IMPORTED_MODULE_1__utils_ui_component_base_js__["c" /* document */].querySelector(this._for).route(this.selected.value);
+                __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].querySelector(this._for).route(this.selected.value);
               }
               break;
           }
@@ -4491,15 +4925,26 @@ const Tabs = (() => {
 
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils_float_js__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utils_attribute_analyzer_js__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils_ui_component_base_js__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utils_centerer_js__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_utils_attribute_analyzer_js__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_utils_centerer_js__ = __webpack_require__(15);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+/*
+ * toolbar.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * toolbar component for ui-components-lite.
+ */
+
 
 
 
@@ -4511,10 +4956,10 @@ const reflectedAttributes = [
   'is-tall',
 ];
 
-const template = __WEBPACK_IMPORTED_MODULE_2__utils_ui_component_base_js__["c" /* document */].createElement('template');
+const template = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
 template.innerHTML = `
   <style>
-    ${__WEBPACK_IMPORTED_MODULE_3__utils_centerer_js__["a" /* centeredStyles */]}
+    ${__WEBPACK_IMPORTED_MODULE_3__temp_utils_centerer_js__["a" /* centeredStyles */]}
 
     :host {
       width: 100%;
@@ -4601,11 +5046,11 @@ template.innerHTML = `
   </header>
 `;
 
-/* unused harmony default export */ var _unused_webpack_default_export = (Object(__WEBPACK_IMPORTED_MODULE_2__utils_ui_component_base_js__["b" /* defineUIComponent */])({
+/* unused harmony default export */ var _unused_webpack_default_export = (Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
   name: 'ui-toolbar',
   template,
   reflectedAttributes,
-  definition: class Toolbar extends Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_2__utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_0__utils_float_js__["a" /* default */]) {
+  definition: class Toolbar extends Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__["a" /* default */]) {
     constructor () {
       super();
       this._secondaryToolbar = null;
