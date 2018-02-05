@@ -2066,7 +2066,7 @@ var __run = function __run() {
             before = input.value;
             var evt = new Event('change');
             evt.value = input.value;
-            input.dispatchEvent('change');
+            input.dispatchEvent(evt);
           }
         }));
       });

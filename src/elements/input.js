@@ -346,6 +346,8 @@ export const Input = defineUIComponent({
       this.on('focus', _ => {
         this._input.focus();
       });
+      
+      this._input.addEventListener('change', ({ value }) => this.value = value);
 
       this.on('attribute-change', ({ changed: { now, name, was } } ) => {
         switch (name) {

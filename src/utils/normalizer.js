@@ -39,7 +39,7 @@ export const inputNormalizer = input => {
       before = input.value;
       const evt = new Event('change');
       evt.value = input.value;
-      input.dispatchEvent('change');
+      input.dispatchEvent(evt);
     }
   })));
 
