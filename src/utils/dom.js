@@ -24,8 +24,12 @@ const toPropertyObj = propList => {
         return this[`_${property}`] === undefined ? null : this[`_${property}`];
       },
       set: function(val) {
-        this[`_${property}`] = val;
-        this.attr(toSnakeCase(property, '-'), val);
+        if (this[`_${property}`] !== val) {
+          this[`_${property}`] = val;
+          this.attr(toSnakeCase(property, '-'), val);
+        }
+
+        return val;
       }
     };
     return acc;
@@ -63,11 +67,6 @@ const defineUIComponent = ({
       let temp = tmpl ? tmpl.cloneNode(true) : null;
       if (temp && global._usingShady) global.ShadyCSS.prepareTemplate(temp, name);
       return temp;
-    }
-
-    get _reflectedAttributes () {
-      let rfs = super._reflectedAttributes || [];
-      return [...rfs, ...reflectedAttributes];
     }
 
     init () {

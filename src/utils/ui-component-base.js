@@ -37,6 +37,15 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
       this.shadowRoot.appendChild(global.document.importNode(tmpl.content, true));
     }
 
+    let rfs = this.constructor.observedAttributes;
+    if (rfs.length) {
+      this.on('attribute-change', ({ changed: { name, now } }) => {
+        if (rfs.includes(name)) {
+          this[toCamelCase(name)] = now;
+        }
+      });
+    }
+
     // This is because the spec doesn't allow attribute changes in an element constructor.
     global.setTimeout(() => {
       this.init();
@@ -82,32 +91,25 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     const children = [...[...this.children].map(elReady)];
     if (this.shadowRoot) children.push.apply(children, [...this.shadowRoot.children].map(elReady));
 
+    [...this.attributes].forEach(({ name: attr, value: val}) => {
+      const twoWay = val && val.match(/^\{\{\{(.+)\}\}\}$/);
+      const oneWay = val && val.match(/^\{\{(.+)\}\}$/);
+      const matched = twoWay ? twoWay[1] : oneWay ? oneWay[1] : null;
+      const attrToWatch = matched ? toSnakeCase(matched, '-') : null;
+      if (attrToWatch) {
+        this.bindAttribute(attr, attrToWatch, twoWay);
+      }
+    });
+
     Promise.all(children)
       .then(chlds => {
-        let tg = this.tagName.toLowerCase();
-        if (this._reflectedAttributes.length) {
-          this.on('attribute-change', ({ changed: { name, now } }) => {
-            if (this._reflectedAttributes.includes(name)) {
-              this[toCamelCase(name)] = now;
-            }
-          });
-        }
-
-        this.constructor.observedAttributes.forEach(attr => {
+        // have to wait for children to be ready in case they're listening
+        let rfs = this.constructor.observedAttributes;
+        rfs.forEach(attr => {
           if (this.attr(attr)) {
             const evt = new CustomEvent('attribute-change');
             evt.changed = { name: attr, now: this.attr(attr), was: null };
             this.dispatchEvent(evt);
-          }
-        });
-
-        [...this.attributes].forEach(({ name: attr, value: val}) => {
-          const twoWay = val && val.match(/^\{\{\{(.+)\}\}\}$/);
-          const oneWay = val && val.match(/^\{\{(.+)\}\}$/);
-          const matched = twoWay ? twoWay[1] : oneWay ? oneWay[1] : null;
-          const attrToWatch = matched ? toSnakeCase(matched, '-') : null;
-          if (attrToWatch) {
-            this.bindAttribute(attr, attrToWatch, twoWay);
           }
         });
 

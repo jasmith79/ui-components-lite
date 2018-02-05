@@ -214,7 +214,7 @@ export const Input = defineUIComponent({
 
     set value (val) {
       let value = '';
-      switch (this.attr('type').toLowerCase()) {
+      switch ((this.attr('type') || 'text').toLowerCase()) {
         case 'date':
           switch (extractType(val)) {
             case 'Null':
