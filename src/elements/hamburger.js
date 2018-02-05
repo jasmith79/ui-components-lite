@@ -13,7 +13,7 @@ import Button from './button.js';
 
 import { defineUIComponent, document } from '../utils/dom.js';
 
-const reflectedAttrs = ['line-color'];
+const reflectedAttributes = ['line-color'];
 const template = document.createElement('template');
 template.innerHTML = `
   <style>
@@ -62,7 +62,7 @@ lineDivTemplate.innerHTML = `
 export default defineUIComponent({
   name: 'ui-hamburger',
   template,
-  reflectedAttrs,
+  reflectedAttributes,
   definition: class Hamburger extends Button {
     init () {
       super.init();

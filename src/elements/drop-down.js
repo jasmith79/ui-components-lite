@@ -21,7 +21,7 @@ import { UIBase, defineUIComponent, document, global } from '../utils/ui-compone
 import { mix } from '../../../mixwith/src/mixwith.js';
 import { extractType } from '../../../extracttype/extracttype.js';
 
-const reflectedAttrs = ['selected-index', 'is-open', 'multiple', 'label'];
+const reflectedAttributes = ['selected-index', 'is-open', 'multiple', 'label'];
 const template = document.createElement('template');
 template.innerHTML = `
   <style>
@@ -135,7 +135,7 @@ template.innerHTML = `
 
 export default defineUIComponent({
   name: 'ui-drop-down',
-  reflectedAttrs,
+  reflectedAttributes,
   template,
   definition: class DropDown extends mix(UIBase).with(ListBehavior, Focusable) {
     constructor () {

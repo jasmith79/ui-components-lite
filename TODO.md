@@ -1,6 +1,5 @@
 TODO:
 
-refactor attribute-analyzer: can use hasAttribute to eliminate the empty string === true bit?
 refactor styler
 
 add append, insertBefore, etc. overrides for elements that need them
@@ -8,6 +7,8 @@ add append, insertBefore, etc. overrides for elements that need them
 add toast, tooltip, toggle
 
 see if data-binding can happen earlier in the lifecycle?
+
+see if FormData polyfill can be removed with the form refactor
 
 auto tests, especially dynamically added elements/children
 
@@ -31,7 +32,7 @@ constructor called, super all the way up.
 attached to DOM
 init called, all the way up
   --childrenUpgraded
-  --reflectedAttrs reflected
+  --reflectedAttributes reflected
   --data-bound
   --beforeReadyHandlers called
   --ui-ready-fires

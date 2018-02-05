@@ -46,12 +46,12 @@ template.innerHTML = `
   <slot></slot>
 `;
 
-const reflectedAttrs = ['is-modal', 'is-open'];
+const reflectedAttributes = ['is-modal', 'is-open'];
 
 export default defineUIComponent({
   name: 'ui-drawer',
   template,
-  reflectedAttrs,
+  reflectedAttributes,
   definition: class Drawer extends mix(UIBase).with(Floats, Easer) {
     constructor () {
       super();

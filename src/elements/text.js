@@ -14,7 +14,7 @@
 
 import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';
 
-const reflectedAttrs = ['view-text'];
+const reflectedAttributes = ['view-text'];
 const template = document.createElement('template');
 template.innerHTML = `
   <style>
@@ -31,7 +31,7 @@ template.innerHTML = `
 
 const Text = defineUIComponent({
   name: 'ui-text',
-  reflectedAttrs,
+  reflectedAttributes,
   template,
   definition: class Text extends UIBase {
     constructor () {

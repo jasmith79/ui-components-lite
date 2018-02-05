@@ -19,7 +19,7 @@ export const Router = (() => {
   let historyManager = null;
   let localNavigationCounter = -1;
   let historyStack = [];
-  const reflectedAttrs = [
+  const reflectedAttributes = [
     // updates-history: whether or not the router manages the navigation history. NOTE: can only be
     // set on one router element per page. Attempting to set more than one throws an error.
     'updates-history',
@@ -38,7 +38,7 @@ export const Router = (() => {
   return defineUIComponent({
     name: 'ui-router',
     template,
-    reflectedAttrs,
+    reflectedAttributes,
     definition: class Router extends UIBase {
       constructor () {
         super();
@@ -250,7 +250,7 @@ export const Router = (() => {
 })();
 
 export const Route = (() => {
-  const reflectedAttrs = [
+  const reflectedAttributes = [
     // updates-history: whether or not the route's data is converted to a url query string
     // and added to the current browser url if the parent router manages the navigation history.
     'updates-history',
@@ -268,7 +268,7 @@ export const Route = (() => {
 
   return defineUIComponent({
     name: 'ui-route',
-    reflectedAttrs,
+    reflectedAttributes,
     definition: class Route extends UIBase {
       constructor () {
         super();

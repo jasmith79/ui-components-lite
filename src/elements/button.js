@@ -44,7 +44,7 @@ template.innerHTML = `
   </style>
 `;
 
-const reflectedAttrs = [
+const reflectedAttributes = [
   'dialog-dismiss',
   'dialog-confirm',
   'submit',
@@ -53,7 +53,7 @@ const reflectedAttrs = [
 const Button = defineUIComponent({
   name: 'ui-button',
   template,
-  reflectedAttrs,
+  reflectedAttributes,
   definition: class Button extends mix(UIBase).with(Centerable, Floats, Ripples, Focusable) {
     init () {
       super.init();

@@ -16,7 +16,7 @@ import { centeredStyles } from '../utils/centerer.js';
 
 import { mix } from '../../../mixwith/src/mixwith.js';
 
-const reflectedAttrs = [
+const reflectedAttributes = [
   'is-tall',
 ];
 
@@ -113,7 +113,7 @@ template.innerHTML = `
 export default defineUIComponent({
   name: 'ui-toolbar',
   template,
-  reflectedAttrs,
+  reflectedAttributes,
   definition: class Toolbar extends mix(UIBase).with(Floats) {
     constructor () {
       super();

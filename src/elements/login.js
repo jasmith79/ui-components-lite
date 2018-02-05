@@ -20,7 +20,7 @@ import { UIBase, defineUIComponent, document, global } from '../utils/ui-compone
 const INVALID = `Invalid login credentials. Please double-check your username and password.`;
 const FAILURE = `Could not connect to the server to verify your identity. Please check the console for details.`;
 
-const reflectedAttrs = ['is-logged-in', 'data-url', 'session-timeout'];
+const reflectedAttributes = ['is-logged-in', 'data-url', 'session-timeout'];
 const template = document.createElement('template');
 template.innerHTML = `
   <style>
@@ -82,7 +82,7 @@ template.innerHTML = `
 
 export default defineUIComponent({
   name: 'ui-login',
-  reflectedAttrs,
+  reflectedAttributes,
   template,
   definition: class Login extends UIBase {
     constructor () {

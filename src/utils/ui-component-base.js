@@ -85,9 +85,9 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     Promise.all(children)
       .then(chlds => {
         let tg = this.tagName.toLowerCase();
-        if (this._reflectedAttrs.length) {
+        if (this._reflectedAttributes.length) {
           this.on('attribute-change', ({ changed: { name, now } }) => {
-            if (this._reflectedAttrs.includes(name)) {
+            if (this._reflectedAttributes.includes(name)) {
               this[toCamelCase(name)] = now;
             }
           });

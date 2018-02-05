@@ -68,7 +68,7 @@ export const Tab = (() => {
 })();
 
 export const Tabs = (() => {
-  const reflectedAttrs = [
+  const reflectedAttributes = [
     'for', // css selector, gets notified of changes
   ];
 
@@ -92,7 +92,7 @@ export const Tabs = (() => {
   return defineUIComponent({
     name: 'ui-tabs',
     template,
-    reflectedAttrs,
+    reflectedAttributes,
     definition: class Tabs extends mix(UIBase).with(ListBehavior) {
       constructor () {
         super();

@@ -13,7 +13,7 @@
  */
 
 import Checkbox from './checkbox.js';
-import { FormBehavior } from './form.js';
+import { FormControlBehavior } from './form.js';
 
 import Ripples from '../animations/rippler.js';
 
@@ -26,9 +26,9 @@ import { mix } from '../../../mixwith/src/mixwith.js';
 const handlerCache = new WeakMap();
 export const ListBehavior = superclass => defineUIComponent({
   name: 'ui-list-behavior',
-  reflectedAttrs: ['multiple', 'selected-index'],
+  reflectedAttributes: ['multiple', 'selected-index'],
   registerElement: false,
-  definition: class extends mix(superclass).with(FormBehavior) {
+  definition: class extends mix(superclass).with(FormControlBehavior) {
     constructor () {
       super();
       this._items = [];
@@ -40,7 +40,7 @@ export const ListBehavior = superclass => defineUIComponent({
       let h = handlerCache.get(item);
       if (h) return h;
       let f = e => {
-        if (this.multiple) {
+        if (this.multiple === true) {
           if (!item.isSelected && !this.selected.includes(item)) {
             item.isSelected = true;
             this.selected = item; // pushes in setter
@@ -103,7 +103,7 @@ export const ListBehavior = superclass => defineUIComponent({
       if (selection) {
         selection.attr('aria-selected', true);
         selection.isSelected = true;
-        if (this.multiple) {
+        if (this.multiple === true) {
           this._selected.push(selection);
           this.dispatchEvent(new Event('change'));
         } else {
@@ -120,7 +120,7 @@ export const ListBehavior = superclass => defineUIComponent({
     }
 
     _deSelect (item) {
-      if (this.multiple) {
+      if (this.multiple === true) {
         this._selected = this._selected.filter(x => x !== item);
         this.dispatchEvent(new Event('change'));
       }
@@ -157,7 +157,7 @@ export const ListBehavior = superclass => defineUIComponent({
       this.on('attribute-change', ({ changed: { now, name } }) => {
         switch (name) {
           case 'multiple':
-            if (now) {
+            if (now === true) {
               this.selectedIndex = -1;
               this._selected = this._selected ? [this._selected] : [];
               this.attr('aria-multiselectable', true);
@@ -193,7 +193,7 @@ export const ListBehavior = superclass => defineUIComponent({
 
 export const Item = (() => {
   const template = document.createElement('template');
-  const reflectedAttrs = ['is-selected', 'value'];
+  const reflectedAttributes = ['is-selected', 'value'];
   template.innerHTML = `
     <style>
       :host {
@@ -252,7 +252,7 @@ export const Item = (() => {
   return defineUIComponent({
     name: 'ui-item',
     template,
-    reflectedAttrs,
+    reflectedAttributes,
     definition: class Item extends mix(UIBase).with(Ripples, Focusable) {
       constructor () {
         super();

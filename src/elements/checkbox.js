@@ -13,7 +13,7 @@
  * directly this should be refactored.
  */
 
-import { FormBehavior } from './form.js';
+import { FormControlBehavior } from './form.js';
 
 import Ripples from '../animations/rippler.js';
 
@@ -61,18 +61,22 @@ template.innerHTML = `
   </style>
 `;
 
-const reflectedAttrs = ['checked'];
+const reflectedAttributes = ['checked'];
 
 const Checkbox = defineUIComponent({
   name: 'ui-checkbox',
   template,
-  reflectedAttrs,
-  definition: class Checkbox extends mix(UIBase).with(Ripples, Focusable, FormBehavior) {
+  reflectedAttributes,
+  definition: class Checkbox extends mix(UIBase).with(Ripples, Focusable, FormControlBehavior) {
     constructor () {
       super();
       this._formElement = document.createElement('input');
       this._formElement.style.opacity = 0;
       this._formElement.type = 'checkbox';
+    }
+
+    get value () {
+      return this.checked != null;
     }
 
     init () {

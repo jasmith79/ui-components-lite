@@ -13,24 +13,16 @@
  */
 
 import Text from './text.js';
-import { FormBehavior } from './form.js';
+import { FormControlBehavior } from './form.js';
 
 import Focusable from '../utils/focusable.js';
+import { inputNormalizer } from '../utils/normalizer.js';
 import { UIBase, document, defineUIComponent, global } from '../utils/ui-component-base.js';
 
 import { mix } from '../../../mixwith/src/mixwith.js';
 import { extractType } from '../../../extracttype/extracttype.js';
 
-// This is here to make input event consistent across browsers, all of these
-// if the value is different than the last onfocus will trigger change event.
-const changeTriggers = [
-  'blur',
-  'keyup',
-  'paste',
-  'input',
-];
-
-const reflectedAttrs = [
+const reflectedAttributes = [
   'label',
 
   // These values are here to mimic the behavior of the native, NOTE: incomplete.
@@ -46,29 +38,6 @@ const reflectedAttrs = [
    // Will override placeholder if both are set.
   'default-value',
 ];
-
-const debounce = (n, immed, f) => {
-  let [fn, now] = (() => {
-    switch(extractType(immed)) {
-      case 'Boolean':
-        return [f, immed];
-      case 'Function':
-        return [immed, false];
-      default:
-        throw new TypeError(`Unrecognized arguments ${immed} and ${f} to function debounce.`);
-    }
-  })();
-
-  let timer = null;
-  return function (...args) {
-    if (timer === null && now) {
-      fn.apply(this, args);
-    }
-    global.clearTimeout(timer);
-    timer = global.setTimeout(() => fn.apply(this, args), n);
-    return timer;
-  }
-};
 
 const pad = n => val => {
   const s = '' + val;
@@ -175,6 +144,7 @@ template.innerHTML = `
       margin-top: 10px;
       max-width: 200px;
       color: var(--ui-theme-dark-text-color, #333);
+      outline-width: 0px;
     }
 
     :host(.focused) {
@@ -220,15 +190,15 @@ template.innerHTML = `
 export const Input = defineUIComponent({
   name: 'ui-input',
   template,
-  reflectedAttrs,
-  definition: class Input extends mix(UIBase).with(FormBehavior, Focusable) {
+  reflectedAttributes,
+  definition: class Input extends mix(UIBase).with(FormControlBehavior, Focusable) {
     constructor () {
       super();
       this._input = null;
     }
 
     get value () {
-      switch (this.attr('type').toLowerCase()) {
+      switch ((this.attr('type') || 'text').toLowerCase()) {
         case 'date':
           return input2Date(this._input.value);
           break;
@@ -364,20 +334,14 @@ export const Input = defineUIComponent({
       }
 
       this._input.addEventListener('focus', e => {
-        this._before = this._input.value;
         this.classList.add('focused');
       });
 
       this._input.addEventListener('blur', e => {
         this.classList.remove('focused');
-      })
+      });
 
-      changeTriggers.forEach(evtName => this._input.addEventListener(evtName, debounce(500, e => {
-        if (this._input.value !== this._before) {
-          this._before = this._input.value;
-          this.value = this._input.value;
-        }
-      })));
+      inputNormalizer(this._input);
 
       this.on('focus', _ => {
         this._input.focus();

@@ -35,6 +35,7 @@ const parseURL = url => {
   let path = '';
   let data = {};
   let route = '';
+  let hashBang = url.match('#!');
   let [first, rest] = url.split('://');
   if (rest) secure = first.toLowerCase() === 'https';
   const protocol = secure ? 'https' : 'http';
@@ -61,6 +62,7 @@ const parseURL = url => {
     path,
     route,
     queryString: qs,
+    hashBang,
   };
 };
 

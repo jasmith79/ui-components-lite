@@ -32,7 +32,7 @@ template.innerHTML = `
   </style>
 `;
 
-const reflectedAttrs = [
+const reflectedAttributes = [
   'floating-x',
   'floating-y',
   'right-oriented',
@@ -41,7 +41,7 @@ const reflectedAttrs = [
 
 export default superclass => defineUIComponent({
   name: 'ui-floating',
-  reflectedAttrs,
+  reflectedAttributes,
   template,
   registerElement: false,
   definition: class Floating extends superclass {

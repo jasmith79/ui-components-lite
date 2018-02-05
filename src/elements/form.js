@@ -12,7 +12,9 @@
  * If it does become possible this can be refactored to support extending HTMLFormElement.
  */
 
-import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';
+import { inputNormalizer } from '../utils/normalizer.js';
+import { toQueryString, parseURL } from '../utils/url.js';
+import { UIBase, defineUIComponent, document, global } from '../utils/ui-component-base.js';
 
 import extractType from '../../../extracttype/extracttype.js';
 import { mix } from '../../../mixwith/src/mixwith.js';
@@ -21,7 +23,7 @@ import { mix } from '../../../mixwith/src/mixwith.js';
 // on multiple reloads?
 
 export const Form = (() => {
-  const reflectedAttrs = ['action', 'method', 'autocomplete', 'response-type'];
+  const reflectedAttributes = ['action', 'method', 'autocomplete', 'response-type', 'updates-history'];
   const template = document.createElement('template');
   template.innerHTML = `
     <style>
@@ -35,7 +37,7 @@ export const Form = (() => {
   return defineUIComponent({
     name: 'ui-form',
     template,
-    reflectedAttrs,
+    reflectedAttributes,
     definition: class Form extends UIBase {
       constructor () {
         super();
@@ -128,16 +130,14 @@ export const Form = (() => {
       }
 
       serialize () {
-        return [...this.data.entries()].reduce((acc, [k, v]) => {
-          if (k in acc) {
-            if (Array.isArray(acc[k])) {
-              acc[k].push(v);
-            } else {
-              acc[k] = [acc[k], v];
-            }
-          } else {
-            acc[k] = v;
+        return this.elements.reduce((acc, el) => {
+          let val;
+          try {
+            val = JSON.parse(el.value);
+          } catch (e) {
+            val = el.value;
           }
+          acc[el.name] = val;
           return acc;
         }, {});
       }
@@ -170,16 +170,28 @@ export const Form = (() => {
         this.attr('is-data-element', true);
         this.attr('role', 'form');
 
+        const historyListener = e => {
+          const data = this.serialize();
+          const { path, route, hashBang } = parseURL(global.location.href);
+          let url = path;
+          if (hashBang) url += '#!';
+          if (route) url += route;
+          url += toQueryString(data);
+          global.history.replaceState(data, '', url);
+        };
+
         this._beforeReady(_ => {
           this._formUIComponents = [...new Set([
               ...this.selectAll('.ui-form-behavior'),
-              ...(document.querySelectorAll(`.ui-form-behavior[form="${this.id}"]`) || []),
+              ...(document.querySelectorAll(`[form="${this.id}"]`) || []),
             ])
           ];
 
           this._formUIComponents.forEach(el => {
-            el.addEventListener('change', e => {
-
+            if (el.tagName === 'INPUT') inputNormalizer(el);
+            if (this.updatesHistory) el[el.on ? 'on' : 'addEventListener']('change', historyListener);
+            el[el.on ? 'on' : 'addEventListener']('change', e => {
+              if (this.id) global.localStorage.setItem(this.id, JSON.stringify(this.serialize()));
             });
           });
         });
@@ -188,12 +200,12 @@ export const Form = (() => {
   });
 })();
 
-export const FormBehavior = (() => {
-  const reflectedAttrs = ['name', 'value', 'required', 'is-valid', 'placeholder'];
+export const FormControlBehavior = (() => {
+  const reflectedAttributes = ['name', 'value', 'required', 'is-valid', 'placeholder'];
   return superclass => defineUIComponent({
     name: 'ui-form-behavior',
     registerElement: false,
-    reflectedAttrs,
+    reflectedAttributes,
     definition: class extends superclass {
 
       validate (validator) {

@@ -57,7 +57,7 @@ template.innerHTML = `
   </style>
 `;
 
-const reflectedAttrs = [
+const reflectedAttributes = [
   'is-open',
   'is-modal',
   'small-dialog',
@@ -101,7 +101,7 @@ const incorporateButtonChild = (el, child) => {
 const Dialog = defineUIComponent({
   name: 'ui-dialog',
   template,
-  reflectedAttrs,
+  reflectedAttributes,
   definition: class Dialog extends Card {
     constructor () {
       super();
