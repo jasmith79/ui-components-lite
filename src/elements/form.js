@@ -86,7 +86,8 @@ export const Form = (() => {
       get data () {
         return this.elements.reduce((formdata, el) => {
           let name = el.getAttribute('name');
-          if (name) formdata.append(name, el.value || '');
+          console.log(`name: ${name}, value: ${el.value}`);
+          if (name) formdata.append(name, el.value == null ? '' : el.value);
           return formdata
         }, new FormData);
       }
@@ -143,7 +144,7 @@ export const Form = (() => {
         }, {});
       }
 
-      submit ({ url: argURL, method: meth, headers, responseType}) {
+      submit ({ url: argURL, method: meth, headers, responseType}={}) {
         const url = argURL || this.action;
         const method = meth || this.method || 'POST';
         const opts = {
@@ -156,7 +157,7 @@ export const Form = (() => {
         const evt = new Event('submit');
         evt.pendingResult = result;
         this.dispatchEvent(evt);
-        switch ((responseType || this.responseType || '').toLowerCase()) {
+        switch ((responseType || this.responseType || 'text').toLowerCase()) {
           case 'text':
           case 'html':
             return result.then(resp => resp.text());
@@ -173,7 +174,9 @@ export const Form = (() => {
 
         const historyListener = e => {
           const data = this.serialize();
-          const { path, route, hashBang } = parseURL(global.location.href);
+          const parsed = parseURL(global.location.href);
+          const { path, route, hashBang } = parsed;
+          console.log(parsed);
           let url = path;
           if (hashBang) url += '#!';
           if (route) url += route;
@@ -208,32 +211,65 @@ export const FormControlBehavior = (() => {
     registerElement: false,
     reflectedAttributes,
     definition: class extends superclass {
+      constructor () {
+        super();
+        this._validators = [];
+      }
+
+      _validate () {
+        let isValid = this._validators.length ?
+          this._validators.every(f => f(this.value)) :
+          true;
+
+        this.isValid = isValid;
+        this.classList.remove(isValid ? 'invalid' : 'valid');
+        this.classList.add(isValid ? 'valid' : 'invalid');
+        return isValid;
+      }
 
       validate (validator) {
-        return this.watchAttribute(this, 'value', (...args) => {
-          this.isValid = validator.apply(this, args);
-          this.classList.remove(this.isValid ? 'invalid' : 'valid');
-          this.classList.add(this.isValid ? 'valid' : 'invalid');
-        });
+        if (!this._validators.includes(validator)) {
+          this._validators.push(validator);
+          this._validate();
+        }
+        return this;
+      }
+
+      removeValidator (validator) {
+        this._validators = this._validators.filter(f => f !== validator);
+        this._validate();
+        return this;
       }
 
       init () {
         super.init();
-        this._beforeReady(_ => {
-          let val = this.value;
-          this.on('attribute-change', ({ changed: { now, name } }) => {
-            switch (name) {
-              case 'value':
-              case 'selected-index':
-                if (now !== val) {
-                  val = now;
-                  const evt = new Event('change');
-                  evt.value = this.value;
-                  this.dispatchEvent(evt);
-                }
-                break;
-            }
-          });
+        let val = this.value;
+        this.on('attribute-change', ({ changed: { now, name } }) => {
+          switch (name) {
+            case 'value':
+            case 'selected-index':
+              if (now !== val) {
+                val = now;
+                this._validate();
+
+                const evt = new Event('change');
+                evt.value = this.value;
+                evt.isValid = this.isValid;
+                this.dispatchEvent(evt);
+              }
+
+              break;
+
+            case 'required':
+              const reqHandler = value => value != null && value !== '';
+              if (now) {
+                this.validate(reqHandler);
+              } else {
+                this.removeValidator(reqHandler);
+              }
+
+              break;
+          }
         });
       }
     }

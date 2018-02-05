@@ -16,7 +16,7 @@ export default () => {
       });
     });
 
-    xit('should be able to be constructed via another element\'s innerHTML', done => {
+    it('should be able to be constructed via another element\'s innerHTML', done => {
       div.innerHTML = '<ui-form></ui-form>';
       let form = div.querySelector('ui-form');
       return form.onReady(_ => {
@@ -27,7 +27,7 @@ export default () => {
       });
     });
 
-    xit('should be able to be appended to another element.', done => {
+    it('should be able to be appended to another element.', done => {
       let form = document.createElement('ui-form');
       div.appendChild(form);
       return form.onReady(_ => {
@@ -38,7 +38,7 @@ export default () => {
       });
     });
 
-    xit('elements property: array of all of the Form Control elements', done => {
+    it('elements property: array of all of the Form Control elements', done => {
       div.innerHTML = `
         <ui-form id="formy">
           <ui-input name="foo" value="1"></ui-input>
@@ -106,7 +106,7 @@ export default () => {
         setTimeout(() => {
           let data = form.serialize();
           expect(data).toBeDefined();
-          
+
           let keys = Object.keys(data);
           expect(keys.length).toBe(10);
           expect(keys.sort().toString()).toBe([
@@ -166,27 +166,30 @@ export default () => {
 
       let form = div.querySelector('ui-form');
       form.onReady(_ => {
-        expect(form.data instanceof FormData).toBe(true);
-        let entries = [...form.data.entries()].sort(([a], [b]) => a > b);
-        expect(entries.length).toBe(10);
-        expect(entries.map(([k]) => k).sort().toString())
-          .toBe([
-            'foo',
-            'bar',
-            'baz',
-            'qux',
-            'fii',
-            'yo',
-            'bax',
-            'quq',
-            'gux',
-            'fiy'
-          ].sort().toString()
-        );
+        setTimeout(() => {
+          expect(form.data instanceof FormData).toBe(true);
+          let entries = [...form.data.entries()].sort(([a], [b]) => a > b);
+          expect(entries.length).toBe(10);
+          expect(entries.map(([k]) => k).sort().toString())
+            .toBe([
+              'foo',
+              'bar',
+              'baz',
+              'qux',
+              'fii',
+              'yo',
+              'bax',
+              'quq',
+              'gux',
+              'fiy'
+            ].sort().toString()
+          );
 
-        expect(entries.toString())
-          .toEqual(Object.entries(form.serialize()).sort(([a], [b]) => a > b).toString());
-        done();
+          expect(entries.toString())
+            .toEqual(Object.entries(form.serialize()).sort(([a], [b]) => a > b).toString());
+
+          done();
+        }, 505);
       }).catch(err => {
         console.error(err);
         throw err;
@@ -211,19 +214,59 @@ export default () => {
       });
     });
 
-    xit('submit method: submits the form', done => {
-      expect(false).toBe(true);
-      done();
+    it('submit method: submits the form via element attributes', done => {
+      div.innerHTML = `
+        <ui-form id="formy" action="/data/formtest" method="POST">
+          <ui-input name="foo" required value="3"></ui-input>
+        </ui-form>
+      `;
+      let form = div.querySelector('ui-form');
+      form.onReady(_ => {
+        form.submit().then(resp => {
+          expect(resp).toBe('foo');
+          done();
+        });
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
-    xit('checks cached data on load', done => {
-      expect(false).toBe(true);
-      done();
+    it('submit method: overrides attributes via arguments', done => {
+      div.innerHTML = `
+        <ui-form id="formy" action="/" method="POST">
+          <ui-input name="foo" required value="3"></ui-input>
+        </ui-form>
+      `;
+      let form = div.querySelector('ui-form');
+      form.onReady(_ => {
+        form.submit({ url: '/data/formtest2' }).then(resp => {
+          expect(resp).toBe('extra');
+          done();
+        });
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
 
-    xit('adds query string when updates-history', done => {
-      expect(false).toBe(true);
-      done();
+    it('adds query string when updates-history', done => {
+      div.innerHTML = `
+        <ui-form id="formy" updates-history>
+          <ui-input name="foo"></ui-input>
+        </ui-form>
+      `;
+      let form = div.querySelector('ui-form');
+      form.onReady(_ => {
+        let ip = form.querySelector('ui-input');
+        ip.value = 3;
+        expect('' + global.location.href.match('foo=3')).toBe('foo=3');
+        global.history.replaceState({}, '', '/spec/auto');
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 };

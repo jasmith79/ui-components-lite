@@ -16,6 +16,7 @@
 
 const express = require('express');
 const fs = require('fs');
+const upload = require('multer')();
 
 const app = express();
 const workingDirectory = process.cwd();
@@ -52,6 +53,22 @@ app.post('/data/login', function(request, response) {
   response.end(JSON.stringify(true));
 });
 
+app.post('/data/formtest', upload.array(), function(request, response) {
+  if (Object.entries(request.body).toString() === Object.entries({foo:3}).toString()) {
+    response.end('foo');
+  } else {
+    response.end('bar');
+  }
+});
+
+app.post('/data/formtest2', upload.array(), function(request, response) {
+  if (Object.entries(request.body).toString() === Object.entries({foo:3}).toString()) {
+    response.end('extra');
+  } else {
+    response.end('sauce');
+  }
+});
+
 app.get('*', function(request, response, next) {
   console.log(`URL: ${request.url}`);
   if (request.url.match(/\.[0-9a-zA-Z]*$/)) {
@@ -60,7 +77,7 @@ app.get('*', function(request, response, next) {
     let path = npmDep ?
       `${workingDirectory}/node_modules/${request.url}` :
       `${workingDirectory}/${request.url}`;
-      
+
     response.sendFile(path);
     console.log('done.');
     return;
