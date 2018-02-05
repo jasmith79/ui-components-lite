@@ -6,8 +6,6 @@ add append, insertBefore, etc. overrides for elements that need them
 
 add toast, tooltip, toggle
 
-see if data-binding can happen earlier in the lifecycle?
-
 see if FormData polyfill can be removed with the form refactor
 
 auto tests, especially dynamically added elements/children
@@ -29,14 +27,14 @@ ensure works on npm install
 lifecycle description:
 
 constructor called, super all the way up.
-attached to DOM
-init called, all the way up
-  --childrenUpgraded
-  --reflectedAttributes reflected
-  --data-bound
-  --beforeReadyHandlers called
-  --ui-ready-fires
-  --onReady handlers invoked
+init called, super-chain starts
+attributes reflected
+inits run
+childrenUpgraded
+change event for initial attribute fires
+beforeReady handlers invoked
+ui-ready fires
+onReady handlers invoked
 
 So... refactoring to remove the dependence on defineUIComponent is definitely possible in the long run, unfortunately right now the ShadyCSS polyfill has the limitation of only supporting one call to ShadyCSS.prepareTemplate per tag name. Once that restriction is removed
 
