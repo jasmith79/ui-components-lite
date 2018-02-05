@@ -16,7 +16,7 @@ export default () => {
       });
     });
 
-    it('should be able to be constructed via another element\'s innerHTML', done => {
+    xit('should be able to be constructed via another element\'s innerHTML', done => {
       div.innerHTML = '<ui-form></ui-form>';
       let form = div.querySelector('ui-form');
       return form.onReady(_ => {
@@ -27,7 +27,7 @@ export default () => {
       });
     });
 
-    it('should be able to be appended to another element.', done => {
+    xit('should be able to be appended to another element.', done => {
       let form = document.createElement('ui-form');
       div.appendChild(form);
       return form.onReady(_ => {
@@ -38,7 +38,7 @@ export default () => {
       });
     });
 
-    it('elements property: array of all of the Form Control elements', done => {
+    xit('elements property: array of all of the Form Control elements', done => {
       div.innerHTML = `
         <ui-form id="formy">
           <ui-input name="foo" value="1"></ui-input>
@@ -106,6 +106,22 @@ export default () => {
         setTimeout(() => {
           let data = form.serialize();
           expect(data).toBeDefined();
+          
+          let keys = Object.keys(data);
+          expect(keys.length).toBe(10);
+          expect(keys.sort().toString()).toBe([
+            'foo',
+            'bar',
+            'baz',
+            'qux',
+            'fii',
+            'yo',
+            'bax',
+            'quq',
+            'gux',
+            'fiy'
+          ].sort().toString());
+
           expect(data.foo).toBe(1);
           expect(data.bar).toBe(2);
           expect(data.baz).toBe(true);
@@ -151,8 +167,25 @@ export default () => {
       let form = div.querySelector('ui-form');
       form.onReady(_ => {
         expect(form.data instanceof FormData).toBe(true);
-        expect([...form.data.entries()].toString())
-          .toEqual(Object.entries(form.serialize()).toString());
+        let entries = [...form.data.entries()].sort(([a], [b]) => a > b);
+        expect(entries.length).toBe(10);
+        expect(entries.map(([k]) => k).sort().toString())
+          .toBe([
+            'foo',
+            'bar',
+            'baz',
+            'qux',
+            'fii',
+            'yo',
+            'bax',
+            'quq',
+            'gux',
+            'fiy'
+          ].sort().toString()
+        );
+
+        expect(entries.toString())
+          .toEqual(Object.entries(form.serialize()).sort(([a], [b]) => a > b).toString());
         done();
       }).catch(err => {
         console.error(err);
@@ -178,17 +211,17 @@ export default () => {
       });
     });
 
-    it('submit method: submits the form', done => {
+    xit('submit method: submits the form', done => {
       expect(false).toBe(true);
       done();
     });
 
-    it('checks cached data on load', done => {
+    xit('checks cached data on load', done => {
       expect(false).toBe(true);
       done();
     });
 
-    it('adds query string when updates-history', done => {
+    xit('adds query string when updates-history', done => {
       expect(false).toBe(true);
       done();
     });

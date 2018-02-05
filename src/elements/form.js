@@ -72,7 +72,7 @@ export const Form = (() => {
         return this.id ?
           [
             ...new Set([
-              ...this.selectAll('input[name], select[name], .ui-form-behavior'),
+              ...this.selectAll('input[name], select[name], .ui-form-behavior[name]'),
               ...document.querySelectorAll(`[form="${this.id}"]`)
             ])
           ] :
@@ -85,7 +85,8 @@ export const Form = (() => {
 
       get data () {
         return this.elements.reduce((formdata, el) => {
-          if (el.name) formdata.append(el.name, el.value || '');
+          let name = el.getAttribute('name');
+          if (name) formdata.append(name, el.value || '');
           return formdata
         }, new FormData);
       }
@@ -137,7 +138,7 @@ export const Form = (() => {
           } catch (e) {
             val = el.value;
           }
-          acc[el.name] = val;
+          acc[el.getAttribute('name')] = val;
           return acc;
         }, {});
       }
