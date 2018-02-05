@@ -22,8 +22,6 @@ Responsive styles and MQs and breakpoints
 
 Fix default theme colors
 
-ensure works on npm install
-
 lifecycle description:
 
 constructor called, super all the way up.
