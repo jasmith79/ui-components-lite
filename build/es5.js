@@ -1038,28 +1038,22 @@ var __run = function __run() {
               }();
             }
           }, {
-            key: 'appendChild',
-            value: function appendChild(node) {
-              if (node) {
-                _get(Form.prototype.__proto__ || Object.getPrototypeOf(Form.prototype), 'appendChild', this).call(this, node);
-                if (node.isUIComponent) {
-                  this._formUIComponents.push(node);
-                }
-              }
-
-              return node;
-            }
-          }, {
             key: 'serialize',
             value: function serialize() {
               return this.elements.reduce(function (acc, el) {
-                var val = void 0;
+                var val = void 0,
+                    name = el.getAttribute('name');
                 try {
                   val = JSON.parse(el.value);
                 } catch (e) {
                   val = el.value;
                 }
-                acc[el.getAttribute('name')] = val;
+                if (name in acc) {
+                  if (!Array.isArray(acc[name])) acc[name] = [acc[name]];
+                  acc[name].push(val);
+                } else {
+                  acc[name] = val;
+                }
                 return acc;
               }, {});
             }
@@ -1072,31 +1066,35 @@ var __run = function __run() {
                   headers = _ref15.headers,
                   responseType = _ref15.responseType;
 
-              var url = argURL || this.action;
-              var method = meth || this.method || 'POST';
-              var opts = {
-                method: method,
-                body: this.data
-              };
+              if (this.isValid) {
+                var url = argURL || this.action;
+                var method = meth || this.method || 'POST';
+                var opts = {
+                  method: method,
+                  body: this.data
+                };
 
-              if (headers) opts.headers = headers;
-              var result = fetch(url, opts);
-              var evt = new Event('submit');
-              evt.pendingResult = result;
-              this.dispatchEvent(evt);
-              switch ((responseType || this.responseType || 'text').toLowerCase()) {
-                case 'text':
-                case 'html':
-                  return result.then(function (resp) {
-                    return resp.text();
-                  });
+                if (headers) opts.headers = headers;
+                var result = fetch(url, opts);
+                var evt = new Event('submit');
+                evt.pendingResult = result;
+                this.dispatchEvent(evt);
+                switch ((responseType || this.responseType || 'text').toLowerCase()) {
+                  case 'text':
+                  case 'html':
+                    return result.then(function (resp) {
+                      return resp.text();
+                    });
 
-                case 'json':
-                  return result.then(function (resp) {
-                    return resp.json();
-                  });
-                default:
-                  return result;
+                  case 'json':
+                    return result.then(function (resp) {
+                      return resp.json();
+                    });
+                  default:
+                    return result;
+                }
+              } else {
+                return Promise.reject(new Error('Attempted to submit invalid form.'));
               }
             }
           }, {
@@ -1123,9 +1121,7 @@ var __run = function __run() {
               };
 
               this._beforeReady(function (_) {
-                _this16._formUIComponents = [].concat(_toConsumableArray(new Set([].concat(_toConsumableArray(_this16.selectAll('.ui-form-behavior')), _toConsumableArray(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].querySelectorAll('[form="' + _this16.id + '"]') || [])))));
-
-                _this16._formUIComponents.forEach(function (el) {
+                _this16.elements.forEach(function (el) {
                   if (el.tagName === 'INPUT') Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_normalizer_js__["a" /* inputNormalizer */])(el);
                   if (_this16.updatesHistory) el[el.on ? 'on' : 'addEventListener']('change', historyListener);
                   el[el.on ? 'on' : 'addEventListener']('change', function (e) {
@@ -2021,7 +2017,7 @@ var __run = function __run() {
     var __WEBPACK_IMPORTED_MODULE_0__ui_component_base_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
 
-    var changeTriggers = ['blur', 'keyup', 'paste', 'input'];
+    var changeTriggers = ['keyup', 'paste', 'input'];
 
     var debounce = function debounce(n, immed, f) {
       var _ref21 = function () {
@@ -2334,7 +2330,7 @@ var __run = function __run() {
     };
 
     var input2Date = function input2Date(s) {
-      if (!s.trim()) return null;
+      if (!s || !s.trim || !s.trim()) return null;
       var yr = void 0,
           mn = void 0,
           dy = void 0;
@@ -2464,6 +2460,12 @@ var __run = function __run() {
               _this31._input.focus();
             });
 
+            this._input.addEventListener('change', function (e) {
+              if (_this31.value !== _this31._input.value) {
+                _this31.value = _this31._input.value;
+              }
+            });
+
             this.on('attribute-change', function (_ref25) {
               var _ref25$changed = _ref25.changed,
                   now = _ref25$changed.now,
@@ -2512,7 +2514,7 @@ var __run = function __run() {
           get: function get() {
             switch ((this.attr('type') || 'text').toLowerCase()) {
               case 'date':
-                return input2Date(this._input.value);
+                return input2Date(_get(Input.prototype.__proto__ || Object.getPrototypeOf(Input.prototype), 'value', this));
                 break;
 
               case 'time':
@@ -2565,21 +2567,22 @@ var __run = function __run() {
                 }
 
                 if (!TIME_TYPE_SUPPORTED && !value.match(VALID_INPUT_TIME)) {
-                  console.warn('VM71763:1 The specified value "' + val + '" does not conform to the required format.  The format is "HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS" where HH is 00-23, mm is 00-59, ss is 00-59, and SSS is 000-999.');
+                  console.warn('The specified value "' + val + '" does not conform to the required format.  The format is "HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS" where HH is 00-23, mm is 00-59, ss is 00-59, and SSS is 000-999.');
                 }
 
               default:
                 value = val;
             }
 
+            if (value === true || value == null) value = '';
+            if (!value && this.defaultValue) value = this.defaultValue;
+
             var empty = function () {
               switch (Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__["b" /* extractType */])(value)) {
                 case 'Array':
                 case 'String':
                   return value.length === 0;
-                case 'Null':
-                case 'Undefined':
-                  return true;
+
                 default:
                   return false;
               }
@@ -2592,7 +2595,7 @@ var __run = function __run() {
               this.selectInternalElement('label').classList.remove('text-moved');
             }
 
-            return _set(Input.prototype.__proto__ || Object.getPrototypeOf(Input.prototype), 'value', value == null ? '' : value, this);
+            return _set(Input.prototype.__proto__ || Object.getPrototypeOf(Input.prototype), 'value', value, this);
           }
         }]);
 

@@ -363,7 +363,6 @@ export const Input = defineUIComponent({
             break;
 
           case 'value':
-            // if (this.name === 'bar') debugger;
             let val = now === true ? '' : now;
             if (this._input.value !== val) {
               this._input.value = !val && this.defaultValue ? this.defaultValue : val;
@@ -371,7 +370,6 @@ export const Input = defineUIComponent({
             break;
 
           case 'default-value':
-            // if (this.name === 'bar') debugger;
             if (!this.value) this.value = now;
             break;
 

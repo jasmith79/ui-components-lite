@@ -978,50 +978,48 @@ const Form = (() => {
         return this.data;
       }
 
-      appendChild (node) {
-        if (node) {
-          super.appendChild(node);
-          if (node.isUIComponent) {
-            this._formUIComponents.push(node);
-          }
-        }
-
-        return node;
-      }
-
       serialize () {
         return this.elements.reduce((acc, el) => {
-          let val;
+          let val, name = el.getAttribute('name');
           try {
             val = JSON.parse(el.value);
           } catch (e) {
             val = el.value;
           }
-          acc[el.getAttribute('name')] = val;
+          if (name in acc) {
+            if (!Array.isArray(acc[name])) acc[name] = [acc[name]];
+            acc[name].push(val);
+          } else {
+            acc[name] = val;
+          }
           return acc;
         }, {});
       }
 
       submit ({ url: argURL, method: meth, headers, responseType}={}) {
-        const url = argURL || this.action;
-        const method = meth || this.method || 'POST';
-        const opts = {
-          method,
-          body: this.data,
-        };
+        if (this.isValid) {
+          const url = argURL || this.action;
+          const method = meth || this.method || 'POST';
+          const opts = {
+            method,
+            body: this.data,
+          };
 
-        if (headers) opts.headers = headers;
-        const result = fetch(url, opts);
-        const evt = new Event('submit');
-        evt.pendingResult = result;
-        this.dispatchEvent(evt);
-        switch ((responseType || this.responseType || 'text').toLowerCase()) {
-          case 'text':
-          case 'html':
-            return result.then(resp => resp.text());
+          if (headers) opts.headers = headers;
+          const result = fetch(url, opts);
+          const evt = new Event('submit');
+          evt.pendingResult = result;
+          this.dispatchEvent(evt);
+          switch ((responseType || this.responseType || 'text').toLowerCase()) {
+            case 'text':
+            case 'html':
+              return result.then(resp => resp.text());
 
-          case 'json': return result.then(resp => resp.json());
-          default: return result;
+            case 'json': return result.then(resp => resp.json());
+            default: return result;
+          }
+        } else {
+          return Promise.reject(new Error('Attempted to submit invalid form.'));
         }
       }
 
@@ -1042,13 +1040,7 @@ const Form = (() => {
         };
 
         this._beforeReady(_ => {
-          this._formUIComponents = [...new Set([
-              ...this.selectAll('.ui-form-behavior'),
-              ...(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].querySelectorAll(`[form="${this.id}"]`) || []),
-            ])
-          ];
-
-          this._formUIComponents.forEach(el => {
+          this.elements.forEach(el => {
             if (el.tagName === 'INPUT') Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_normalizer_js__["a" /* inputNormalizer */])(el);
             if (this.updatesHistory) el[el.on ? 'on' : 'addEventListener']('change', historyListener);
             el[el.on ? 'on' : 'addEventListener']('change', e => {
@@ -1847,7 +1839,6 @@ const Backdrop = Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_bas
 
 
 const changeTriggers = [
-  'blur',
   'keyup',
   'paste',
   'input',
@@ -2112,7 +2103,7 @@ const formatAsTimeInputDisplay = date => {
 };
 
 const input2Date = s => {
-  if (!s.trim()) return null;
+  if (!s || !s.trim || !s.trim()) return null;
   let yr, mn, dy;
   if (s.includes('/')) {
     ([mn, dy, yr] = s.split('/').map(Number));
@@ -2198,7 +2189,7 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_j
     get value () {
       switch ((this.attr('type') || 'text').toLowerCase()) {
         case 'date':
-          return input2Date(this._input.value);
+          return input2Date(super.value);
           break;
 
         case 'time':
@@ -2253,20 +2244,21 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_j
           }
 
           if (!TIME_TYPE_SUPPORTED && !value.match(VALID_INPUT_TIME)) {
-            console.warn(`VM71763:1 The specified value "${val}" does not conform to the required format.  The format is "HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS" where HH is 00-23, mm is 00-59, ss is 00-59, and SSS is 000-999.`);
+            console.warn(`The specified value "${val}" does not conform to the required format.  The format is "HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS" where HH is 00-23, mm is 00-59, ss is 00-59, and SSS is 000-999.`);
           }
 
         default: value = val;
       }
+
+      if (value === true || value == null) value = '';
+      if (!value && this.defaultValue) value = this.defaultValue;
 
       const empty = (() => {
         switch (Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__["b" /* extractType */])(value)) {
           case 'Array':
           case 'String':
             return value.length === 0;
-          case 'Null':
-          case 'Undefined':
-            return true;
+
           default: return false;
         }
       })();
@@ -2278,7 +2270,7 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_j
         this.selectInternalElement('label').classList.remove('text-moved');
       }
 
-      return (super.value = value == null ? '' : value);
+      return (super.value = value);
     }
 
     init () {
@@ -2343,6 +2335,12 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_j
 
       this.on('focus', _ => {
         this._input.focus();
+      });
+
+      this._input.addEventListener('change', e => {
+        if (this.value !== this._input.value) {
+          this.value = this._input.value;
+        }
       });
 
       this.on('attribute-change', ({ changed: { now, name, was } } ) => {
