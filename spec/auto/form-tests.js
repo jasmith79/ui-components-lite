@@ -196,6 +196,32 @@ export default () => {
       });
     });
 
+    it(
+      'should return an array of values for formdata and serialize if multiple' +
+      ' form controls have the same name.',
+      done => {
+        div.innerHTML = `
+          <ui-form id="formy">
+            <ui-input name="foo" value="foo"></ui-input>
+            <input name="foo" value="bar" />
+          </ui-form>
+        `;
+
+        let form = div.querySelector('ui-form');
+        form.onReady(_ => {
+          let ser = form.serialize();
+          expect(Array.isArray(ser.foo)).toBe(true);
+          expect(ser.foo.toString()).toBe('foo,bar');
+          expect(Array.isArray(form.data.getAll('foo'))).toBe(true);
+          expect(form.data.getAll('foo').toString()).toBe('foo,bar');
+          done();
+        }).catch(err => {
+          console.error(err);
+          throw err;
+        });
+      },
+    );
+
     it('isValid property: whether or not all of the form values are valid', done => {
       div.innerHTML = `
         <ui-form id="formy">
@@ -242,6 +268,29 @@ export default () => {
       form.onReady(_ => {
         form.submit({ url: '/data/formtest2' }).then(resp => {
           expect(resp).toBe('extra');
+          done();
+        });
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('submit method: rejects on invalid form, doesnt send request', done => {
+      div.innerHTML = `
+        <ui-form id="formy" action="/" method="POST">
+          <ui-input name="foo" required></ui-input>
+        </ui-form>
+      `;
+      let form = div.querySelector('ui-form');
+      form.onReady(_ => {
+        form.submit({ url: '/data/formtest' }).then(resp => {
+          expect(resp).not.toBe('foo');
+          expect(resp).not.toBe('bar');
+          if (resp === 'foo' || resp === 'bar') console.log('sent request on invalid form.');
+          done();
+        }).catch(err => {
+          expect(true).toBe(true);
           done();
         });
       }).catch(err => {

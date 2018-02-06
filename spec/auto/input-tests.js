@@ -46,20 +46,46 @@ export default () => {
       });
     });
 
-    it('should support a default value', done => {
+    it('should support an imperative default value', done => {
       let ip = document.createElement('ui-input');
       ip.attr('placeholder', 'barfoo');
       ip.onReady(_ => {
-        let val = ip.selectInternalElement('input').value;
-        ip.attr('default-value', 'foobar');
-        val = ip.selectInternalElement('input').value;
-        expect(val).toBe('foobar');
+        ip.defaultValue = 'foobar';
+        expect(ip.selectInternalElement('input').value).toBe('foobar');
 
         ip.value = '5';
+        expect(ip.selectInternalElement('input').value).toBe('5');
         ip.value = null;
+        expect(ip.selectInternalElement('input').value).toBe('foobar');
 
-        val = ip.selectInternalElement('input').value;
-        expect(val).toBe('foobar');
+        ip.value = '3';
+        expect(ip.selectInternalElement('input').value).toBe('3');
+        ip.value = '';
+        expect(ip.selectInternalElement('input').value).toBe('foobar');
+      }).then(done).catch(err => {
+        console.error(err);
+        throw err;
+      });
+
+      div.appendChild(ip);
+    });
+
+    it('should support an declarative default value', done => {
+      div.innerHTML = '<ui-input default-value="foobar"></ui-input>';
+      let ip = div.querySelector('ui-input');
+      return ip.onReady(_ => {
+        expect(ip.selectInternalElement('input').value).toBe('foobar');
+
+        ip.value = '5';
+        expect(ip.selectInternalElement('input').value).toBe('5');
+        ip.value = null;
+        expect(ip.selectInternalElement('input').value).toBe('foobar');
+
+        ip.value = '3';
+        expect(ip.selectInternalElement('input').value).toBe('3');
+        ip.value = '';
+        expect(ip.selectInternalElement('input').value).toBe('foobar');
+
       }).then(done).catch(err => {
         console.error(err);
         throw err;

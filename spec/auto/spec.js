@@ -68,6 +68,7 @@ Promise.all([
   tabTests();
   dropDownTests();
   formTests();
+  inputTests();
   // routerTests();
   // routeTests();
 });

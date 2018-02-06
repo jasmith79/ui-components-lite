@@ -114,7 +114,7 @@ const formatAsTimeInputDisplay = date => {
 };
 
 const input2Date = s => {
-  if (!s.trim()) return null;
+  if (!s || !s.trim || !s.trim()) return null;
   let yr, mn, dy;
   if (s.includes('/')) {
     ([mn, dy, yr] = s.split('/').map(Number));
@@ -200,7 +200,7 @@ export const Input = defineUIComponent({
     get value () {
       switch ((this.attr('type') || 'text').toLowerCase()) {
         case 'date':
-          return input2Date(this._input.value);
+          return input2Date(super.value);
           break;
 
         case 'time':
@@ -255,20 +255,21 @@ export const Input = defineUIComponent({
           }
 
           if (!TIME_TYPE_SUPPORTED && !value.match(VALID_INPUT_TIME)) {
-            console.warn(`VM71763:1 The specified value "${val}" does not conform to the required format.  The format is "HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS" where HH is 00-23, mm is 00-59, ss is 00-59, and SSS is 000-999.`);
+            console.warn(`The specified value "${val}" does not conform to the required format.  The format is "HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS" where HH is 00-23, mm is 00-59, ss is 00-59, and SSS is 000-999.`);
           }
 
         default: value = val;
       }
+
+      if (value === true || value == null) value = '';
+      if (!value && this.defaultValue) value = this.defaultValue;
 
       const empty = (() => {
         switch (extractType(value)) {
           case 'Array':
           case 'String':
             return value.length === 0;
-          case 'Null':
-          case 'Undefined':
-            return true;
+
           default: return false;
         }
       })();
@@ -280,7 +281,7 @@ export const Input = defineUIComponent({
         this.selectInternalElement('label').classList.remove('text-moved');
       }
 
-      return (super.value = value == null ? '' : value);
+      return (super.value = value);
     }
 
     init () {
@@ -346,8 +347,12 @@ export const Input = defineUIComponent({
       this.on('focus', _ => {
         this._input.focus();
       });
-      
-      this._input.addEventListener('change', ({ value }) => this.value = value);
+
+      this._input.addEventListener('change', e => {
+        if (this.value !== this._input.value) {
+          this.value = this._input.value;
+        }
+      });
 
       this.on('attribute-change', ({ changed: { now, name, was } } ) => {
         switch (name) {
@@ -358,6 +363,7 @@ export const Input = defineUIComponent({
             break;
 
           case 'value':
+            // if (this.name === 'bar') debugger;
             let val = now === true ? '' : now;
             if (this._input.value !== val) {
               this._input.value = !val && this.defaultValue ? this.defaultValue : val;
@@ -365,6 +371,7 @@ export const Input = defineUIComponent({
             break;
 
           case 'default-value':
+            // if (this.name === 'bar') debugger;
             if (!this.value) this.value = now;
             break;
 

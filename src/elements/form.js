@@ -119,50 +119,48 @@ export const Form = (() => {
         return this.data;
       }
 
-      appendChild (node) {
-        if (node) {
-          super.appendChild(node);
-          if (node.isUIComponent) {
-            this._formUIComponents.push(node);
-          }
-        }
-
-        return node;
-      }
-
       serialize () {
         return this.elements.reduce((acc, el) => {
-          let val;
+          let val, name = el.getAttribute('name');
           try {
             val = JSON.parse(el.value);
           } catch (e) {
             val = el.value;
           }
-          acc[el.getAttribute('name')] = val;
+          if (name in acc) {
+            if (!Array.isArray(acc[name])) acc[name] = [acc[name]];
+            acc[name].push(val);
+          } else {
+            acc[name] = val;
+          }
           return acc;
         }, {});
       }
 
       submit ({ url: argURL, method: meth, headers, responseType}={}) {
-        const url = argURL || this.action;
-        const method = meth || this.method || 'POST';
-        const opts = {
-          method,
-          body: this.data,
-        };
+        if (this.isValid) {
+          const url = argURL || this.action;
+          const method = meth || this.method || 'POST';
+          const opts = {
+            method,
+            body: this.data,
+          };
 
-        if (headers) opts.headers = headers;
-        const result = fetch(url, opts);
-        const evt = new Event('submit');
-        evt.pendingResult = result;
-        this.dispatchEvent(evt);
-        switch ((responseType || this.responseType || 'text').toLowerCase()) {
-          case 'text':
-          case 'html':
-            return result.then(resp => resp.text());
+          if (headers) opts.headers = headers;
+          const result = fetch(url, opts);
+          const evt = new Event('submit');
+          evt.pendingResult = result;
+          this.dispatchEvent(evt);
+          switch ((responseType || this.responseType || 'text').toLowerCase()) {
+            case 'text':
+            case 'html':
+              return result.then(resp => resp.text());
 
-          case 'json': return result.then(resp => resp.json());
-          default: return result;
+            case 'json': return result.then(resp => resp.json());
+            default: return result;
+          }
+        } else {
+          return Promise.reject(new Error('Attempted to submit invalid form.'));
         }
       }
 
@@ -183,13 +181,7 @@ export const Form = (() => {
         };
 
         this._beforeReady(_ => {
-          this._formUIComponents = [...new Set([
-              ...this.selectAll('.ui-form-behavior'),
-              ...(document.querySelectorAll(`[form="${this.id}"]`) || []),
-            ])
-          ];
-
-          this._formUIComponents.forEach(el => {
+          this.elements.forEach(el => {
             if (el.tagName === 'INPUT') inputNormalizer(el);
             if (this.updatesHistory) el[el.on ? 'on' : 'addEventListener']('change', historyListener);
             el[el.on ? 'on' : 'addEventListener']('change', e => {
