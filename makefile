@@ -65,7 +65,11 @@ build/es5.min.js: build/es5.js
 	@mkdir -p $(@D)
 	minify $< > $@
 
-build/loader.min.js: src/utils/loader.js
+build/loader.js: src/utils/loader.js
+	@mkdir -p $(@D)
+	cat $< | sed "s#node_modules/#../../#" > $@
+
+build/loader.min.js: build/loader.js
 	@mkdir -p $(@D)
 	minify $^ > $@
 

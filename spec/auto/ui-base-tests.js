@@ -24,6 +24,26 @@ const FooX = defineUIComponent({
   definition: class FooX extends UIBase {},
 });
 
+const BarX = defineUIComponent({
+  name: 'bar-x',
+  reflectedAttributes: ['bar-foo', 'foo-bar'],
+  definition: class BarX extends UIBase {
+    init () {
+      super.init();
+      this._beforeReady(_ => {
+        return new Promise(resolve => {
+          setTimeout(() => {
+            this.flag = true;
+            this.attr('bar-foo', 3);
+            this.fooBar = 5;
+            resolve(true);
+          }, 100);
+        });
+      });
+    }
+  }
+});
+
 export default () => {
   describe('defineUIComponent', () => {
     let div;
@@ -502,6 +522,31 @@ export default () => {
         done();
       }).toThrow();
       done();
+    });
+
+    it(' if _beforeReady function returns promise, should delay onReady until resolve', done => {
+      div.innerHTML = `<bar-x></bar-x>`;
+      let bar = div.querySelector('bar-x');
+      bar.onReady(() => {
+        expect(bar.flag).toBe(true);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    it('should delay onReady until attributes/properties set it the init have been reflected', done => {
+      div.innerHTML = `<bar-x></bar-x>`;
+      let bar = div.querySelector('bar-x');
+      bar.onReady(() => {
+        expect(bar.attr('foo-bar')).toBe(5);
+        expect(bar.barFoo).toBe(3);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
     });
   });
 };

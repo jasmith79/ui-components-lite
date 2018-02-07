@@ -69,6 +69,8 @@ Promise.all([
   dropDownTests();
   formTests();
   inputTests();
+
+  // TODO: finish these
   // routerTests();
   // routeTests();
 });
