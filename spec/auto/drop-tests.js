@@ -67,13 +67,19 @@ export default () => {
       dd.appendChild(item);
       item.value = '3oo';
       let count = 0;
-      let listen = e => ++count;
+      let result = null;
+      let listen = e => {
+        ++count;
+        result = e.value;
+      };
+
       dd.on('change', listen);
       return dd.onReady(_ => {
         dd.selected = item;
         setTimeout(() => {
           dd.remove(listen);
           expect(count).toBe(1);
+          expect(result).toBe('3oo');
           done();
         }, 10);
       }).catch(err => {

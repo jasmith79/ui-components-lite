@@ -107,8 +107,8 @@ export const ListBehavior = superclass => defineUIComponent({
           this._selected.push(selection);
           this.dispatchEvent(new Event('change'));
         } else {
-          this.selectedIndex = this._items.indexOf(selection);
           this._selected = selection;
+          this.selectedIndex = this._items.indexOf(selection);
           this._items.forEach(item => {
             if (item !== selection) item.isSelected = false;
             item.attr('aria-selected', false);
