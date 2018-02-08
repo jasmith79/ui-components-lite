@@ -145,8 +145,12 @@ export const ListBehavior = superclass => defineUIComponent({
       this.on('keydown', e => {
         let el = (() => {
           switch (e.keyCode) {
-            case 40: return this._items[(this._items.indexOf(el) + 1) % this._items.length];
-            case 38: return this._items[+(this._items.indexOf(el) - 1)];
+            case 40: 
+              return this._items[(this._items.indexOf(this.shadowRoot.activeElement) + 1) % this._items.length];
+            
+            case 38: 
+              return this._items[+(this._items.indexOf(this.shadowRoot.activeElement) - 1)];
+            
             default: return null;
           }
         })();
