@@ -105,25 +105,26 @@ template.innerHTML = `
       display: none;
     }
 
-    label {
+    ui-text {
       /* janky, I know. TODO: find a way to make this work with transform: translate */
-      transition-property: top, left;
+      transition-property: top, left, font-size;
       transition-timing-function: ease;
       transition-duration: 1s;
       position: relative;
-      top: 0px;
+      top: 5px;
       left: 0px;
+      font-size: 14px;
     }
 
     .text-moved {
-      top: 20px;
+      top: 25px;
       left: 10px;
+      font-size: 16px;
     }
-
   </style>
   <label><ui-text view-text="{{label}}"></ui-text></label>
   <ui-item id="dummy-item" class="default">
-    <span id="dummy-item-content">...</span>
+    <span id="dummy-item-content"></span>
     <div class="arrow down"></div>
   </ui-item>
   <div id="list-holder" class="not-overflowing">
@@ -211,12 +212,12 @@ export default defineUIComponent({
         this.selectInternalElement('label').setAttribute('for', this.attr('name'));
       }
 
-      if (this.attr('label')) this.selectInternalElement('label').classList.add('text-moved');
-      this.on('focus', e => this.selectInternalElement('label').classList.remove('text-moved'));
+      if (this.attr('label')) this.selectInternalElement('ui-text').classList.add('text-moved');
+      this.on('focus', e => this.selectInternalElement('ui-text').classList.remove('text-moved'));
       this.on('blur', e => {
         global.setTimeout(() => {
           if (this.label && !this.value) {
-            this.selectInternalElement('label').classList.add('text-moved');
+            this.selectInternalElement('ui-text').classList.add('text-moved');
           }
         }, 600); // ripple animation is 500 on the ui-item
       });

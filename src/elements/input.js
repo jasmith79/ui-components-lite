@@ -156,14 +156,15 @@ template.innerHTML = `
       color: #999;
     }
 
-    label {
+    ui-text {
       /* janky, I know. TODO: find a way to make this work with transform: translate */
-      transition-property: top, left;
+      transition-property: top, left, font-size;
       transition-timing-function: ease;
       transition-duration: 1s;
       position: relative;
       top: 0px;
       left: 0px;
+      font-size: 14px;
     }
 
     #input {
@@ -181,6 +182,7 @@ template.innerHTML = `
     .text-moved {
       top: 20px;
       left: 10px;
+      font-size: 16px;
     }
   </style>
   <label><ui-text view-text="{{label}}"></ui-text></label>
@@ -276,9 +278,10 @@ export const Input = defineUIComponent({
 
       if (empty) {
         this.classList.add('empty');
+        if (!this.placeholder) this.selectInternalElement('ui-text').classList.add('text-moved');
       } else {
         this.classList.remove('empty');
-        this.selectInternalElement('label').classList.remove('text-moved');
+        this.selectInternalElement('ui-text').classList.remove('text-moved');
       }
 
       return (super.value = value);
@@ -288,6 +291,7 @@ export const Input = defineUIComponent({
       super.init();
       this._input = this.selectInternalElement('#input');
       const placeholder = this.attr('placeholder') || this.attr('default-value') || null;
+      const type = this.attr('type');
 
       if (this.attr('name')) {
         if (!this.attr('label')) this.attr('label', this.attr('name'));
@@ -296,12 +300,23 @@ export const Input = defineUIComponent({
 
       if (placeholder) this.placeholder = placeholder;
 
-      if (this.attr('label') && !placeholder) this.selectInternalElement('label').classList.add('text-moved');
-      this.on('focus', e => this.selectInternalElement('label').classList.remove('text-moved'));
+      if (
+        this.attr('label') &&
+        !placeholder &&
+        type !== 'date' &&
+        type !== 'time'
+      ) {
+        this.selectInternalElement('ui-text').classList.add('text-moved');
+      }
+      
+      this.on('focus', e => {
+        this.selectInternalElement('ui-text').classList.remove('text-moved');
+      });
+
       this.on('blur', e => {
         global.setTimeout(() => {
           if (this.label && !this.placeholder && !this.value) {
-            this.selectInternalElement('label').classList.add('text-moved');
+            this.selectInternalElement('ui-text').classList.add('text-moved');
           }
         }, 1);
       });
@@ -355,6 +370,7 @@ export const Input = defineUIComponent({
       });
 
       this.on('attribute-change', ({ changed: { now, name, was } } ) => {
+        let txt;
         switch (name) {
           case 'name':
             this._input.name = now;
@@ -373,15 +389,39 @@ export const Input = defineUIComponent({
             if (!this.value) this.value = now;
             break;
 
+          case 'label':
+            txt = this.selectInternalElement('ui-text');
+            if (now && !this.value && !this.placeholder) {
+              txt.classList.add('text-moved');
+            }
+            break;
+
+          case 'placeholder':
+            txt = this.selectInternalElement('ui-text')
+            if (now && txt.classList.contains('text-moved')) {
+              txt.classList.remove('text-moved');
+            }
+
+            if (now == null) {
+              this._input.removeAttribute(name);
+            } else {
+              this._input.setAttribute(name, (now || true));
+            }
+            break;
+
           case 'type':
             if (now === 'hidden') {
               this.hide();
               return;
             }
-            if (!['text', 'number', 'password', 'email'].includes(now)) return;
+
+            if ((now === 'date' || now === 'time') && !this.value) {
+              this.selectInternalElement('ui-text').classList.remove('text-moved');
+            }
+
+            if (!['text', 'number', 'password', 'email', 'date', 'time'].includes(now)) return;
             // fall-through
 
-          case 'placeholder':
           case 'required':
             if (now == null) {
               this._input.removeAttribute(name);

@@ -239,13 +239,19 @@ export const FormControlBehavior = (() => {
             case 'value':
             case 'selected-index':
               if (now !== val) {
-                val = now;
-                this._validate();
+                // Need to wait a couple of ticks to allow the selected/value properties to update.
+                // although we can get current value from the attribute-change event, something
+                // might attempt to read list.selected or the value property/attribute on change
+                // and will expect it to be updated.
+                global.setTimeout(() => {
+                  val = now;
+                  this._validate();
 
-                const evt = new Event('change');
-                evt.value = this.value;
-                evt.isValid = this.isValid;
-                this.dispatchEvent(evt);
+                  const evt = new Event('change');
+                  evt.value = this.value;
+                  evt.isValid = this.isValid;
+                  this.dispatchEvent(evt);
+                }, 0);
               }
 
               break;

@@ -22,6 +22,18 @@ Responsive styles and MQs and breakpoints
 
 Fix default theme colors
 
+**PRIORITY**
+* move label text for date, time, placeholder inputs
+
+
+
+
+
+
+
+
+
+
 lifecycle description:
 
 constructor called, super all the way up.

@@ -97,13 +97,83 @@ export default () => {
     it('should fire change event exactly once on value changes', done => {
       let ip = document.createElement('ui-input');
       let count = 0;
-      let listen = e => ++count;
+      let listen = e => {
+        ++count;
+        ip.remove(listen);
+      }
+      ip.on('change', listen);
+      ip.onReady(_ => {
+        ip.value = '3';
+        setTimeout(() => {
+          expect(count).toBe(1);
+          done();
+        }, 10);
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+
+      div.appendChild(ip);
+    });
+
+    it('should fire change event with correct value', done => {
+      let ip = document.createElement('ui-input');
+      let result = null;
+      let listen = e => {
+        result = e.value;
+        ip.remove(listen);
+        expect(result).toBe(3);
+        done();
+      };
+
       ip.onReady(_ => {
         ip.on('change', listen);
         ip.value = '3';
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+
+      div.appendChild(ip);
+    });
+
+    it('should have correct value property/attribute', done => {
+      let ip = document.createElement('ui-input');
+      let result = null, attr = null;
+      let listen = e => {
+        result = ip.value;
+        attr = ip.attr('value');
         ip.remove(listen);
-        expect(count).toBe(1);
-      }).then(done).catch(err => {
+        expect(result).toBe(3);
+        expect(attr).toBe(3);
+        done();
+      };
+
+      ip.onReady(_ => {
+        ip.on('change', listen);
+        ip.value = '3';
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+
+      div.appendChild(ip);
+    });
+
+    it('should not have the label moved over if placeholder', done => {
+      let ip = document.createElement('ui-input');
+      ip.attr('label', 'Foo');
+      div.innerHTML = `
+        <ui-input label="Foo" placeholder="Bar"></ui-input>
+      `;
+      let ip2 = div.querySelector('ui-input');
+      ip.onReady(_ => {
+        expect(ip.selectInternalElement('ui-text').classList.contains('text-moved')).toBe(true);
+        ip.attr('placeholder', 'Bar');
+        expect(ip.selectInternalElement('ui-text').classList.contains('text-moved')).toBe(false);
+        expect(ip2.selectInternalElement('ui-text').classList.contains('text-moved')).toBe(false);
+        done();
+      }).catch(err => {
         console.error(err);
         throw err;
       });
@@ -180,6 +250,27 @@ export default () => {
         console.error(err);
         throw err;
       });
+    });
+
+    it('should not have the label moved over', done => {
+      let ip = document.createElement('ui-input');
+      ip.attr('label', 'Foo');
+      ip.attr('type', 'date');
+
+      div.innerHTML = `
+        <ui-input type="date" label="bar"></ui-input>
+      `;
+      let ip2 = div.querySelector('ui-input');
+      ip.onReady(_ => {
+        expect(ip.selectInternalElement('ui-text').classList.contains('text-moved')).toBe(false);
+        expect(ip2.selectInternalElement('ui-text').classList.contains('text-moved')).toBe(false);
+        done();
+      }).catch(err => {
+        console.error(err);
+        throw err;
+      });
+
+      div.appendChild(ip);
     });
   });
 };

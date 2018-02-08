@@ -231,9 +231,12 @@ export default () => {
       let form = div.querySelector('ui-form');
       form.onReady(_ => {
         expect(form.isValid).toBe(false);
-        div.querySelector('ui-input').value = 3;
-        expect(form.isValid).toBe(true);
-        done();
+        let ip = div.querySelector('ui-input');
+        ip.on('change', e => {
+          expect(form.isValid).toBe(true);
+          done();
+        });
+        ip.value = 3;
       }).catch(err => {
         console.error(err);
         throw err;
@@ -308,10 +311,12 @@ export default () => {
       let form = div.querySelector('ui-form');
       form.onReady(_ => {
         let ip = form.querySelector('ui-input');
+        ip.on('change', e => {
+          expect('' + global.location.href.match('foo=3')).toBe('foo=3');
+          global.history.replaceState({}, '', '/spec/auto');
+          done();
+        });
         ip.value = 3;
-        expect('' + global.location.href.match('foo=3')).toBe('foo=3');
-        global.history.replaceState({}, '', '/spec/auto');
-        done();
       }).catch(err => {
         console.error(err);
         throw err;

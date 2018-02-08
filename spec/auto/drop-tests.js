@@ -67,19 +67,16 @@ export default () => {
       dd.appendChild(item);
       item.value = '3oo';
       let count = 0;
-      let result = null;
       let listen = e => {
         ++count;
-        result = e.value;
+        dd.remove(listen);
       };
 
       dd.on('change', listen);
       return dd.onReady(_ => {
         dd.selected = item;
         setTimeout(() => {
-          dd.remove(listen);
           expect(count).toBe(1);
-          expect(result).toBe('3oo');
           done();
         }, 10);
       }).catch(err => {
@@ -89,5 +86,57 @@ export default () => {
 
       div.appendChild(dd);
     });
+  });
+
+  it('should fire change event with correct value', done => {
+    let dd = document.createElement('ui-drop-down');
+    let item = document.createElement('ui-item');
+    dd.appendChild(item);
+    item.value = '3oo';
+    let result = null;
+    let listen = e => {
+      result = e.value;
+      dd.remove(listen);
+    };
+
+    dd.on('change', listen);
+    return dd.onReady(_ => {
+      dd.selected = item;
+      setTimeout(() => {
+        expect(result).toBe('3oo');
+        done();
+      }, 10);
+    }).catch(err => {
+      console.error(err);
+      throw err;
+    });
+
+    div.appendChild(dd);
+  });
+
+  it('should have updated value and selected property on change', done => {
+    let dd = document.createElement('ui-drop-down');
+    let item = document.createElement('ui-item');
+    dd.appendChild(item);
+    item.value = '3oo';
+    let sel = null, val = null;
+    let listen = e => {
+      val = dd.value;
+      sel = dd.selected;
+      dd.remove(listen);
+      expect(val).toBe('3oo');
+      expect(sel).toEqual(item);
+      done();
+    };
+
+    dd.on('change', listen);
+    return dd.onReady(_ => {
+      item.click();
+    }).catch(err => {
+      console.error(err);
+      throw err;
+    });
+
+    div.appendChild(dd);
   });
 };
