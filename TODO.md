@@ -4,7 +4,7 @@ refactor styler
 
 add append, insertBefore, etc. overrides for elements that need them
 
-add toast, tooltip, toggle
+add toast
 
 see if FormData polyfill can be removed with the form refactor
 
@@ -23,8 +23,9 @@ Responsive styles and MQs and breakpoints
 Fix default theme colors
 
 **PRIORITY**
-* move label text for date, time, placeholder inputs
-* checkout moving everything out of connectedCallback except reattach (no initial attach)
+input with cached data when multiple form items share name, getting the array ,,value
+Fab has square outline
+fix how tooltip works, kinda hacky right now
 
 
 
