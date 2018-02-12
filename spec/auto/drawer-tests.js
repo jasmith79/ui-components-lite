@@ -9,7 +9,7 @@ export default () => {
     });
 
     afterEach(() => {
-      [...document.querySelectorAll('.remove-me')].forEach(el => {
+      [...document.querySelectorAll('.remove-me'), ...document.querySelectorAll('ui-backdrop')].forEach(el => {
         document.body.removeChild(el);
       });
     });

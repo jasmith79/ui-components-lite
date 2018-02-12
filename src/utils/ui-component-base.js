@@ -47,9 +47,8 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     }
 
     // This is because the spec doesn't allow attribute changes in an element constructor.
-    global.setTimeout(() => {
-      this.init();
-    }, 0);
+    // Use a Promise instead of setTimeout because microtask enqueues faster;
+    Promise.resolve(true).then(_ => this.init());
   }
 
   static get observedAttributes () {

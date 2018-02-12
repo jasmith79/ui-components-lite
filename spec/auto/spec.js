@@ -58,16 +58,16 @@ Promise.all([
   customElements.whenDefined('ui-router'),
   customElements.whenDefined('foo-x'),
 ]).then(() => {
-  // UIBaseTests();
-  // CardTests();
-  // TextTests();
-  // dialogTests();
-  // alertTests();
-  // toolbarTests();
-  // tabsTests();
-  // tabTests();
-  // dropDownTests();
-  // formTests();
+  UIBaseTests();
+  CardTests();
+  TextTests();
+  dialogTests();
+  alertTests();
+  toolbarTests();
+  tabsTests();
+  tabTests();
+  dropDownTests();
+  formTests();
   inputTests();
 
   // TODO: finish these

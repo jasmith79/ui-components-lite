@@ -61,7 +61,7 @@ var __run=function(){
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 21);
+/******/ 	return __webpack_require__(__webpack_require__.s = 22);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -71,12 +71,12 @@ var __run=function(){
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return UIBase; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__styler_js__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__binder_js__ = __webpack_require__(23);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__dom_utils_js__ = __webpack_require__(24);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__attribute_analyzer_js__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__promise_from_event_js__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__binder_js__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__dom_utils_js__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__attribute_analyzer_js__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__promise_from_event_js__ = __webpack_require__(26);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__dom_js__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return __WEBPACK_IMPORTED_MODULE_5__dom_js__["d"]; });
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return __WEBPACK_IMPORTED_MODULE_5__dom_js__["c"]; });
@@ -130,9 +130,8 @@ class UIBase extends Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_sr
     }
 
     // This is because the spec doesn't allow attribute changes in an element constructor.
-    __WEBPACK_IMPORTED_MODULE_5__dom_js__["d" /* global */].setTimeout(() => {
-      this.init();
-    }, 0);
+    // Use a Promise instead of setTimeout because microtask enqueues faster;
+    Promise.resolve(true).then(_ => this.init());
   }
 
   static get observedAttributes () {
@@ -385,7 +384,7 @@ class MixinBuilder {
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return baseClass; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return defineUIComponent; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return global; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(9);
 /*
  * dom.js
  * @author jasmith79
@@ -772,7 +771,7 @@ const reflectedAttributes = [
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_animations_rippler_js__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_animations_rippler_js__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_utils_float_js__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_utils_centerer_js__ = __webpack_require__(15);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_utils_focusable_js__ = __webpack_require__(5);
@@ -1141,6 +1140,78 @@ const FormControlBehavior = (() => {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+/*
+ * text.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * text-holder component for ui-components-lite.
+ *
+ * NOTE: it is not currently (and may never) be possible to extend built-in elements like Span.
+ * If it does become possible this can be refactored to support extending HTMLSpanElement.
+ */
+
+
+
+const reflectedAttributes = ['view-text'];
+const template = __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: inline;
+    }
+
+    #text-holder {
+      color: inherit;
+    }
+  </style>
+  <span id="text-holder"></span>
+`;
+
+const Text = Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  name: 'ui-text',
+  reflectedAttributes,
+  template,
+  definition: class Text extends __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["a" /* UIBase */] {
+    constructor () {
+      super();
+      this._textHolder = null;
+    }
+
+    // Override the default textContent property
+    get textContent () {
+      return this._textHolder.textContent;
+    }
+
+    set textContent (text) {
+      this.viewText = text;
+      return text;
+    }
+
+    init () {
+      super.init();
+      this._textHolder = this.selectInternalElement('#text-holder');
+      this.watchAttribute(this, 'view-text', val => {
+        this._textHolder.textContent = val || this.innerHTML; // render innerHTML as a fallback
+      });
+
+      if (this.innerHTML && !this.viewText) this.viewText = this.innerHTML;
+    }
+  }
+});
+
+/* unused harmony default export */ var _unused_webpack_default_export = (Text);
+
+
+/***/ }),
+/* 9 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 /*
  * jsstring.js
  * @author jasmith79
@@ -1319,7 +1390,7 @@ const random = {
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1366,7 +1437,7 @@ const processHTMLAttr = attr => {
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1469,78 +1540,6 @@ template.innerHTML = `
 
 
 /***/ }),
-/* 11 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__ = __webpack_require__(0);
-/*
- * text.js
- * @author jasmith79
- * @copyright Jared Smith
- * @license MIT
- * You should have received a copy of the license with this work but it may also be found at
- * https://opensource.org/licenses/MIT
- *
- * text-holder component for ui-components-lite.
- *
- * NOTE: it is not currently (and may never) be possible to extend built-in elements like Span.
- * If it does become possible this can be refactored to support extending HTMLSpanElement.
- */
-
-
-
-const reflectedAttributes = ['view-text'];
-const template = __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-template.innerHTML = `
-  <style>
-    :host {
-      display: inline;
-    }
-
-    #text-holder {
-      color: inherit;
-    }
-  </style>
-  <span id="text-holder"></span>
-`;
-
-const Text = Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
-  name: 'ui-text',
-  reflectedAttributes,
-  template,
-  definition: class Text extends __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["a" /* UIBase */] {
-    constructor () {
-      super();
-      this._textHolder = null;
-    }
-
-    // Override the default textContent property
-    get textContent () {
-      return this._textHolder.textContent;
-    }
-
-    set textContent (text) {
-      this.viewText = text;
-      return text;
-    }
-
-    init () {
-      super.init();
-      this._textHolder = this.selectInternalElement('#text-holder');
-      this.watchAttribute(this, 'view-text', val => {
-        this._textHolder.textContent = val || this.innerHTML; // render innerHTML as a fallback
-      });
-
-      if (this.innerHTML && !this.viewText) this.viewText = this.innerHTML;
-    }
-  }
-});
-
-/* unused harmony default export */ var _unused_webpack_default_export = (Text);
-
-
-/***/ }),
 /* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -1601,7 +1600,7 @@ const Card = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return generateCSSClassName; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__dom_js__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(9);
 /*
  * styler.js
  * @author jasmith79
@@ -1982,7 +1981,7 @@ window.parseURL = parseURL;
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__form_js__ = __webpack_require__(7);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_utils_normalizer_js__ = __webpack_require__(17);
@@ -2438,13 +2437,14 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_j
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__checkbox_js__ = __webpack_require__(29);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__checkbox_js__ = __webpack_require__(30);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__form_js__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_animations_rippler_js__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_utils_focusable_js__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__tooltip_js__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_animations_rippler_js__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__temp_utils_focusable_js__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
 /*
  * list.js
  * @author jasmith79
@@ -2470,12 +2470,13 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_j
 
 
 
+
 const handlerCache = new WeakMap();
-const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
   name: 'ui-list-behavior',
   reflectedAttributes: ['multiple', 'selected-index'],
   registerElement: false,
-  definition: class extends Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(superclass).with(__WEBPACK_IMPORTED_MODULE_1__form_js__["a" /* FormControlBehavior */]) {
+  definition: class extends Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(superclass).with(__WEBPACK_IMPORTED_MODULE_1__form_js__["a" /* FormControlBehavior */]) {
     constructor () {
       super();
       this._items = [];
@@ -2533,7 +2534,7 @@ const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_4__temp_util
         return;
       }
 
-      const type = Object(__WEBPACK_IMPORTED_MODULE_5__node_modules_extracttype_extracttype_js__["a" /* default */])(value);
+      const type = Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__["a" /* default */])(value);
       let selection;
       switch (type) {
         case 'Number':
@@ -2592,12 +2593,12 @@ const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_4__temp_util
       this.on('keydown', e => {
         let el = (() => {
           switch (e.keyCode) {
-            case 40: 
+            case 40:
               return this._items[(this._items.indexOf(this.shadowRoot.activeElement) + 1) % this._items.length];
-            
-            case 38: 
+
+            case 38:
               return this._items[+(this._items.indexOf(this.shadowRoot.activeElement) - 1)];
-            
+
             default: return null;
           }
         })();
@@ -2645,8 +2646,8 @@ const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_4__temp_util
 
 
 const Item = (() => {
-  const template = __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-  const reflectedAttributes = ['is-selected', 'value'];
+  const template = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+  const reflectedAttributes = ['is-selected', 'value', 'tooltip'];
   template.innerHTML = `
     <style>
       :host {
@@ -2702,12 +2703,11 @@ const Item = (() => {
     <span id="content"><slot></slot></span>
   `;
 
-  return Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  return Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
     name: 'ui-item',
     template,
     reflectedAttributes,
-    // Right now overflow: hidden from ripple hides tooltips. TODO: fix
-    definition: class Item extends Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(/*Ripples, */__WEBPACK_IMPORTED_MODULE_3__temp_utils_focusable_js__["a" /* default */]) {
+    definition: class Item extends Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_3__temp_animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_4__temp_utils_focusable_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_2__tooltip_js__["a" /* TooltipMixin */]) {
       constructor () {
         super();
         this._checkbox = null;
@@ -2749,7 +2749,7 @@ const Item = (() => {
 
 
 const List = (() => {
-  const template = __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+  const template = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
   template.innerHTML = `
     <style>
       :host {
@@ -2761,10 +2761,10 @@ const List = (() => {
     <slot></slot>
   `;
 
-  return Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  return Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
     name: 'ui-list',
     template,
-    definition: class List extends Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(ListBehavior) {
+    definition: class List extends Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(ListBehavior) {
       init () {
         super.init();
         this.attr('role', 'list');
@@ -2781,18 +2781,203 @@ const List = (() => {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_elements_login_js__ = __webpack_require__(22);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_elements_fab_js__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_elements_drop_down_js__ = __webpack_require__(28);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_elements_drawer_js__ = __webpack_require__(30);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__temp_elements_hamburger_js__ = __webpack_require__(32);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__temp_elements_input_js__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__temp_elements_router_js__ = __webpack_require__(33);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__temp_elements_tabs_js__ = __webpack_require__(34);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__temp_elements_text_js__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__temp_elements_toolbar_js__ = __webpack_require__(35);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__temp_elements_tooltip_js__ = __webpack_require__(36);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_utils_float_js__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+
+/*
+ * tooltip.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * tooltip component for ui-components-lite.
+ */
+
+
+
+
+
+
+
+
+const reflectedAttributes = ['for', 'position', 'view-text'];
+const template = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: block;
+      position: absolute;
+      z-index: 2000;
+      background-color: #555;
+      color: #fff;
+      opacity: 0;
+      transition: opacity;
+      transition-duration: 300ms;
+      max-width: 200px;
+      max-height: 100px;
+    }
+
+    #tooltip {
+      font-size: 10px;
+      background-color: inherit;
+      color: inherit;
+      padding: 5px;
+      border-radius: 2%;
+      width: inherit;
+      height: inherit;
+    }
+
+    :host(.faded-in) {
+      opacity: 0.9;
+    }
+  </style>
+  <div id="tooltip">
+    <ui-text view-text="{{view-text}}"></ui-text>
+  </div>
+`;
+
+const Tooltip = Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  name: 'ui-tooltip',
+  template,
+  reflectedAttributes,
+  definition: class Tooltip extends Object(__WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_1__temp_utils_float_js__["a" /* default */]) {
+    constructor () {
+      super();
+      this._forHandlers = [];
+      this._forElement = null;
+    }
+
+    init () {
+      super.init();
+      this.floatingY = true;
+    }
+
+    _updatePosition () {
+      let { top, left, height: elHeight, width: elWidth } = this._forElement.getBoundingClientRect();
+      top += (__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].scrollY || __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].pageYOffset);
+      left += (__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].scrollX || __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].pageXOffset);
+
+      let { width: ttWidth, height: ttHeight } = this.getBoundingClientRect();
+      switch (this.position) {
+        case 'above':
+          this.style.top = `${top - ttHeight - 5}px`;
+          this.style.left = `${left}px`;
+          break;
+
+        case 'below':
+          this.style.top = `${top + elHeight + 5}px`;
+          this.style.left = `${left}px`;
+          break;
+
+        case 'left':
+          this.style.top = `${top}px`;
+          this.style.left = `${left - ttWidth - 5}px`;
+          break;
+
+        default: // defaults to being to the right of the element
+          this.style.top = `${top}px`;
+          this.style.left = `${left + elWidth + 5}px`;
+          break;
+      }
+
+      return this;
+    }
+
+    _attachForElementHandlers () {
+      const [outHandler, inHandler] = this._forHandlers;
+      this._forElement.addEventListener('mouseenter', inHandler);
+      this._forElement.addEventListener('mouseleave', outHandler);
+      return this;
+    }
+
+    _removeForElementHandlers () {
+      const [outHandler, inHandler] = this._forHandlers;
+      this._forElement.removeEventListener('mouseenter', inHandler);
+      this._forElement.removeEventListener('mouseleave', outHandler);
+      return this;
+    }
+
+    show () {
+      this._updatePosition();
+      this.classList.add('faded-in');
+      return this;
+    }
+
+    hide () {
+      this.classList.remove('faded-in');
+      return this;
+    }
+
+    set isFor (el) {
+      this._forElement = el;
+      return this._attachForElementHandlers();
+    }
+
+    connectedCallback () {
+      super.connectedCallback();
+      if (!this._forHandlers.length) {
+        this._forHandlers.push(
+          e => (this.hide()),
+          e => (this.show()),
+        );
+      }
+
+      let shadowParent = (node => {
+        while (node = node.parentNode) {
+          if (node.host) return node.host;
+          if (node === __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */]) return node;
+        }
+      })(this);
+
+      if (this.for) this._forElement = shadowParent.querySelector(`#${this.for}`);
+      if (!this._forElement) {
+        this._forElement = this.parentNode.host || this.parentNode;
+      }
+
+      if (!this._forElement) throw new Error('ui-tooltip must have a "for" attribute/property or a parent');
+      this._attachForElementHandlers();
+
+      if (this.textContent && !this.attr('view-text')) this.attr('view-text', this.textContent);
+    }
+
+    disconnectedCallback () {
+      super.disconnectedCallback();
+      this._removeForElementHandlers();
+    }
+  }
+});
+/* unused harmony export Tooltip */
+
+
+const TooltipMixin = superclass => Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  name: 'ui-has-tooltip',
+  registerElement: false,
+  reflectedAttributes: ['tooltip'],
+  definition: class extends superclass {
+    constructor () {
+      super();
+      this._tooltipElement = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-tooltip');
+      this._tooltipElement.isFor = this;
+      __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.appendChild(this._tooltipElement);
+    }
+
+    init () {
+      super.init();
+      if (this.tooltip) this._tooltipElement.viewText = this.tooltip;
+      this.watchAttribute(this, 'tooltip', now => {
+        let inDOM = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.contains(this._tooltipElement);
+        if (now && !inDOM) __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.appendChild(this._tooltipElement);
+        if (!now && inDOM) __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.removeChild(this._tooltipElement);
+        this._tooltipElement.viewText = now;
+      });
+    }
+  },
+});
+/* harmony export (immutable) */ __webpack_exports__["a"] = TooltipMixin;
 
 
 
@@ -2801,9 +2986,29 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_elements_login_js__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_elements_fab_js__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_elements_drop_down_js__ = __webpack_require__(29);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_elements_drawer_js__ = __webpack_require__(31);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__temp_elements_hamburger_js__ = __webpack_require__(33);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__temp_elements_input_js__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__temp_elements_router_js__ = __webpack_require__(34);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__temp_elements_tabs_js__ = __webpack_require__(35);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__temp_elements_text_js__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__temp_elements_toolbar_js__ = __webpack_require__(36);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__temp_elements_tooltip_js__ = __webpack_require__(21);
+
+
+
+/***/ }),
+/* 23 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__card_js__ = __webpack_require__(12);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__fab_js__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__alert_js__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__alert_js__ = __webpack_require__(27);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__form_js__ = __webpack_require__(7);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__input_js__ = __webpack_require__(19);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__ = __webpack_require__(0);
@@ -3029,7 +3234,7 @@ template.innerHTML = `
 
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3120,12 +3325,12 @@ template.innerHTML = `
 
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__dom_js__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__attribute_analyzer_js__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__attribute_analyzer_js__ = __webpack_require__(10);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
 /*
  * dom-utils.js
@@ -3344,7 +3549,7 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
 
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3388,12 +3593,12 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
 
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__dialog_js__ = __webpack_require__(27);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__dialog_js__ = __webpack_require__(28);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__ = __webpack_require__(2);
 /*
  * alert.js
@@ -3478,7 +3683,7 @@ const Alert = Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__["b" /* def
 
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3691,11 +3896,11 @@ const Dialog = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["b" /* de
 
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__list_js__ = __webpack_require__(20);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__ = __webpack_require__(0);
@@ -3977,12 +4182,12 @@ template.innerHTML = `
 
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__form_js__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_animations_rippler_js__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_animations_rippler_js__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
@@ -4086,12 +4291,12 @@ const Checkbox = Object(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_bas
 
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__backdrop_js__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_animations_easer_js__ = __webpack_require__(31);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_animations_easer_js__ = __webpack_require__(32);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_utils_float_js__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
@@ -4229,7 +4434,7 @@ const reflectedAttributes = ['is-modal', 'is-open'];
 
 
 /***/ }),
-/* 31 */
+/* 32 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4350,7 +4555,7 @@ const orientations = {
 
 
 /***/ }),
-/* 32 */
+/* 33 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4439,7 +4644,7 @@ lineDivTemplate.innerHTML = `
 
 
 /***/ }),
-/* 33 */
+/* 34 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4813,7 +5018,7 @@ const Route = (() => {
 
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4976,12 +5181,12 @@ const Tabs = (() => {
 
 
 /***/ }),
-/* 35 */
+/* 36 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_utils_attribute_analyzer_js__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_utils_attribute_analyzer_js__ = __webpack_require__(10);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__temp_utils_centerer_js__ = __webpack_require__(15);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
@@ -5141,155 +5346,6 @@ template.innerHTML = `
           }
         }
       });
-    }
-  }
-}));
-
-
-/***/ }),
-/* 36 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
-
-/*
- * tooltip.js
- * @author jasmith79
- * @copyright Jared Smith
- * @license MIT
- * You should have received a copy of the license with this work but it may also be found at
- * https://opensource.org/licenses/MIT
- *
- * tooltip component for ui-components-lite.
- */
-
-
-
-
-
-
-const reflectedAttributes = ['for', 'position'];
-const template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-template.innerHTML = `
-  <style>
-    :host {
-      display: block;
-      position: absolute;
-      z-index: 2000;
-      background-color: #555;
-      color: #fff;
-      opacity: 0;
-      transition: opacity;
-      transition-duration: 300ms; 
-      max-width: 200px;
-      max-height: 100px;
-    }
-
-    #tooltip {
-      font-size: 10px;
-      background-color: inherit;
-      color: inherit;
-      padding: 5px;
-      border-radius: 2%;
-      width: inherit;
-      height: inherit;
-    }
-
-    :host(.faded-in) {
-      opacity: 0.9;
-    }
-  </style>
-  <div id="tooltip">
-    <slot></slot>
-  </div>
-`;
-
-/* unused harmony default export */ var _unused_webpack_default_export = (Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
-  name: 'ui-tooltip',
-  template,
-  reflectedAttributes,
-  definition: class Tooltip extends Object(__WEBPACK_IMPORTED_MODULE_2__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__["a" /* default */]) {
-    constructor () {
-      super();
-      this._forHandlers = [];
-      this._forElement = null;
-    }
-
-    init () {
-      super.init();
-      this.floatingY = true;
-    }
-
-    _updatePosition () {
-      let { top, left, height: elHeight, width: elWidth } = this._forElement.getBoundingClientRect();
-      top += (__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["d" /* global */].scrollY || __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["d" /* global */].pageYOffset);
-      left += (__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["d" /* global */].scrollX || __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["d" /* global */].pageXOffset);
-      
-      let { width: ttWidth, height: ttHeight } = this.getBoundingClientRect();
-      switch (this.position) {
-        case 'above':
-          this.style.top = `${top - ttHeight - 5}px`;
-          this.style.left = `${left}px`;
-          break;
-
-        case 'below':
-          this.style.top = `${top + elHeight + 5}px`;
-          this.style.left = `${left}px`;
-          break;
-
-        case 'left':
-          this.style.top = `${top}px`;
-          this.style.left = `${left - ttWidth - 5}px`;
-          break;
-
-        default: // defaults to being to the right of the element
-          this.style.top = `${top}px`;
-          this.style.left = `${left + elWidth + 5}px`;
-          break;
-      }
-
-      return this;
-    }
-
-    connectedCallback () {
-      super.connectedCallback();
-      if (!this._forHandlers.length) {
-        this._forHandlers.push(
-          e => {
-            this.classList.remove('faded-in');
-          },
-          e => {
-            this._updatePosition();
-            this.classList.add('faded-in');
-          },
-        );
-      }
-
-      let shadowParent = (node => {
-        while (node = node.parentNode) {
-          if (node.host) return node.host;
-          if (node === __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */]) return node;
-        }
-      })(this); 
-      
-      if (this.for) this._forElement = shadowParent.querySelector(`#${this.for}`);
-      if (!this._forElement) {
-        this._forElement = this.parentNode.host || this.parentNode;
-      } 
-      if (!this._forElement) throw new Error('ui-tooltip must have a "for" attribute/property or a parent');
-      const [outHandler, inHandler] = this._forHandlers;
-      this._forElement.addEventListener('mouseenter', inHandler);
-      this._forElement.addEventListener('mouseleave', outHandler);
-    }
-
-    disconnectedCallback () {
-      super.disconnectedCallback();
-      const [outHandler, inHandler] = this._forHandlers;
-      this._forElement.removeEventListener('mouseenter', inHandler);
-      this._forElement.removeEventListener('mouseleave', outHandler);
     }
   }
 }));

@@ -29,7 +29,7 @@ template.innerHTML = `
       color: #fff;
       opacity: 0;
       transition: opacity;
-      transition-duration: 300ms; 
+      transition-duration: 300ms;
       max-width: 200px;
       max-height: 100px;
     }
@@ -73,7 +73,7 @@ export const Tooltip = defineUIComponent({
       let { top, left, height: elHeight, width: elWidth } = this._forElement.getBoundingClientRect();
       top += (global.scrollY || global.pageYOffset);
       left += (global.scrollX || global.pageXOffset);
-      
+
       let { width: ttWidth, height: ttHeight } = this.getBoundingClientRect();
       switch (this.position) {
         case 'above':
@@ -144,40 +144,47 @@ export const Tooltip = defineUIComponent({
           if (node.host) return node.host;
           if (node === document) return node;
         }
-      })(this); 
-      
+      })(this);
+
       if (this.for) this._forElement = shadowParent.querySelector(`#${this.for}`);
       if (!this._forElement) {
         this._forElement = this.parentNode.host || this.parentNode;
-      } 
+      }
 
       if (!this._forElement) throw new Error('ui-tooltip must have a "for" attribute/property or a parent');
-      this._attachForElementHandlers();    
-      
-      if (this.textContent && !this.attr('view-text') this.attr('view-text', this.textContent);
+      this._attachForElementHandlers();
+
+      if (this.textContent && !this.attr('view-text')) this.attr('view-text', this.textContent);
     }
 
     disconnectedCallback () {
       super.disconnectedCallback();
-      this._removeForElementHandlers();     
+      this._removeForElementHandlers();
     }
   }
 });
 
-export const TooltipMixin = defineUIComponent({
+export const TooltipMixin = superclass => defineUIComponent({
   name: 'ui-has-tooltip',
   registerElement: false,
   reflectedAttributes: ['tooltip'],
   definition: class extends superclass {
     constructor () {
       super();
-      this._tooltip = document.createElement('ui-tooltip');
-      this._tooltip.isFor = this;
-      document.body.appendChild(this._tooltip);
+      this._tooltipElement = document.createElement('ui-tooltip');
+      this._tooltipElement.isFor = this;
+      document.body.appendChild(this._tooltipElement);
     }
 
     init () {
-      
+      super.init();
+      if (this.tooltip) this._tooltipElement.viewText = this.tooltip;
+      this.watchAttribute(this, 'tooltip', now => {
+        let inDOM = document.body.contains(this._tooltipElement);
+        if (now && !inDOM) document.body.appendChild(this._tooltipElement);
+        if (!now && inDOM) document.body.removeChild(this._tooltipElement);
+        this._tooltipElement.viewText = now;
+      });
     }
   },
 });

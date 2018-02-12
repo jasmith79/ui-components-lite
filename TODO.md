@@ -24,8 +24,7 @@ Fix default theme colors
 
 **PRIORITY**
 * move label text for date, time, placeholder inputs
-
-
+* checkout moving everything out of connectedCallback except reattach (no initial attach)
 
 
 

@@ -93,7 +93,7 @@ var __run = function __run() {
     /******/__webpack_require__.p = "";
     /******/
     /******/ // Load entry module and return exports
-    /******/return __webpack_require__(__webpack_require__.s = 21);
+    /******/return __webpack_require__(__webpack_require__.s = 22);
     /******/
   })(
   /************************************************************************/
@@ -107,12 +107,12 @@ var __run = function __run() {
       return UIBase;
     });
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__styler_js__ = __webpack_require__(13);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__binder_js__ = __webpack_require__(23);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__dom_utils_js__ = __webpack_require__(24);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__attribute_analyzer_js__ = __webpack_require__(9);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__promise_from_event_js__ = __webpack_require__(25);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__binder_js__ = __webpack_require__(24);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__dom_utils_js__ = __webpack_require__(25);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__attribute_analyzer_js__ = __webpack_require__(10);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__promise_from_event_js__ = __webpack_require__(26);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__dom_js__ = __webpack_require__(2);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(8);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(9);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
     /* harmony reexport (binding) */__webpack_require__.d(__webpack_exports__, "d", function () {
       return __WEBPACK_IMPORTED_MODULE_5__dom_js__["d"];
@@ -175,9 +175,10 @@ var __run = function __run() {
         }
 
         // This is because the spec doesn't allow attribute changes in an element constructor.
-        __WEBPACK_IMPORTED_MODULE_5__dom_js__["d" /* global */].setTimeout(function () {
-          _this.init();
-        }, 0);
+        // Use a Promise instead of setTimeout because microtask enqueues faster;
+        Promise.resolve(true).then(function (_) {
+          return _this.init();
+        });
         return _this;
       }
 
@@ -519,7 +520,7 @@ var __run = function __run() {
     /* harmony export (binding) */__webpack_require__.d(__webpack_exports__, "d", function () {
       return global;
     });
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(8);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(9);
     /*
      * dom.js
      * @author jasmith79
@@ -917,7 +918,7 @@ var __run = function __run() {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__temp_animations_rippler_js__ = __webpack_require__(10);
+    var __WEBPACK_IMPORTED_MODULE_0__temp_animations_rippler_js__ = __webpack_require__(11);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_float_js__ = __webpack_require__(4);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_centerer_js__ = __webpack_require__(15);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_focusable_js__ = __webpack_require__(5);
@@ -1303,6 +1304,81 @@ var __run = function __run() {
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
+    /* harmony import */
+    var __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+    /*
+     * text.js
+     * @author jasmith79
+     * @copyright Jared Smith
+     * @license MIT
+     * You should have received a copy of the license with this work but it may also be found at
+     * https://opensource.org/licenses/MIT
+     *
+     * text-holder component for ui-components-lite.
+     *
+     * NOTE: it is not currently (and may never) be possible to extend built-in elements like Span.
+     * If it does become possible this can be refactored to support extending HTMLSpanElement.
+     */
+
+    var reflectedAttributes = ['view-text'];
+    var template = __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    :host {\n      display: inline;\n    }\n\n    #text-holder {\n      color: inherit;\n    }\n  </style>\n  <span id="text-holder"></span>\n';
+
+    var Text = Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+      name: 'ui-text',
+      reflectedAttributes: reflectedAttributes,
+      template: template,
+      definition: function (_WEBPACK_IMPORTED_MO2) {
+        _inherits(Text, _WEBPACK_IMPORTED_MO2);
+
+        function Text() {
+          _classCallCheck(this, Text);
+
+          var _this21 = _possibleConstructorReturn(this, (Text.__proto__ || Object.getPrototypeOf(Text)).call(this));
+
+          _this21._textHolder = null;
+          return _this21;
+        }
+
+        // Override the default textContent property
+
+
+        _createClass(Text, [{
+          key: 'init',
+          value: function init() {
+            var _this22 = this;
+
+            _get(Text.prototype.__proto__ || Object.getPrototypeOf(Text.prototype), 'init', this).call(this);
+            this._textHolder = this.selectInternalElement('#text-holder');
+            this.watchAttribute(this, 'view-text', function (val) {
+              _this22._textHolder.textContent = val || _this22.innerHTML; // render innerHTML as a fallback
+            });
+
+            if (this.innerHTML && !this.viewText) this.viewText = this.innerHTML;
+          }
+        }, {
+          key: 'textContent',
+          get: function get() {
+            return this._textHolder.textContent;
+          },
+          set: function set(text) {
+            this.viewText = text;
+            return text;
+          }
+        }]);
+
+        return Text;
+      }(__WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["a" /* UIBase */])
+    });
+
+    /* unused harmony default export */var _unused_webpack_default_export = Text;
+
+    /***/
+  },
+  /* 9 */
+  /***/function (module, __webpack_exports__, __webpack_require__) {
+
+    "use strict";
     /*
      * jsstring.js
      * @author jasmith79
@@ -1510,7 +1586,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 9 */
+  /* 10 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -1557,7 +1633,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 10 */
+  /* 11 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -1610,16 +1686,16 @@ var __run = function __run() {
             // Here we want to intercept any handlers on events that trigger a ripple and delay them
             // to give the animation time to complete.
             value: function on(evts, f) {
-              var _this22 = this;
+              var _this24 = this;
 
               var events = evts.split(/\s+/g);
               events.forEach(function (evt) {
                 if (rippleEvents.includes(evt)) {
                   // Here we'll want to cache a canonical version for later removal
                   var fn = registerHandler(f);
-                  _get(Ripples.prototype.__proto__ || Object.getPrototypeOf(Ripples.prototype), 'on', _this22).call(_this22, evt, fn);
+                  _get(Ripples.prototype.__proto__ || Object.getPrototypeOf(Ripples.prototype), 'on', _this24).call(_this24, evt, fn);
                 } else {
-                  _get(Ripples.prototype.__proto__ || Object.getPrototypeOf(Ripples.prototype), 'on', _this22).call(_this22, evt, f);
+                  _get(Ripples.prototype.__proto__ || Object.getPrototypeOf(Ripples.prototype), 'on', _this24).call(_this24, evt, f);
                 }
               });
             }
@@ -1652,81 +1728,6 @@ var __run = function __run() {
         }(superclass)
       });
     };
-
-    /***/
-  },
-  /* 11 */
-  /***/function (module, __webpack_exports__, __webpack_require__) {
-
-    "use strict";
-    /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__ = __webpack_require__(0);
-    /*
-     * text.js
-     * @author jasmith79
-     * @copyright Jared Smith
-     * @license MIT
-     * You should have received a copy of the license with this work but it may also be found at
-     * https://opensource.org/licenses/MIT
-     *
-     * text-holder component for ui-components-lite.
-     *
-     * NOTE: it is not currently (and may never) be possible to extend built-in elements like Span.
-     * If it does become possible this can be refactored to support extending HTMLSpanElement.
-     */
-
-    var reflectedAttributes = ['view-text'];
-    var template = __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    :host {\n      display: inline;\n    }\n\n    #text-holder {\n      color: inherit;\n    }\n  </style>\n  <span id="text-holder"></span>\n';
-
-    var Text = Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
-      name: 'ui-text',
-      reflectedAttributes: reflectedAttributes,
-      template: template,
-      definition: function (_WEBPACK_IMPORTED_MO2) {
-        _inherits(Text, _WEBPACK_IMPORTED_MO2);
-
-        function Text() {
-          _classCallCheck(this, Text);
-
-          var _this23 = _possibleConstructorReturn(this, (Text.__proto__ || Object.getPrototypeOf(Text)).call(this));
-
-          _this23._textHolder = null;
-          return _this23;
-        }
-
-        // Override the default textContent property
-
-
-        _createClass(Text, [{
-          key: 'init',
-          value: function init() {
-            var _this24 = this;
-
-            _get(Text.prototype.__proto__ || Object.getPrototypeOf(Text.prototype), 'init', this).call(this);
-            this._textHolder = this.selectInternalElement('#text-holder');
-            this.watchAttribute(this, 'view-text', function (val) {
-              _this24._textHolder.textContent = val || _this24.innerHTML; // render innerHTML as a fallback
-            });
-
-            if (this.innerHTML && !this.viewText) this.viewText = this.innerHTML;
-          }
-        }, {
-          key: 'textContent',
-          get: function get() {
-            return this._textHolder.textContent;
-          },
-          set: function set(text) {
-            this.viewText = text;
-            return text;
-          }
-        }]);
-
-        return Text;
-      }(__WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["a" /* UIBase */])
-    });
-
-    /* unused harmony default export */var _unused_webpack_default_export = Text;
 
     /***/
   },
@@ -1792,7 +1793,7 @@ var __run = function __run() {
     });
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__dom_js__ = __webpack_require__(2);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(8);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(9);
     /*
      * styler.js
      * @author jasmith79
@@ -2207,7 +2208,7 @@ var __run = function __run() {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(11);
+    var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(8);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__form_js__ = __webpack_require__(7);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__ = __webpack_require__(5);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_normalizer_js__ = __webpack_require__(17);
@@ -2648,13 +2649,14 @@ var __run = function __run() {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__checkbox_js__ = __webpack_require__(29);
+    var __WEBPACK_IMPORTED_MODULE_0__checkbox_js__ = __webpack_require__(30);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__form_js__ = __webpack_require__(7);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_animations_rippler_js__ = __webpack_require__(10);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_focusable_js__ = __webpack_require__(5);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__tooltip_js__ = __webpack_require__(21);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_animations_rippler_js__ = __webpack_require__(11);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__temp_utils_focusable_js__ = __webpack_require__(5);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
     /*
      * list.js
      * @author jasmith79
@@ -2671,7 +2673,7 @@ var __run = function __run() {
 
     var handlerCache = new WeakMap();
     var ListBehavior = function ListBehavior(superclass) {
-      return Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+      return Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
         name: 'ui-list-behavior',
         reflectedAttributes: ['multiple', 'selected-index'],
         registerElement: false,
@@ -2834,7 +2836,7 @@ var __run = function __run() {
                 return;
               }
 
-              var type = Object(__WEBPACK_IMPORTED_MODULE_5__node_modules_extracttype_extracttype_js__["a" /* default */])(value);
+              var type = Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__["a" /* default */])(value);
               var selection = void 0;
               switch (type) {
                 case 'Number':
@@ -2871,21 +2873,20 @@ var __run = function __run() {
           }]);
 
           return definition;
-        }(Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(superclass).with(__WEBPACK_IMPORTED_MODULE_1__form_js__["a" /* FormControlBehavior */]))
+        }(Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(superclass).with(__WEBPACK_IMPORTED_MODULE_1__form_js__["a" /* FormControlBehavior */]))
       });
     };
     /* harmony export (immutable) */__webpack_exports__["b"] = ListBehavior;
 
     var Item = function () {
-      var template = __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-      var reflectedAttributes = ['is-selected', 'value'];
+      var template = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+      var reflectedAttributes = ['is-selected', 'value', 'tooltip'];
       template.innerHTML = '\n    <style>\n      :host {\n        --ui-theme-ripple-color: var(--ui-theme-primary-dark-color, rgb(0, 139, 163));\n        display: block;\n        margin-top: 10px;\n        margin-bottom: 10px;\n        min-height: 20px;\n        background-color: inherit;\n        color: inherit;\n        border-radius: 0;\n        text-transform: capitalize;\n        width: 90%;\n        margin-left: 5%;\n        padding-top: 4px;\n      }\n\n      :host(:hover) {\n        color: var(--ui-theme-primary-dark-color, #999);\n      }\n\n      :host(.selected) {\n        border-bottom: 1px solid var(--ui-theme-primary-dark-color, rgb(0, 139, 163));\n      }\n\n      .ui-checkbox {\n        display: none;\n        height: 18px;\n        width: 18px;\n        float: left;\n      }\n\n      .ui-checkbox::before {\n        top: 2px;\n        height: 9px;\n        left: 5px;\n      }\n\n      :host-context([multiple="true"]) {\n        border-bottom: none;\n      }\n\n      :host-context([multiple="true"]) ui-checkbox {\n        display: inline-block;\n      }\n\n      :host-context([multiple="true"]) #content {\n        position: relative;\n        left: -10px; /* offsets checkbox */\n      }\n    </style>\n    <ui-checkbox></ui-checkbox>\n    <span id="content"><slot></slot></span>\n  ';
 
-      return Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+      return Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
         name: 'ui-item',
         template: template,
         reflectedAttributes: reflectedAttributes,
-        // Right now overflow: hidden from ripple hides tooltips. TODO: fix
         definition: function (_Object$with6) {
           _inherits(Item, _Object$with6);
 
@@ -2938,16 +2939,16 @@ var __run = function __run() {
           }]);
 
           return Item;
-        }(Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["a" /* UIBase */]).with( /*Ripples, */__WEBPACK_IMPORTED_MODULE_3__temp_utils_focusable_js__["a" /* default */]))
+        }(Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_3__temp_animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_4__temp_utils_focusable_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_2__tooltip_js__["a" /* TooltipMixin */]))
       });
     }();
     /* harmony export (immutable) */__webpack_exports__["a"] = Item;
 
     var List = function () {
-      var template = __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+      var template = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
       template.innerHTML = '\n    <style>\n      :host {\n        display: block;\n        text-align: center;\n        margin: 5px;\n      }\n    </style>\n    <slot></slot>\n  ';
 
-      return Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+      return Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
         name: 'ui-list',
         template: template,
         definition: function (_Object$with7) {
@@ -2968,7 +2969,7 @@ var __run = function __run() {
           }]);
 
           return List;
-        }(Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(ListBehavior))
+        }(Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(ListBehavior))
       });
     }();
     /* unused harmony export List */
@@ -2979,19 +2980,216 @@ var __run = function __run() {
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
+    /* harmony import */
+    var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(8);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_float_js__ = __webpack_require__(4);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
 
-    Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__temp_elements_login_js__ = __webpack_require__(22);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_elements_fab_js__ = __webpack_require__(14);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_elements_drop_down_js__ = __webpack_require__(28);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_elements_drawer_js__ = __webpack_require__(30);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__temp_elements_hamburger_js__ = __webpack_require__(32);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__temp_elements_input_js__ = __webpack_require__(19);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__temp_elements_router_js__ = __webpack_require__(33);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__temp_elements_tabs_js__ = __webpack_require__(34);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_8__temp_elements_text_js__ = __webpack_require__(11);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_9__temp_elements_toolbar_js__ = __webpack_require__(35);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_10__temp_elements_tooltip_js__ = __webpack_require__(36);
+    /*
+     * tooltip.js
+     * @author jasmith79
+     * @copyright Jared Smith
+     * @license MIT
+     * You should have received a copy of the license with this work but it may also be found at
+     * https://opensource.org/licenses/MIT
+     *
+     * tooltip component for ui-components-lite.
+     */
+
+    var reflectedAttributes = ['for', 'position', 'view-text'];
+    var template = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      position: absolute;\n      z-index: 2000;\n      background-color: #555;\n      color: #fff;\n      opacity: 0;\n      transition: opacity;\n      transition-duration: 300ms;\n      max-width: 200px;\n      max-height: 100px;\n    }\n\n    #tooltip {\n      font-size: 10px;\n      background-color: inherit;\n      color: inherit;\n      padding: 5px;\n      border-radius: 2%;\n      width: inherit;\n      height: inherit;\n    }\n\n    :host(.faded-in) {\n      opacity: 0.9;\n    }\n  </style>\n  <div id="tooltip">\n    <ui-text view-text="{{view-text}}"></ui-text>\n  </div>\n';
+
+    var Tooltip = Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+      name: 'ui-tooltip',
+      template: template,
+      reflectedAttributes: reflectedAttributes,
+      definition: function (_Object$with8) {
+        _inherits(Tooltip, _Object$with8);
+
+        function Tooltip() {
+          _classCallCheck(this, Tooltip);
+
+          var _this39 = _possibleConstructorReturn(this, (Tooltip.__proto__ || Object.getPrototypeOf(Tooltip)).call(this));
+
+          _this39._forHandlers = [];
+          _this39._forElement = null;
+          return _this39;
+        }
+
+        _createClass(Tooltip, [{
+          key: 'init',
+          value: function init() {
+            _get(Tooltip.prototype.__proto__ || Object.getPrototypeOf(Tooltip.prototype), 'init', this).call(this);
+            this.floatingY = true;
+          }
+        }, {
+          key: '_updatePosition',
+          value: function _updatePosition() {
+            var _forElement$getBoundi = this._forElement.getBoundingClientRect(),
+                top = _forElement$getBoundi.top,
+                left = _forElement$getBoundi.left,
+                elHeight = _forElement$getBoundi.height,
+                elWidth = _forElement$getBoundi.width;
+
+            top += __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].scrollY || __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].pageYOffset;
+            left += __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].scrollX || __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].pageXOffset;
+
+            var _getBoundingClientRec = this.getBoundingClientRect(),
+                ttWidth = _getBoundingClientRec.width,
+                ttHeight = _getBoundingClientRec.height;
+
+            switch (this.position) {
+              case 'above':
+                this.style.top = top - ttHeight - 5 + 'px';
+                this.style.left = left + 'px';
+                break;
+
+              case 'below':
+                this.style.top = top + elHeight + 5 + 'px';
+                this.style.left = left + 'px';
+                break;
+
+              case 'left':
+                this.style.top = top + 'px';
+                this.style.left = left - ttWidth - 5 + 'px';
+                break;
+
+              default:
+                // defaults to being to the right of the element
+                this.style.top = top + 'px';
+                this.style.left = left + elWidth + 5 + 'px';
+                break;
+            }
+
+            return this;
+          }
+        }, {
+          key: '_attachForElementHandlers',
+          value: function _attachForElementHandlers() {
+            var _forHandlers = _slicedToArray(this._forHandlers, 2),
+                outHandler = _forHandlers[0],
+                inHandler = _forHandlers[1];
+
+            this._forElement.addEventListener('mouseenter', inHandler);
+            this._forElement.addEventListener('mouseleave', outHandler);
+            return this;
+          }
+        }, {
+          key: '_removeForElementHandlers',
+          value: function _removeForElementHandlers() {
+            var _forHandlers2 = _slicedToArray(this._forHandlers, 2),
+                outHandler = _forHandlers2[0],
+                inHandler = _forHandlers2[1];
+
+            this._forElement.removeEventListener('mouseenter', inHandler);
+            this._forElement.removeEventListener('mouseleave', outHandler);
+            return this;
+          }
+        }, {
+          key: 'show',
+          value: function show() {
+            this._updatePosition();
+            this.classList.add('faded-in');
+            return this;
+          }
+        }, {
+          key: 'hide',
+          value: function hide() {
+            this.classList.remove('faded-in');
+            return this;
+          }
+        }, {
+          key: 'connectedCallback',
+          value: function connectedCallback() {
+            var _this40 = this;
+
+            _get(Tooltip.prototype.__proto__ || Object.getPrototypeOf(Tooltip.prototype), 'connectedCallback', this).call(this);
+            if (!this._forHandlers.length) {
+              this._forHandlers.push(function (e) {
+                return _this40.hide();
+              }, function (e) {
+                return _this40.show();
+              });
+            }
+
+            var shadowParent = function (node) {
+              while (node = node.parentNode) {
+                if (node.host) return node.host;
+                if (node === __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */]) return node;
+              }
+            }(this);
+
+            if (this.for) this._forElement = shadowParent.querySelector('#' + this.for);
+            if (!this._forElement) {
+              this._forElement = this.parentNode.host || this.parentNode;
+            }
+
+            if (!this._forElement) throw new Error('ui-tooltip must have a "for" attribute/property or a parent');
+            this._attachForElementHandlers();
+
+            if (this.textContent && !this.attr('view-text')) this.attr('view-text', this.textContent);
+          }
+        }, {
+          key: 'disconnectedCallback',
+          value: function disconnectedCallback() {
+            _get(Tooltip.prototype.__proto__ || Object.getPrototypeOf(Tooltip.prototype), 'disconnectedCallback', this).call(this);
+            this._removeForElementHandlers();
+          }
+        }, {
+          key: 'isFor',
+          set: function set(el) {
+            this._forElement = el;
+            return this._attachForElementHandlers();
+          }
+        }]);
+
+        return Tooltip;
+      }(Object(__WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_1__temp_utils_float_js__["a" /* default */]))
+    });
+    /* unused harmony export Tooltip */
+
+    var TooltipMixin = function TooltipMixin(superclass) {
+      return Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+        name: 'ui-has-tooltip',
+        registerElement: false,
+        reflectedAttributes: ['tooltip'],
+        definition: function (_superclass6) {
+          _inherits(definition, _superclass6);
+
+          function definition() {
+            _classCallCheck(this, definition);
+
+            var _this41 = _possibleConstructorReturn(this, (definition.__proto__ || Object.getPrototypeOf(definition)).call(this));
+
+            _this41._tooltipElement = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-tooltip');
+            _this41._tooltipElement.isFor = _this41;
+            __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.appendChild(_this41._tooltipElement);
+            return _this41;
+          }
+
+          _createClass(definition, [{
+            key: 'init',
+            value: function init() {
+              var _this42 = this;
+
+              _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'init', this).call(this);
+              if (this.tooltip) this._tooltipElement.viewText = this.tooltip;
+              this.watchAttribute(this, 'tooltip', function (now) {
+                var inDOM = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.contains(_this42._tooltipElement);
+                if (now && !inDOM) __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.appendChild(_this42._tooltipElement);
+                if (!now && inDOM) __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.removeChild(_this42._tooltipElement);
+                _this42._tooltipElement.viewText = now;
+              });
+            }
+          }]);
+
+          return definition;
+        }(superclass)
+      });
+    };
+    /* harmony export (immutable) */__webpack_exports__["a"] = TooltipMixin;
 
     /***/
   },
@@ -2999,10 +3197,30 @@ var __run = function __run() {
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
+
+    Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__temp_elements_login_js__ = __webpack_require__(23);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_elements_fab_js__ = __webpack_require__(14);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_elements_drop_down_js__ = __webpack_require__(29);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_elements_drawer_js__ = __webpack_require__(31);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__temp_elements_hamburger_js__ = __webpack_require__(33);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__temp_elements_input_js__ = __webpack_require__(19);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__temp_elements_router_js__ = __webpack_require__(34);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__temp_elements_tabs_js__ = __webpack_require__(35);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_8__temp_elements_text_js__ = __webpack_require__(8);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_9__temp_elements_toolbar_js__ = __webpack_require__(36);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_10__temp_elements_tooltip_js__ = __webpack_require__(21);
+
+    /***/
+  },
+  /* 23 */
+  /***/function (module, __webpack_exports__, __webpack_require__) {
+
+    "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__card_js__ = __webpack_require__(12);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__fab_js__ = __webpack_require__(14);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__alert_js__ = __webpack_require__(26);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__alert_js__ = __webpack_require__(27);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__form_js__ = __webpack_require__(7);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__input_js__ = __webpack_require__(19);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__ = __webpack_require__(0);
@@ -3034,12 +3252,12 @@ var __run = function __run() {
         function Login() {
           _classCallCheck(this, Login);
 
-          var _this39 = _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).call(this));
+          var _this43 = _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).call(this));
 
-          _this39._alert = null;
-          _this39._form = null;
-          _this39._sessionTimeoutHandle = null;
-          return _this39;
+          _this43._alert = null;
+          _this43._form = null;
+          _this43._sessionTimeoutHandle = null;
+          return _this43;
         }
 
         _createClass(Login, [{
@@ -3074,48 +3292,48 @@ var __run = function __run() {
         }, {
           key: 'countDown',
           value: function countDown(h) {
-            var _this40 = this;
+            var _this44 = this;
 
             __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].clearTimeout(h);
             return __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-              _this40.logout();
-              _this40._alert.alert('Session timed out. Please login again or close the tab.');
-              _this40._alert.selectInternalElement('#closer');
+              _this44.logout();
+              _this44._alert.alert('Session timed out. Please login again or close the tab.');
+              _this44._alert.selectInternalElement('#closer');
             }, this.sessionTimeout || 30 * 60 * 1000);
           }
         }, {
           key: 'init',
           value: function init() {
-            var _this41 = this;
+            var _this45 = this;
 
             _get(Login.prototype.__proto__ || Object.getPrototypeOf(Login.prototype), 'init', this).call(this);
             this._beforeReady(function (_) {
-              _this41._form = _this41.selectInternalElement('ui-form');
-              _this41._alert = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].querySelector('ui-alert');
-              if (!_this41._alert) {
-                _this41._alert = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-alert');
-                __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].body.appendChild(_this41._alert);
+              _this45._form = _this45.selectInternalElement('ui-form');
+              _this45._alert = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].querySelector('ui-alert');
+              if (!_this45._alert) {
+                _this45._alert = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-alert');
+                __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].body.appendChild(_this45._alert);
               }
 
               // Reset the session timeout on interaction.
               ['click', 'keydown'].forEach(function (evt) {
                 __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].addEventListener(evt, function (e) {
-                  if (_this41.isLoggedIn) _this41._sessionTimeoutHandle = _this41.countDown(_this41._sessionTimeoutHandle);
+                  if (_this45.isLoggedIn) _this45._sessionTimeoutHandle = _this45.countDown(_this45._sessionTimeoutHandle);
                 });
               });
 
               var handler = function handler(_) {
-                if (!_this41.isLoggedIn) {
-                  if (!_this41.dataUrl) {
+                if (!_this45.isLoggedIn) {
+                  if (!_this45.dataUrl) {
                     throw new Error('No url for login, whatcha want me to do?');
                   }
 
-                  if (!_this41._form.isValid) {
-                    _this41._alert.alert('Please supply a Username and Password.');
+                  if (!_this45._form.isValid) {
+                    _this45._alert.alert('Please supply a Username and Password.');
                     return;
                   }
 
-                  var _credentials = _this41.credentials,
+                  var _credentials = _this45.credentials,
                       user = _credentials.user,
                       pass = _credentials.pass;
 
@@ -3124,24 +3342,24 @@ var __run = function __run() {
                     'Content-Type': 'application/x-www-form-urlencoded'
                   };
 
-                  fetch(_this41.dataUrl, { method: 'POST', headers: headers }).then(function (resp) {
+                  fetch(_this45.dataUrl, { method: 'POST', headers: headers }).then(function (resp) {
                     return resp.json();
                   }).then(function (valid) {
                     if (valid) {
-                      sessionStorage.setItem('ui-credentials', JSON.stringify(_this41.credentials));
-                      _this41.login(valid);
+                      sessionStorage.setItem('ui-credentials', JSON.stringify(_this45.credentials));
+                      _this45.login(valid);
                     } else {
-                      _this41._alert.alert(INVALID);
+                      _this45._alert.alert(INVALID);
                     }
                   }).catch(function (err) {
                     console.error(err);
-                    _this41._alert.alert(FAILURE);
+                    _this45._alert.alert(FAILURE);
                   });
                 }
               };
 
-              _this41.selectInternalElement('ui-fab').on('click enter-key', handler);
-              _this41.selectInternalElement('[name="pass"]').on('enter-key', handler);
+              _this45.selectInternalElement('ui-fab').on('click enter-key', handler);
+              _this45.selectInternalElement('[name="pass"]').on('enter-key', handler);
             });
 
             this.onReady(function (_) {
@@ -3150,7 +3368,7 @@ var __run = function __run() {
               if (bttn) {
                 bttn.on('click keydown', function (e) {
                   if (!e.keyCode || e.keyCode === 13) {
-                    _this41.userLogout();
+                    _this45.userLogout();
                   }
                 });
               }
@@ -3164,8 +3382,8 @@ var __run = function __run() {
                     var credentials = JSON.parse(cached);
                     if (credentials.user && credentials.pass) {
                       console.log('Logging in with session data...');
-                      _this41.login();
-                      _this41._form.data = credentials;
+                      _this45.login();
+                      _this45._form.data = credentials;
                     }
                   } catch (e) {
                     // no-op
@@ -3187,7 +3405,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 23 */
+  /* 24 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -3204,18 +3422,18 @@ var __run = function __run() {
 
     /* harmony default export */
     __webpack_exports__["a"] = function (superclass) {
-      return function (_superclass6) {
-        _inherits(DataBinder, _superclass6);
+      return function (_superclass7) {
+        _inherits(DataBinder, _superclass7);
 
         function DataBinder() {
           _classCallCheck(this, DataBinder);
 
-          var _this42 = _possibleConstructorReturn(this, (DataBinder.__proto__ || Object.getPrototypeOf(DataBinder)).call(this));
+          var _this46 = _possibleConstructorReturn(this, (DataBinder.__proto__ || Object.getPrototypeOf(DataBinder)).call(this));
 
-          _this42._oneWayBoundAttrs = {};
-          _this42._twoWayBoundAttrs = {};
-          _this42._internalMutationFlag = false;
-          return _this42;
+          _this46._oneWayBoundAttrs = {};
+          _this46._twoWayBoundAttrs = {};
+          _this46._internalMutationFlag = false;
+          return _this46;
         }
 
         // Set up data-binding. Any element attributes with a value matching the binding syntax
@@ -3233,7 +3451,7 @@ var __run = function __run() {
         _createClass(DataBinder, [{
           key: 'bindAttribute',
           value: function bindAttribute(attribute, parentAttribute) {
-            var _this43 = this;
+            var _this47 = this;
 
             var twoWay = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
@@ -3258,25 +3476,25 @@ var __run = function __run() {
               }
 
               // Initial set
-              _this43.attr(attribute, parent.attr(parentAttribute));
+              _this47.attr(attribute, parent.attr(parentAttribute));
 
               // Watch changes.
-              _this43.watchAttribute(parent, parentAttribute, function (now, name, was) {
-                if (_this43.attr(attribute) !== now) {
-                  _this43._internalMutationFlag = true;
-                  _this43.attr(attribute, now);
+              _this47.watchAttribute(parent, parentAttribute, function (now, name, was) {
+                if (_this47.attr(attribute) !== now) {
+                  _this47._internalMutationFlag = true;
+                  _this47.attr(attribute, now);
                 }
               });
 
               if (twoWay) {
-                _this43.watchAttribute(_this43, attribute, function (now, name, was) {
+                _this47.watchAttribute(_this47, attribute, function (now, name, was) {
                   if (parent.attr(parentAttribute) !== now) {
                     parent.attr(parentAttribute, now);
                   }
                 });
-                _this43._twoWayBoundAttrs[attribute] = parentAttribute;
+                _this47._twoWayBoundAttrs[attribute] = parentAttribute;
               } else {
-                _this43._oneWayBoundAttrs[attribute] = parentAttribute;
+                _this47._oneWayBoundAttrs[attribute] = parentAttribute;
               }
             };
 
@@ -3290,13 +3508,13 @@ var __run = function __run() {
 
     /***/
   },
-  /* 24 */
+  /* 25 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__dom_js__ = __webpack_require__(2);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__attribute_analyzer_js__ = __webpack_require__(9);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__attribute_analyzer_js__ = __webpack_require__(10);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
     /*
      * dom-utils.js
@@ -3314,18 +3532,18 @@ var __run = function __run() {
       return Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_modules_extracttype_extracttype_js__["a" /* default */])(arg).match(/HTML[a-zA-Z]*Element/));
     };
     /* harmony default export */__webpack_exports__["a"] = function (superclass) {
-      return function (_superclass7) {
-        _inherits(DOMutils, _superclass7);
+      return function (_superclass8) {
+        _inherits(DOMutils, _superclass8);
 
         function DOMutils() {
           _classCallCheck(this, DOMutils);
 
-          var _this44 = _possibleConstructorReturn(this, (DOMutils.__proto__ || Object.getPrototypeOf(DOMutils)).call(this));
+          var _this48 = _possibleConstructorReturn(this, (DOMutils.__proto__ || Object.getPrototypeOf(DOMutils)).call(this));
 
-          _this44._mutationObservers = [];
-          _this44._prevDisplay = '';
-          _this44._isHidden = false;
-          return _this44;
+          _this48._mutationObservers = [];
+          _this48._prevDisplay = '';
+          _this48._isHidden = false;
+          return _this48;
         }
 
         _createClass(DOMutils, [{
@@ -3334,11 +3552,11 @@ var __run = function __run() {
 
           // Observes changes to the given attribute on the given node.
           value: function watchAttribute(n, a, callb) {
-            var _this45 = this;
+            var _this49 = this;
 
             var _ref28 = function () {
               if (isHTMLElement(n)) return [n, a, callb];
-              return [_this45, n, a];
+              return [_this49, n, a];
             }(),
                 _ref29 = _slicedToArray(_ref28, 3),
                 node = _ref29[0],
@@ -3413,10 +3631,10 @@ var __run = function __run() {
            * DOM.
            */
           value: function on(evts, fn) {
-            var _this46 = this;
+            var _this50 = this;
 
             evts.split(/\s+/g).forEach(function (evt) {
-              var isDupe = _this46._listeners.some(function (_ref33) {
+              var isDupe = _this50._listeners.some(function (_ref33) {
                 var _ref34 = _slicedToArray(_ref33, 2),
                     e = _ref34[0],
                     f = _ref34[1];
@@ -3424,8 +3642,8 @@ var __run = function __run() {
                 return e === evt && fn === f;
               });
               if (!isDupe) {
-                _this46.addEventListener(evt, fn);
-                _this46._listeners.push([evt, fn]);
+                _this50.addEventListener(evt, fn);
+                _this50._listeners.push([evt, fn]);
               }
             });
             return this;
@@ -3447,7 +3665,7 @@ var __run = function __run() {
         }, {
           key: 'remove',
           value: function remove() {
-            var _this47 = this;
+            var _this51 = this;
 
             for (var _len6 = arguments.length, args = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
               args[_key6] = arguments[_key6];
@@ -3456,7 +3674,7 @@ var __run = function __run() {
             var _ref35 = function (arr) {
               switch (arr.length) {
                 case 0:
-                  _this47.parentElement && _this47.parentElement.removeChild(_this47);
+                  _this51.parentElement && _this51.parentElement.removeChild(_this51);
                   return [];
 
                 case 1:
@@ -3499,7 +3717,7 @@ var __run = function __run() {
                     f = _ref40[1];
 
                 if (f === fn && (evt === null || evt === e)) {
-                  _this47.removeEventListener(e, f);
+                  _this51.removeEventListener(e, f);
                   return false;
                 }
                 return true;
@@ -3508,7 +3726,7 @@ var __run = function __run() {
 
             if (children) {
               children.forEach(function (child) {
-                return _this47.removeChild(child);
+                return _this51.removeChild(child);
               });
             }
 
@@ -3590,7 +3808,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 25 */
+  /* 26 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -3640,13 +3858,13 @@ var __run = function __run() {
 
     /***/
   },
-  /* 26 */
+  /* 27 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(6);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__dialog_js__ = __webpack_require__(27);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__dialog_js__ = __webpack_require__(28);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__ = __webpack_require__(2);
     /*
      * alert.js
@@ -3677,7 +3895,7 @@ var __run = function __run() {
         _createClass(Alert, [{
           key: 'init',
           value: function init() {
-            var _this49 = this;
+            var _this53 = this;
 
             _get(Alert.prototype.__proto__ || Object.getPrototypeOf(Alert.prototype), 'init', this).call(this);
             this.attr('role', 'alert');
@@ -3685,7 +3903,7 @@ var __run = function __run() {
             this.smallDialog = true;
             this.attr('is-modal', true);
             this.watchAttribute(this, 'is-open', function (open) {
-              open ? _this49._backdrop.show() : _this49._backdrop.hide();
+              open ? _this53._backdrop.show() : _this53._backdrop.hide();
             });
 
             var closer = this.selectInternalElement('#closer');
@@ -3718,7 +3936,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 27 */
+  /* 28 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -3787,13 +4005,13 @@ var __run = function __run() {
         function Dialog() {
           _classCallCheck(this, Dialog);
 
-          var _this50 = _possibleConstructorReturn(this, (Dialog.__proto__ || Object.getPrototypeOf(Dialog)).call(this));
+          var _this54 = _possibleConstructorReturn(this, (Dialog.__proto__ || Object.getPrototypeOf(Dialog)).call(this));
 
-          _this50._backdrop = null;
+          _this54._backdrop = null;
           __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["d" /* global */].addEventListener('logout', function (e) {
-            _this50.close();
+            _this54.close();
           });
-          return _this50;
+          return _this54;
         }
 
         // Intercepts calls to appendChild so buttons can be appropriately used.
@@ -3802,15 +4020,15 @@ var __run = function __run() {
         _createClass(Dialog, [{
           key: 'appendChild',
           value: function appendChild(node) {
-            var _this51 = this;
+            var _this55 = this;
 
             if (node && node.onReady) {
               node.onReady(function (el) {
                 if (el && el.matches && el.matches('.ui-button')) {
-                  incorporateButtonChild(_this51, el);
-                  _this51.shadowRoot.appendChild(el);
+                  incorporateButtonChild(_this55, el);
+                  _this55.shadowRoot.appendChild(el);
                 } else {
-                  _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'appendChild', _this51).call(_this51, node);
+                  _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'appendChild', _this55).call(_this55, node);
                 }
               });
             }
@@ -3832,7 +4050,7 @@ var __run = function __run() {
         }, {
           key: 'init',
           value: function init() {
-            var _this52 = this;
+            var _this56 = this;
 
             _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'init', this).call(this);
             this.hide();
@@ -3842,13 +4060,13 @@ var __run = function __run() {
             __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["c" /* document */].body.appendChild(this._backdrop);
 
             this._beforeReady(function (_) {
-              [].concat(_toConsumableArray(_this52.selectInternalAll('.ui-button')), _toConsumableArray(_this52.selectAll('.ui-button'))).forEach(function (el) {
-                return incorporateButtonChild(_this52, el);
+              [].concat(_toConsumableArray(_this56.selectInternalAll('.ui-button')), _toConsumableArray(_this56.selectAll('.ui-button'))).forEach(function (el) {
+                return incorporateButtonChild(_this56, el);
               });
             });
 
             var closer = function closer(e) {
-              _this52.close();
+              _this56.close();
             };
 
             this.on('attribute-change', function (_ref42) {
@@ -3858,29 +4076,29 @@ var __run = function __run() {
 
               switch (name) {
                 case 'small-dialog':
-                  return now ? (_this52.classList.add('small-dialog'), _this52.classList.remove('medium-dialog', 'large-dialog')) : _this52.classList.remove('small-dialog');
+                  return now ? (_this56.classList.add('small-dialog'), _this56.classList.remove('medium-dialog', 'large-dialog')) : _this56.classList.remove('small-dialog');
 
                 case 'medium-dialog':
-                  return now ? (_this52.classList.add('medium-dialog'), _this52.classList.remove('small-dialog', 'large-dialog')) : _this52.classList.remove('medium-dialog');
+                  return now ? (_this56.classList.add('medium-dialog'), _this56.classList.remove('small-dialog', 'large-dialog')) : _this56.classList.remove('medium-dialog');
 
                 case 'large-dialog':
-                  return now ? (_this52.classList.add('large-dialog'), _this52.classList.remove('small-dialog', 'medium-dialog')) : _this52.classList.remove('large-dialog');
+                  return now ? (_this56.classList.add('large-dialog'), _this56.classList.remove('small-dialog', 'medium-dialog')) : _this56.classList.remove('large-dialog');
 
                 case 'scrollable-dialog':
-                  return now ? _this52.classList.add('scrollable-dialog') : _this52.classList.remove('scrollable-dialog');
+                  return now ? _this56.classList.add('scrollable-dialog') : _this56.classList.remove('scrollable-dialog');
 
                 case 'is-modal':
-                  return now ? _this52._backdrop.on('click', closer) : _this52._backdrop.remove(closer);
+                  return now ? _this56._backdrop.on('click', closer) : _this56._backdrop.remove(closer);
 
                 case 'is-open':
                   if (now) {
-                    if (_this52.isModal) _this52._backdrop.show();
-                    _this52.show();
-                    _this52.dispatchEvent(new CustomEvent('dialog-opened'));
+                    if (_this56.isModal) _this56._backdrop.show();
+                    _this56.show();
+                    _this56.dispatchEvent(new CustomEvent('dialog-opened'));
                   } else {
-                    _this52._backdrop.hide();
-                    _this52.hide();
-                    _this52.dispatchEvent(new CustomEvent('dialog-closed'));
+                    _this56._backdrop.hide();
+                    _this56.hide();
+                    _this56.dispatchEvent(new CustomEvent('dialog-closed'));
                   }
               }
             });
@@ -3895,12 +4113,12 @@ var __run = function __run() {
 
     /***/
   },
-  /* 28 */
+  /* 29 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(11);
+    var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(8);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__list_js__ = __webpack_require__(20);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__ = __webpack_require__(5);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__ = __webpack_require__(0);
@@ -3928,33 +4146,33 @@ var __run = function __run() {
       name: 'ui-drop-down',
       reflectedAttributes: reflectedAttributes,
       template: template,
-      definition: function (_Object$with8) {
-        _inherits(DropDown, _Object$with8);
+      definition: function (_Object$with9) {
+        _inherits(DropDown, _Object$with9);
 
         function DropDown() {
           _classCallCheck(this, DropDown);
 
-          var _this53 = _possibleConstructorReturn(this, (DropDown.__proto__ || Object.getPrototypeOf(DropDown)).call(this));
+          var _this57 = _possibleConstructorReturn(this, (DropDown.__proto__ || Object.getPrototypeOf(DropDown)).call(this));
 
-          _this53._list = null;
-          _this53._listHolder = null;
-          _this53._dummyItem = null;
-          _this53._textContent = '';
-          return _this53;
+          _this57._list = null;
+          _this57._listHolder = null;
+          _this57._dummyItem = null;
+          _this57._textContent = '';
+          return _this57;
         }
 
         _createClass(DropDown, [{
           key: 'appendChild',
           value: function appendChild(node) {
-            var _this54 = this;
+            var _this58 = this;
 
             if (node) {
               _get(DropDown.prototype.__proto__ || Object.getPrototypeOf(DropDown.prototype), 'appendChild', this).call(this, node);
               node.on('click', function (e) {
-                if (!_this54.multiple) {
+                if (!_this58.multiple) {
                   // wait for the animations to finish
                   __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-                    _this54.close();
+                    _this58.close();
                   }, 300);
                 }
               });
@@ -3983,7 +4201,7 @@ var __run = function __run() {
         }, {
           key: 'init',
           value: function init() {
-            var _this55 = this;
+            var _this59 = this;
 
             var mouseon = false;
             _get(DropDown.prototype.__proto__ || Object.getPrototypeOf(DropDown.prototype), 'init', this).call(this);
@@ -3991,7 +4209,7 @@ var __run = function __run() {
             if (index === null || index < 0) this.attr('tabindex', '0');
 
             this.on('enter-key', function (e) {
-              _this55.open();
+              _this59.open();
             });
 
             if (this.attr('name')) {
@@ -4001,40 +4219,40 @@ var __run = function __run() {
 
             if (this.attr('label')) this.selectInternalElement('ui-text').classList.add('text-moved');
             this.on('focus', function (e) {
-              return _this55.selectInternalElement('ui-text').classList.remove('text-moved');
+              return _this59.selectInternalElement('ui-text').classList.remove('text-moved');
             });
             this.on('blur', function (e) {
               __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-                if (_this55.label && !_this55.value) {
-                  _this55.selectInternalElement('ui-text').classList.add('text-moved');
+                if (_this59.label && !_this59.value) {
+                  _this59.selectInternalElement('ui-text').classList.add('text-moved');
                 }
               }, 600); // ripple animation is 500 on the ui-item
             });
 
             this._beforeReady(function (_) {
-              _this55._list = _this55.selectInternalElement('ui-list');
-              _this55._listHolder = _this55.selectInternalElement('#list-holder');
-              _this55._dummyItem = _this55.selectInternalElement('#dummy-item');
-              _this55._dummyItem.selectInternalElement('ui-checkbox').style.display = 'none';
+              _this59._list = _this59.selectInternalElement('ui-list');
+              _this59._listHolder = _this59.selectInternalElement('#list-holder');
+              _this59._dummyItem = _this59.selectInternalElement('#dummy-item');
+              _this59._dummyItem.selectInternalElement('ui-checkbox').style.display = 'none';
 
-              _this55._items.forEach(function (item) {
-                if (item.isSelected) _this55.selected = item;
+              _this59._items.forEach(function (item) {
+                if (item.isSelected) _this59.selected = item;
                 item.on('click', function (e) {
-                  if (!_this55.multiple) {
+                  if (!_this59.multiple) {
                     __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-                      _this55.close();
+                      _this59.close();
                     }, 300);
                   }
                 });
               });
 
-              if (_this55.name && !_this55.selected) _this55.textContent = null;
-              _this55._listHolder.classList.remove('not-overflowing');
+              if (_this59.name && !_this59.selected) _this59.textContent = null;
+              _this59._listHolder.classList.remove('not-overflowing');
 
-              _this55._dummyItem.on('click', function (e) {
-                if (_this55.attr('tabindex') === null) _this55.attr('tabindex', '0');
-                _this55.toggle();
-                mouseon = _this55.isOpen;
+              _this59._dummyItem.on('click', function (e) {
+                if (_this59.attr('tabindex') === null) _this59.attr('tabindex', '0');
+                _this59.toggle();
+                mouseon = _this59.isOpen;
               });
             });
 
@@ -4047,7 +4265,7 @@ var __run = function __run() {
             this.on('mouseleave', function (e) {
               mouseon = false;
               __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-                if (!mouseon) _this55.isOpen = false;
+                if (!mouseon) _this59.isOpen = false;
               }, 1000);
             });
 
@@ -4058,10 +4276,10 @@ var __run = function __run() {
 
               switch (name) {
                 case 'selected-index':
-                  if (_this55.selected && !_this55.multiple) {
-                    _this55.textContent = _this55.selected.textContent;
+                  if (_this59.selected && !_this59.multiple) {
+                    _this59.textContent = _this59.selected.textContent;
                   } else {
-                    _this55.textContent = ''; // default
+                    _this59.textContent = ''; // default
                   }
                   break;
               }
@@ -4094,13 +4312,13 @@ var __run = function __run() {
 
     /***/
   },
-  /* 29 */
+  /* 30 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__form_js__ = __webpack_require__(7);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_animations_rippler_js__ = __webpack_require__(10);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_animations_rippler_js__ = __webpack_require__(11);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__ = __webpack_require__(5);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
@@ -4128,34 +4346,34 @@ var __run = function __run() {
       name: 'ui-checkbox',
       template: template,
       reflectedAttributes: reflectedAttributes,
-      definition: function (_Object$with9) {
-        _inherits(Checkbox, _Object$with9);
+      definition: function (_Object$with10) {
+        _inherits(Checkbox, _Object$with10);
 
         function Checkbox() {
           _classCallCheck(this, Checkbox);
 
-          var _this56 = _possibleConstructorReturn(this, (Checkbox.__proto__ || Object.getPrototypeOf(Checkbox)).call(this));
+          var _this60 = _possibleConstructorReturn(this, (Checkbox.__proto__ || Object.getPrototypeOf(Checkbox)).call(this));
 
-          _this56._formElement = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('input');
-          _this56._formElement.style.opacity = 0;
-          _this56._formElement.type = 'checkbox';
-          return _this56;
+          _this60._formElement = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('input');
+          _this60._formElement.style.opacity = 0;
+          _this60._formElement.type = 'checkbox';
+          return _this60;
         }
 
         _createClass(Checkbox, [{
           key: 'init',
           value: function init() {
-            var _this57 = this;
+            var _this61 = this;
 
             _get(Checkbox.prototype.__proto__ || Object.getPrototypeOf(Checkbox.prototype), 'init', this).call(this);
             this.attr('role', 'checkbox');
             this.watchAttribute(this, 'checked', function (now) {
-              now ? _this57.classList.add('checked') : _this57.classList.remove('checked');
+              now ? _this61.classList.add('checked') : _this61.classList.remove('checked');
             });
 
             this.on('click', function (e) {
-              _this57.checked = !_this57.checked;
-              _this57.attr('aria-checked', _this57.checked);
+              _this61.checked = !_this61.checked;
+              _this61.attr('aria-checked', _this61.checked);
             });
           }
         }, {
@@ -4173,13 +4391,13 @@ var __run = function __run() {
 
     /***/
   },
-  /* 30 */
+  /* 31 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__backdrop_js__ = __webpack_require__(16);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_animations_easer_js__ = __webpack_require__(31);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_animations_easer_js__ = __webpack_require__(32);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_float_js__ = __webpack_require__(4);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
@@ -4203,41 +4421,41 @@ var __run = function __run() {
       name: 'ui-drawer',
       template: template,
       reflectedAttributes: reflectedAttributes,
-      definition: function (_Object$with10) {
-        _inherits(Drawer, _Object$with10);
+      definition: function (_Object$with11) {
+        _inherits(Drawer, _Object$with11);
 
         function Drawer() {
           _classCallCheck(this, Drawer);
 
-          var _this58 = _possibleConstructorReturn(this, (Drawer.__proto__ || Object.getPrototypeOf(Drawer)).call(this));
+          var _this62 = _possibleConstructorReturn(this, (Drawer.__proto__ || Object.getPrototypeOf(Drawer)).call(this));
 
-          _this58._backdrop = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-backdrop');
-          _this58._backdrop.for = _this58;
-          _this58._backdrop.style.zIndex = '9000';
-          _this58._toggleElem = null;
-          _this58._isOpen = false;
-          _this58._rightAnimator = null;
-          _this58._leftAnimator = null;
-          return _this58;
+          _this62._backdrop = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-backdrop');
+          _this62._backdrop.for = _this62;
+          _this62._backdrop.style.zIndex = '9000';
+          _this62._toggleElem = null;
+          _this62._isOpen = false;
+          _this62._rightAnimator = null;
+          _this62._leftAnimator = null;
+          return _this62;
         }
 
         _createClass(Drawer, [{
           key: 'toggledBy',
           value: function toggledBy(elem) {
-            var _this59 = this;
+            var _this63 = this;
 
             if (elem) {
               this._toggleElem = elem;
               if (this._toggleElem.on) {
                 this._toggleElem.on('click enter-key', function (e) {
-                  _this59.toggleState();
+                  _this63.toggleState();
                 });
               } else {
                 this._toggleElem.addEventListener('enter-key', function (e) {
-                  _this59.toggleState();
+                  _this63.toggleState();
                 });
                 this._toggleElem.addEventListener('click', function (e) {
-                  _this59.toggleState();
+                  _this63.toggleState();
                 });
               }
             }
@@ -4264,7 +4482,7 @@ var __run = function __run() {
         }, {
           key: 'init',
           value: function init() {
-            var _this60 = this;
+            var _this64 = this;
 
             _get(Drawer.prototype.__proto__ || Object.getPrototypeOf(Drawer.prototype), 'init', this).call(this);
             if (!this.rightOriented) this.leftOriented = true;
@@ -4272,7 +4490,7 @@ var __run = function __run() {
 
             __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].body.appendChild(this._backdrop);
             this._backdrop.on('click', function (e) {
-              return _this60.close();
+              return _this64.close();
             });
 
             // Check for the drawer toggle in the DOM. If not, you'll need to use the toggledBy method
@@ -4287,19 +4505,19 @@ var __run = function __run() {
                   now = _ref44$changed.now,
                   name = _ref44$changed.name;
 
-              var orient = _this60.rightOriented ? 'right' : 'left';
-              var animator = _this60['_' + orient + 'Animator'];
+              var orient = _this64.rightOriented ? 'right' : 'left';
+              var animator = _this64['_' + orient + 'Animator'];
               switch (name) {
                 case 'is-open':
                   if (now) {
-                    if (_this60.isModal) _this60._backdrop.show();
+                    if (_this64.isModal) _this64._backdrop.show();
                     animator.easeIn().then(function (_) {
-                      _this60.dispatchEvent(new CustomEvent('drawer-opened'));
+                      _this64.dispatchEvent(new CustomEvent('drawer-opened'));
                     });
                   } else {
                     animator.easeOut().then(function (_) {
-                      _this60._backdrop.hide();
-                      _this60.dispatchEvent(new CustomEvent('drawer-closed'));
+                      _this64._backdrop.hide();
+                      _this64.dispatchEvent(new CustomEvent('drawer-closed'));
                     });
                   }
                   break;
@@ -4314,7 +4532,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 31 */
+  /* 32 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -4343,16 +4561,16 @@ var __run = function __run() {
       return Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__["b" /* defineUIComponent */])({
         name: 'ui-easer',
         registerElement: false,
-        definition: function (_superclass8) {
-          _inherits(Easer, _superclass8);
+        definition: function (_superclass9) {
+          _inherits(Easer, _superclass9);
 
           function Easer() {
             _classCallCheck(this, Easer);
 
-            var _this61 = _possibleConstructorReturn(this, (Easer.__proto__ || Object.getPrototypeOf(Easer)).call(this));
+            var _this65 = _possibleConstructorReturn(this, (Easer.__proto__ || Object.getPrototypeOf(Easer)).call(this));
 
-            _this61._animations = [];
-            return _this61;
+            _this65._animations = [];
+            return _this65;
           }
 
           _createClass(Easer, [{
@@ -4440,7 +4658,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 32 */
+  /* 33 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -4481,13 +4699,13 @@ var __run = function __run() {
         _createClass(Hamburger, [{
           key: 'init',
           value: function init() {
-            var _this63 = this;
+            var _this67 = this;
 
             _get(Hamburger.prototype.__proto__ || Object.getPrototypeOf(Hamburger.prototype), 'init', this).call(this);
             this.selectInternalElement('.content-wrapper').appendChild(__WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["c" /* document */].importNode(lineDivTemplate.content, true));
 
             this.watchAttribute(this, 'line-color', function (now) {
-              [].concat(_toConsumableArray(_this63.selectInternalAll('.line'))).forEach(function (el) {
+              [].concat(_toConsumableArray(_this67.selectInternalAll('.line'))).forEach(function (el) {
                 el.style.backgroundColor = now;
               });
             });
@@ -4500,7 +4718,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 33 */
+  /* 34 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -4549,14 +4767,14 @@ var __run = function __run() {
           function Router() {
             _classCallCheck(this, Router);
 
-            var _this64 = _possibleConstructorReturn(this, (Router.__proto__ || Object.getPrototypeOf(Router)).call(this));
+            var _this68 = _possibleConstructorReturn(this, (Router.__proto__ || Object.getPrototypeOf(Router)).call(this));
 
-            _this64._contentSlot = null;
-            _this64._routes = {};
-            _this64._currentRoute = null;
-            _this64._managingHistory = false;
-            _this64._login = null;
-            _this64._popstateListener = function (_ref46) {
+            _this68._contentSlot = null;
+            _this68._routes = {};
+            _this68._currentRoute = null;
+            _this68._managingHistory = false;
+            _this68._login = null;
+            _this68._popstateListener = function (_ref46) {
               var data = _ref46.state;
 
               // here we ignore querystring data, it may be stale
@@ -4570,13 +4788,13 @@ var __run = function __run() {
                 historyStack.pop();
               }
 
-              _this64._updateRoute(route);
+              _this68._updateRoute(route);
               if (!historyStack.length || historyStack.length === 1 && historyStack[0] === '/') {
-                __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["d" /* global */].removeEventListener('popstate', _this64._popstateListener);
-                _this64._managingHistory = false;
+                __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["d" /* global */].removeEventListener('popstate', _this68._popstateListener);
+                _this68._managingHistory = false;
               }
             };
-            return _this64;
+            return _this68;
           }
 
           _createClass(Router, [{
@@ -4690,12 +4908,12 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this65 = this;
+              var _this69 = this;
 
               _get(Router.prototype.__proto__ || Object.getPrototypeOf(Router.prototype), 'init', this).call(this);
 
               this._beforeReady(function (_) {
-                _this65._contentSlot = _this65.selectInternalElement('slot');
+                _this69._contentSlot = _this69.selectInternalElement('slot');
                 var selected = null;
 
                 var _Object3 = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["a" /* parseURL */])(window.location.href),
@@ -4705,34 +4923,34 @@ var __run = function __run() {
                 if (route) selected = route;
 
                 var flag = false;
-                _this65.selectAll('[route-path]').forEach(function (el, i) {
+                _this69.selectAll('[route-path]').forEach(function (el, i) {
                   var path = el.getAttribute('route-path');
-                  _this65._routes[path] = el;
+                  _this69._routes[path] = el;
                   if (!i && !selected) selected = path;
                   if (el.matches && el.matches('[selected]')) selected = path;
                   if (path === '/login') {
                     flag = true;
                     el.onReady(function (_) {
                       var login = el.querySelector('.ui-login');
-                      _this65._login = login;
+                      _this69._login = login;
                       login.on('login', function (e) {
                         var _Object4 = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["a" /* parseURL */])(window.location.href),
                             route = _Object4.route;
 
-                        _this65._updateRoute(route);
+                        _this69._updateRoute(route);
                       });
 
                       login.on('logout', function (e) {
-                        _this65.route('/login');
+                        _this69.route('/login');
                       });
-                      _this65.route(selected);
+                      _this69.route(selected);
                     });
                   }
                 });
 
                 if (!flag) {
-                  _this65.onReady(function (_) {
-                    _this65.route(selected);
+                  _this69.onReady(function (_) {
+                    _this69.route(selected);
                   });
                 }
               });
@@ -4745,27 +4963,27 @@ var __run = function __run() {
 
                 switch (name) {
                   case 'renders-current':
-                    if (_this65.selected) {
+                    if (_this69.selected) {
                       if (now) {
-                        _this65.selected.setAttribute('slot', 'router-content');
+                        _this69.selected.setAttribute('slot', 'router-content');
                       } else {
-                        _this65.selected.removeAttribute('slot');
+                        _this69.selected.removeAttribute('slot');
                       }
                     }
                     break;
 
                   case 'updates-history':
-                    if (now && historyManager !== _this65) {
+                    if (now && historyManager !== _this69) {
                       if (historyManager) {
                         throw new Error('Only one router per page can manage the navigation history\n                     at a time. Please listen for that router\'s route-changed\n                     event to update other elements.');
                       }
-                      historyManager = _this65;
-                      _this65._managingHistory = true;
-                      window.addEventListener('popstate', _this65._popstateListener);
+                      historyManager = _this69;
+                      _this69._managingHistory = true;
+                      window.addEventListener('popstate', _this69._popstateListener);
                     } else {
                       historyManager = null;
-                      _this65._managingHistory = false;
-                      window.removeEventListener('popstate', _this65._popstateListener);
+                      _this69._managingHistory = false;
+                      window.removeEventListener('popstate', _this69._popstateListener);
                     }
                 }
               });
@@ -4815,15 +5033,15 @@ var __run = function __run() {
           function Route() {
             _classCallCheck(this, Route);
 
-            var _this66 = _possibleConstructorReturn(this, (Route.__proto__ || Object.getPrototypeOf(Route)).call(this));
+            var _this70 = _possibleConstructorReturn(this, (Route.__proto__ || Object.getPrototypeOf(Route)).call(this));
 
-            _this66._data = null;
-            _this66._dataElements = [];
-            _this66._fromChangeHandler = false;
-            _this66._unloadListener = function (e) {
-              if (_this66.data) localStorage.setItem(_this66.routePath, JSON.stringify(elem.data));
+            _this70._data = null;
+            _this70._dataElements = [];
+            _this70._fromChangeHandler = false;
+            _this70._unloadListener = function (e) {
+              if (_this70.data) localStorage.setItem(_this70.routePath, JSON.stringify(elem.data));
             };
-            return _this66;
+            return _this70;
           }
 
           _createClass(Route, [{
@@ -4859,17 +5077,17 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this67 = this;
+              var _this71 = this;
 
               _get(Route.prototype.__proto__ || Object.getPrototypeOf(Route.prototype), 'init', this).call(this);
 
               this.onReady(function (_) {
-                _this67._dataElements = _this67.shadowRoot ? [].concat(_toConsumableArray(_this67.selectInternalAll('[is-data-element]')), _toConsumableArray(_this67.selectAll('[is-data-element]'))) : _this67.selectAll('[is-data-element]');
+                _this71._dataElements = _this71.shadowRoot ? [].concat(_toConsumableArray(_this71.selectInternalAll('[is-data-element]')), _toConsumableArray(_this71.selectAll('[is-data-element]'))) : _this71.selectAll('[is-data-element]');
 
-                _this67._dataElements.forEach(function (el) {
+                _this71._dataElements.forEach(function (el) {
                   el.on('change', function (_) {
-                    _this67._fromChangeHandler = true;
-                    _this67.update(_this67._dataElements.reduce(function (acc, el) {
+                    _this71._fromChangeHandler = true;
+                    _this71.update(_this71._dataElements.reduce(function (acc, el) {
                       var data = el.serialize();
                       Object.entries(data).forEach(function (_ref48) {
                         var _ref49 = _slicedToArray(_ref48, 2),
@@ -4886,10 +5104,10 @@ var __run = function __run() {
                   });
                 });
 
-                var data = localStorage.getItem(_this67.routePath);
+                var data = localStorage.getItem(_this71.routePath);
 
                 // Check to see if it was written from query string first.
-                if (!_this67.data && data != null) _this67.update(JSON.parse(data));
+                if (!_this71.data && data != null) _this71.update(JSON.parse(data));
               });
 
               this.on('attribute-change', function (_ref50) {
@@ -4899,9 +5117,9 @@ var __run = function __run() {
 
                 switch (name) {
                   case 'is-selected':
-                    if (!now || now && !_this67.isSelected) {
+                    if (!now || now && !_this71.isSelected) {
                       var evtName = now ? 'component-selected' : 'component-deselected';
-                      _this67.dispatchEvent(new CustomEvent(evtName));
+                      _this71.dispatchEvent(new CustomEvent(evtName));
                     }
                     break;
                 }
@@ -4922,7 +5140,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 34 */
+  /* 35 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -4984,16 +5202,16 @@ var __run = function __run() {
         name: 'ui-tabs',
         template: template,
         reflectedAttributes: reflectedAttributes,
-        definition: function (_Object$with11) {
-          _inherits(Tabs, _Object$with11);
+        definition: function (_Object$with12) {
+          _inherits(Tabs, _Object$with12);
 
           function Tabs() {
             _classCallCheck(this, Tabs);
 
-            var _this69 = _possibleConstructorReturn(this, (Tabs.__proto__ || Object.getPrototypeOf(Tabs)).call(this));
+            var _this73 = _possibleConstructorReturn(this, (Tabs.__proto__ || Object.getPrototypeOf(Tabs)).call(this));
 
-            _this69._for = null;
-            return _this69;
+            _this73._for = null;
+            return _this73;
           }
 
           _createClass(Tabs, [{
@@ -5006,7 +5224,7 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this70 = this;
+              var _this74 = this;
 
               _get(Tabs.prototype.__proto__ || Object.getPrototypeOf(Tabs.prototype), 'init', this).call(this);
               this.attr('role', 'tabpanel');
@@ -5018,34 +5236,34 @@ var __run = function __run() {
                 switch (name) {
                   case 'for':
                     if (now) {
-                      _this70._for = now;
-                      var _elem = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].querySelector(_this70._for);
+                      _this74._for = now;
+                      var _elem = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].querySelector(_this74._for);
                       if (_elem) {
                         var method = _elem.on ? 'on' : 'addEventListener';
                         _elem[method]('change', function (_ref52) {
                           var value = _ref52.value;
 
-                          var matched = _this70._items.reduce(function (acc, item) {
+                          var matched = _this74._items.reduce(function (acc, item) {
                             if (acc) return acc;
                             if (item.value === value) return item;
                             return acc;
                           }, null);
 
-                          if (matched && matched !== _this70.selected) {
-                            _this70.selected = value;
+                          if (matched && matched !== _this74.selected) {
+                            _this74.selected = value;
                           } else {
-                            _this70.selected = null;
+                            _this74.selected = null;
                           }
                         });
                       }
                     } else {
-                      _this70._for = null;
+                      _this74._for = null;
                     }
                     break;
 
                   case 'selected-index':
-                    if (now > -1 && _this70._for) {
-                      __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].querySelector(_this70._for).route(_this70.selected.value);
+                    if (now > -1 && _this74._for) {
+                      __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].querySelector(_this74._for).route(_this74.selected.value);
                     }
                     break;
                 }
@@ -5061,13 +5279,13 @@ var __run = function __run() {
 
     /***/
   },
-  /* 35 */
+  /* 36 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__ = __webpack_require__(4);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_attribute_analyzer_js__ = __webpack_require__(9);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_attribute_analyzer_js__ = __webpack_require__(10);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_centerer_js__ = __webpack_require__(15);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
@@ -5091,22 +5309,22 @@ var __run = function __run() {
       name: 'ui-toolbar',
       template: template,
       reflectedAttributes: reflectedAttributes,
-      definition: function (_Object$with12) {
-        _inherits(Toolbar, _Object$with12);
+      definition: function (_Object$with13) {
+        _inherits(Toolbar, _Object$with13);
 
         function Toolbar() {
           _classCallCheck(this, Toolbar);
 
-          var _this71 = _possibleConstructorReturn(this, (Toolbar.__proto__ || Object.getPrototypeOf(Toolbar)).call(this));
+          var _this75 = _possibleConstructorReturn(this, (Toolbar.__proto__ || Object.getPrototypeOf(Toolbar)).call(this));
 
-          _this71._secondaryToolbar = null;
-          return _this71;
+          _this75._secondaryToolbar = null;
+          return _this75;
         }
 
         _createClass(Toolbar, [{
           key: 'init',
           value: function init() {
-            var _this72 = this;
+            var _this76 = this;
 
             _get(Toolbar.prototype.__proto__ || Object.getPrototypeOf(Toolbar.prototype), 'init', this).call(this);
             this.attr('role', 'toolbar');
@@ -5122,8 +5340,8 @@ var __run = function __run() {
             }
 
             secondarySlot.addEventListener('slotchange', function (e) {
-              _this72._secondaryToolbar = _this72.querySelector('[slot="secondary-toolbar-slot"]');
-              if (_this72._secondaryToolbar) _this72.classList.add('has-secondary');
+              _this76._secondaryToolbar = _this76.querySelector('[slot="secondary-toolbar-slot"]');
+              if (_this76._secondaryToolbar) _this76.classList.add('has-secondary');
             });
 
             this.on('attribute-change', function (_ref53) {
@@ -5133,14 +5351,14 @@ var __run = function __run() {
 
               if (name === 'is-tall') {
                 if (now == null) {
-                  if (_this72._secondaryToolbar) {
-                    _this72._secondaryToolbar.classList.add('tabs-centered');
+                  if (_this76._secondaryToolbar) {
+                    _this76._secondaryToolbar.classList.add('tabs-centered');
                   }
                 } else if (!now || now === "false") {
-                  _this72.isTall = null;
+                  _this76.isTall = null;
                 } else {
-                  if (_this72._secondaryToolbar) {
-                    _this72._secondaryToolbar.classList.remove('tabs-centered');
+                  if (_this76._secondaryToolbar) {
+                    _this76._secondaryToolbar.classList.remove('tabs-centered');
                   }
                 }
               }
@@ -5150,149 +5368,6 @@ var __run = function __run() {
 
         return Toolbar;
       }(Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__["a" /* default */]))
-    });
-
-    /***/
-  },
-  /* 36 */
-  /***/function (module, __webpack_exports__, __webpack_require__) {
-
-    "use strict";
-    /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__ = __webpack_require__(4);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
-
-    /*
-     * tooltip.js
-     * @author jasmith79
-     * @copyright Jared Smith
-     * @license MIT
-     * You should have received a copy of the license with this work but it may also be found at
-     * https://opensource.org/licenses/MIT
-     *
-     * tooltip component for ui-components-lite.
-     */
-
-    var reflectedAttributes = ['for', 'position'];
-    var template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      position: absolute;\n      z-index: 2000;\n      background-color: #555;\n      color: #fff;\n      opacity: 0;\n      transition: opacity;\n      transition-duration: 300ms; \n      max-width: 200px;\n      max-height: 100px;\n    }\n\n    #tooltip {\n      font-size: 10px;\n      background-color: inherit;\n      color: inherit;\n      padding: 5px;\n      border-radius: 2%;\n      width: inherit;\n      height: inherit;\n    }\n\n    :host(.faded-in) {\n      opacity: 0.9;\n    }\n  </style>\n  <div id="tooltip">\n    <slot></slot>\n  </div>\n';
-
-    /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
-      name: 'ui-tooltip',
-      template: template,
-      reflectedAttributes: reflectedAttributes,
-      definition: function (_Object$with13) {
-        _inherits(Tooltip, _Object$with13);
-
-        function Tooltip() {
-          _classCallCheck(this, Tooltip);
-
-          var _this73 = _possibleConstructorReturn(this, (Tooltip.__proto__ || Object.getPrototypeOf(Tooltip)).call(this));
-
-          _this73._forHandlers = [];
-          _this73._forElement = null;
-          return _this73;
-        }
-
-        _createClass(Tooltip, [{
-          key: 'init',
-          value: function init() {
-            _get(Tooltip.prototype.__proto__ || Object.getPrototypeOf(Tooltip.prototype), 'init', this).call(this);
-            this.floatingY = true;
-          }
-        }, {
-          key: '_updatePosition',
-          value: function _updatePosition() {
-            var _forElement$getBoundi = this._forElement.getBoundingClientRect(),
-                top = _forElement$getBoundi.top,
-                left = _forElement$getBoundi.left,
-                elHeight = _forElement$getBoundi.height,
-                elWidth = _forElement$getBoundi.width;
-
-            top += __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["d" /* global */].scrollY || __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["d" /* global */].pageYOffset;
-            left += __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["d" /* global */].scrollX || __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["d" /* global */].pageXOffset;
-
-            var _getBoundingClientRec = this.getBoundingClientRect(),
-                ttWidth = _getBoundingClientRec.width,
-                ttHeight = _getBoundingClientRec.height;
-
-            switch (this.position) {
-              case 'above':
-                this.style.top = top - ttHeight - 5 + 'px';
-                this.style.left = left + 'px';
-                break;
-
-              case 'below':
-                this.style.top = top + elHeight + 5 + 'px';
-                this.style.left = left + 'px';
-                break;
-
-              case 'left':
-                this.style.top = top + 'px';
-                this.style.left = left - ttWidth - 5 + 'px';
-                break;
-
-              default:
-                // defaults to being to the right of the element
-                this.style.top = top + 'px';
-                this.style.left = left + elWidth + 5 + 'px';
-                break;
-            }
-
-            return this;
-          }
-        }, {
-          key: 'connectedCallback',
-          value: function connectedCallback() {
-            var _this74 = this;
-
-            _get(Tooltip.prototype.__proto__ || Object.getPrototypeOf(Tooltip.prototype), 'connectedCallback', this).call(this);
-            if (!this._forHandlers.length) {
-              this._forHandlers.push(function (e) {
-                _this74.classList.remove('faded-in');
-              }, function (e) {
-                _this74._updatePosition();
-                _this74.classList.add('faded-in');
-              });
-            }
-
-            var shadowParent = function (node) {
-              while (node = node.parentNode) {
-                if (node.host) return node.host;
-                if (node === __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */]) return node;
-              }
-            }(this);
-
-            if (this.for) this._forElement = shadowParent.querySelector('#' + this.for);
-            if (!this._forElement) {
-              this._forElement = this.parentNode.host || this.parentNode;
-            }
-            if (!this._forElement) throw new Error('ui-tooltip must have a "for" attribute/property or a parent');
-
-            var _forHandlers = _slicedToArray(this._forHandlers, 2),
-                outHandler = _forHandlers[0],
-                inHandler = _forHandlers[1];
-
-            this._forElement.addEventListener('mouseenter', inHandler);
-            this._forElement.addEventListener('mouseleave', outHandler);
-          }
-        }, {
-          key: 'disconnectedCallback',
-          value: function disconnectedCallback() {
-            _get(Tooltip.prototype.__proto__ || Object.getPrototypeOf(Tooltip.prototype), 'disconnectedCallback', this).call(this);
-
-            var _forHandlers2 = _slicedToArray(this._forHandlers, 2),
-                outHandler = _forHandlers2[0],
-                inHandler = _forHandlers2[1];
-
-            this._forElement.removeEventListener('mouseenter', inHandler);
-            this._forElement.removeEventListener('mouseleave', outHandler);
-          }
-        }]);
-
-        return Tooltip;
-      }(Object(__WEBPACK_IMPORTED_MODULE_2__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__["a" /* default */]))
     });
 
     /***/
