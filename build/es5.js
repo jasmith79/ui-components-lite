@@ -1257,13 +1257,19 @@ var __run = function __run() {
                     case 'value':
                     case 'selected-index':
                       if (now !== val) {
-                        val = now;
-                        _this20._validate();
+                        // Need to wait a couple of ticks to allow the selected/value properties to update.
+                        // although we can get current value from the attribute-change event, something
+                        // might attempt to read list.selected or the value property/attribute on change
+                        // and will expect it to be updated.
+                        __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
+                          val = now;
+                          _this20._validate();
 
-                        var evt = new Event('change');
-                        evt.value = _this20.value;
-                        evt.isValid = _this20.isValid;
-                        _this20.dispatchEvent(evt);
+                          var evt = new Event('change');
+                          evt.value = _this20.value;
+                          evt.isValid = _this20.isValid;
+                          _this20.dispatchEvent(evt);
+                        }, 0);
                       }
 
                       break;
@@ -2372,7 +2378,7 @@ var __run = function __run() {
     };
 
     var template = __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      border-bottom: solid 1px;\n      border-bottom-color: #999;\n      min-height: 25px;\n      margin-bottom: 10px;\n      margin-top: 10px;\n      max-width: 200px;\n      color: var(--ui-theme-dark-text-color, #333);\n      outline-width: 0px;\n    }\n\n    :host(.focused) {\n      border-bottom-color: var(--ui-theme-primary-dark-color, blue);\n      box-shadow: 0px 4px 4px -4px;\n    }\n\n    :host(.empty) {\n      color: #999;\n    }\n\n    label {\n      /* janky, I know. TODO: find a way to make this work with transform: translate */\n      transition-property: top, left;\n      transition-timing-function: ease;\n      transition-duration: 1s;\n      position: relative;\n      top: 0px;\n      left: 0px;\n    }\n\n    #input {\n      border: none;\n      outline: none;\n      width: 90%;\n      margin-left: 5%;\n      margin-bottom: 3px;\n      height: 25px;\n      font-size: 16px;\n      color: inherit;\n      background-color: inherit; /* firefox changes the color */\n    }\n\n    .text-moved {\n      top: 20px;\n      left: 10px;\n    }\n  </style>\n  <label><ui-text view-text="{{label}}"></ui-text></label>\n  <input id="input"/>\n';
+    template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      border-bottom: solid 1px;\n      border-bottom-color: #999;\n      min-height: 25px;\n      margin-bottom: 10px;\n      margin-top: 10px;\n      max-width: 200px;\n      color: var(--ui-theme-dark-text-color, #333);\n      outline-width: 0px;\n    }\n\n    :host(.focused) {\n      border-bottom-color: var(--ui-theme-primary-dark-color, blue);\n      box-shadow: 0px 4px 4px -4px;\n    }\n\n    :host(.empty) {\n      color: #999;\n    }\n\n    ui-text {\n      /* janky, I know. TODO: find a way to make this work with transform: translate */\n      transition-property: top, left, font-size;\n      transition-timing-function: ease;\n      transition-duration: 1s;\n      position: relative;\n      top: 0px;\n      left: 0px;\n      font-size: 14px;\n    }\n\n    #input {\n      border: none;\n      outline: none;\n      width: 90%;\n      margin-left: 5%;\n      margin-bottom: 3px;\n      height: 25px;\n      font-size: 16px;\n      color: inherit;\n      background-color: inherit; /* firefox changes the color */\n    }\n\n    .text-moved {\n      top: 20px;\n      left: 10px;\n      font-size: 16px;\n    }\n  </style>\n  <label><ui-text view-text="{{label}}"></ui-text></label>\n  <input id="input"/>\n';
 
     var Input = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
       name: 'ui-input',
@@ -2398,6 +2404,7 @@ var __run = function __run() {
             _get(Input.prototype.__proto__ || Object.getPrototypeOf(Input.prototype), 'init', this).call(this);
             this._input = this.selectInternalElement('#input');
             var placeholder = this.attr('placeholder') || this.attr('default-value') || null;
+            var type = this.attr('type');
 
             if (this.attr('name')) {
               if (!this.attr('label')) this.attr('label', this.attr('name'));
@@ -2406,14 +2413,18 @@ var __run = function __run() {
 
             if (placeholder) this.placeholder = placeholder;
 
-            if (this.attr('label') && !placeholder) this.selectInternalElement('label').classList.add('text-moved');
+            if (this.attr('label') && !placeholder && type !== 'date' && type !== 'time') {
+              this.selectInternalElement('ui-text').classList.add('text-moved');
+            }
+
             this.on('focus', function (e) {
-              return _this31.selectInternalElement('label').classList.remove('text-moved');
+              _this31.selectInternalElement('ui-text').classList.remove('text-moved');
             });
+
             this.on('blur', function (e) {
               __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
                 if (_this31.label && !_this31.placeholder && !_this31.value) {
-                  _this31.selectInternalElement('label').classList.add('text-moved');
+                  _this31.selectInternalElement('ui-text').classList.add('text-moved');
                 }
               }, 1);
             });
@@ -2472,6 +2483,7 @@ var __run = function __run() {
                   name = _ref25$changed.name,
                   was = _ref25$changed.was;
 
+              var txt = void 0;
               switch (name) {
                 case 'name':
                   _this31._input.name = now;
@@ -2490,15 +2502,39 @@ var __run = function __run() {
                   if (!_this31.value) _this31.value = now;
                   break;
 
+                case 'label':
+                  txt = _this31.selectInternalElement('ui-text');
+                  if (now && !_this31.value && !_this31.placeholder) {
+                    txt.classList.add('text-moved');
+                  }
+                  break;
+
+                case 'placeholder':
+                  txt = _this31.selectInternalElement('ui-text');
+                  if (now && txt.classList.contains('text-moved')) {
+                    txt.classList.remove('text-moved');
+                  }
+
+                  if (now == null) {
+                    _this31._input.removeAttribute(name);
+                  } else {
+                    _this31._input.setAttribute(name, now || true);
+                  }
+                  break;
+
                 case 'type':
                   if (now === 'hidden') {
                     _this31.hide();
                     return;
                   }
-                  if (!['text', 'number', 'password', 'email'].includes(now)) return;
+
+                  if ((now === 'date' || now === 'time') && !_this31.value) {
+                    _this31.selectInternalElement('ui-text').classList.remove('text-moved');
+                  }
+
+                  if (!['text', 'number', 'password', 'email', 'date', 'time'].includes(now)) return;
                 // fall-through
 
-                case 'placeholder':
                 case 'required':
                   if (now == null) {
                     _this31._input.removeAttribute(name);
@@ -2590,9 +2626,10 @@ var __run = function __run() {
 
             if (empty) {
               this.classList.add('empty');
+              if (!this.placeholder) this.selectInternalElement('ui-text').classList.add('text-moved');
             } else {
               this.classList.remove('empty');
-              this.selectInternalElement('label').classList.remove('text-moved');
+              this.selectInternalElement('ui-text').classList.remove('text-moved');
             }
 
             return _set(Input.prototype.__proto__ || Object.getPrototypeOf(Input.prototype), 'value', value, this);
@@ -2720,9 +2757,11 @@ var __run = function __run() {
                 var el = function () {
                   switch (e.keyCode) {
                     case 40:
-                      return _this35._items[(_this35._items.indexOf(el) + 1) % _this35._items.length];
+                      return _this35._items[(_this35._items.indexOf(_this35.shadowRoot.activeElement) + 1) % _this35._items.length];
+
                     case 38:
-                      return _this35._items[+(_this35._items.indexOf(el) - 1)];
+                      return _this35._items[+(_this35._items.indexOf(_this35.shadowRoot.activeElement) - 1)];
+
                     default:
                       return null;
                   }
@@ -2818,8 +2857,8 @@ var __run = function __run() {
                   this._selected.push(selection);
                   this.dispatchEvent(new Event('change'));
                 } else {
-                  this.selectedIndex = this._items.indexOf(selection);
                   this._selected = selection;
+                  this.selectedIndex = this._items.indexOf(selection);
                   this._items.forEach(function (item) {
                     if (item !== selection) item.isSelected = false;
                     item.attr('aria-selected', false);
@@ -2846,6 +2885,7 @@ var __run = function __run() {
         name: 'ui-item',
         template: template,
         reflectedAttributes: reflectedAttributes,
+        // Right now overflow: hidden from ripple hides tooltips. TODO: fix
         definition: function (_Object$with6) {
           _inherits(Item, _Object$with6);
 
@@ -2898,7 +2938,7 @@ var __run = function __run() {
           }]);
 
           return Item;
-        }(Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_2__temp_animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_3__temp_utils_focusable_js__["a" /* default */]))
+        }(Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["a" /* UIBase */]).with( /*Ripples, */__WEBPACK_IMPORTED_MODULE_3__temp_utils_focusable_js__["a" /* default */]))
       });
     }();
     /* harmony export (immutable) */__webpack_exports__["a"] = Item;
@@ -2951,6 +2991,7 @@ var __run = function __run() {
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__temp_elements_tabs_js__ = __webpack_require__(34);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_8__temp_elements_text_js__ = __webpack_require__(11);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_9__temp_elements_toolbar_js__ = __webpack_require__(35);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_10__temp_elements_tooltip_js__ = __webpack_require__(36);
 
     /***/
   },
@@ -3881,7 +3922,7 @@ var __run = function __run() {
 
     var reflectedAttributes = ['selected-index', 'is-open', 'multiple', 'label'];
     var template = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    ui-list {\n      transition: transform 500ms cubic-bezier(0.165, 0.84, 0.44, 1);\n      background: #fff;\n      position: relative;\n      left: -5px;\n      z-index: 1000;\n      width: 100%;\n      max-height: 225px;\n      overflow-y: scroll;\n    }\n\n    .arrow {\n      border: solid #999;\n      border-width: 0 2px 2px 0;\n      display: inline-block;\n      padding: 3px;\n      float: right;\n      position: relative;\n      top: 6px;\n      right: 2px;\n      transform: rotate(45deg);\n    }\n\n    .not-overflowing {\n      overflow: hidden !important;\n    }\n\n    #dummy-item {\n      text-align: center;\n      padding-bottom: 3px;\n    }\n\n    #dummy-item.default {\n      letter-spacing: 3px;\n    }\n\n    #list-holder {\n      height: 1px;\n      overflow: visible;\n      position: relative;\n      top: -10px;\n      border-top: 1px solid #999;\n    }\n\n    ui-list ::slotted(.ui-item) {\n      border: none;\n    }\n\n    :host {\n      display: block;\n      max-width: 200px;\n    }\n\n    :host([multiple="true"]) #dummy-item #dummy-item-content {\n      position: relative;\n      left: 10px;\n    }\n\n    :host([is-open="true"]) .arrow {\n      transform: rotate(-135deg);\n    }\n\n    :host([is-open="true"]) ui-list {\n      box-shadow: 3px 5px 10px -4px #999;\n      padding-bottom: 1px;\n      transform: scale(1) translateY(0px);\n    }\n\n    :host([is-open="false"]) ui-list {\n      transform: scale(0) translateY(-200px);\n    }\n\n    :host([is-open="true"]) #list-holder {\n      border-color: var(--ui-theme-primary-dark-color, blue);\n    }\n\n    :host([is-open="false"]) ui-list ::slotted(.ui-item) {\n      display: none;\n    }\n\n    label {\n      /* janky, I know. TODO: find a way to make this work with transform: translate */\n      transition-property: top, left;\n      transition-timing-function: ease;\n      transition-duration: 1s;\n      position: relative;\n      top: 0px;\n      left: 0px;\n    }\n\n    .text-moved {\n      top: 20px;\n      left: 10px;\n    }\n\n  </style>\n  <label><ui-text view-text="{{label}}"></ui-text></label>\n  <ui-item id="dummy-item" class="default">\n    <span id="dummy-item-content">...</span>\n    <div class="arrow down"></div>\n  </ui-item>\n  <div id="list-holder" class="not-overflowing">\n    <ui-list multiple="{{multiple}}">\n      <slot></slot>\n    </ui-list>\n  </div>\n';
+    template.innerHTML = '\n  <style>\n    ui-list {\n      transition: transform 500ms cubic-bezier(0.165, 0.84, 0.44, 1);\n      background: #fff;\n      position: relative;\n      left: -5px;\n      z-index: 1000;\n      width: 100%;\n      max-height: 225px;\n      overflow-y: scroll;\n    }\n\n    .arrow {\n      border: solid #999;\n      border-width: 0 2px 2px 0;\n      display: inline-block;\n      padding: 3px;\n      float: right;\n      position: relative;\n      top: 6px;\n      right: 2px;\n      transform: rotate(45deg);\n    }\n\n    .not-overflowing {\n      overflow: hidden !important;\n    }\n\n    #dummy-item {\n      text-align: center;\n      padding-bottom: 3px;\n    }\n\n    #dummy-item.default {\n      letter-spacing: 3px;\n    }\n\n    #list-holder {\n      height: 1px;\n      overflow: visible;\n      position: relative;\n      top: -10px;\n      border-top: 1px solid #999;\n    }\n\n    ui-list ::slotted(.ui-item) {\n      border: none;\n    }\n\n    :host {\n      display: block;\n      max-width: 200px;\n    }\n\n    :host([multiple="true"]) #dummy-item #dummy-item-content {\n      position: relative;\n      left: 10px;\n    }\n\n    :host([is-open="true"]) .arrow {\n      transform: rotate(-135deg);\n    }\n\n    :host([is-open="true"]) ui-list {\n      box-shadow: 3px 5px 10px -4px #999;\n      padding-bottom: 1px;\n      transform: scale(1) translateY(0px);\n    }\n\n    :host([is-open="false"]) ui-list {\n      transform: scale(0) translateY(-200px);\n    }\n\n    :host([is-open="true"]) #list-holder {\n      border-color: var(--ui-theme-primary-dark-color, blue);\n    }\n\n    :host([is-open="false"]) ui-list ::slotted(.ui-item) {\n      display: none;\n    }\n\n    ui-text {\n      /* janky, I know. TODO: find a way to make this work with transform: translate */\n      transition-property: top, left, font-size;\n      transition-timing-function: ease;\n      transition-duration: 1s;\n      position: relative;\n      top: 5px;\n      left: 0px;\n      font-size: 14px;\n    }\n\n    .text-moved {\n      top: 25px;\n      left: 10px;\n      font-size: 16px;\n    }\n  </style>\n  <label><ui-text view-text="{{label}}"></ui-text></label>\n  <ui-item id="dummy-item" class="default">\n    <span id="dummy-item-content"></span>\n    <div class="arrow down"></div>\n  </ui-item>\n  <div id="list-holder" class="not-overflowing">\n    <ui-list multiple="{{multiple}}">\n      <slot></slot>\n    </ui-list>\n  </div>\n';
 
     /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
       name: 'ui-drop-down',
@@ -3958,14 +3999,14 @@ var __run = function __run() {
               this.selectInternalElement('label').setAttribute('for', this.attr('name'));
             }
 
-            if (this.attr('label')) this.selectInternalElement('label').classList.add('text-moved');
+            if (this.attr('label')) this.selectInternalElement('ui-text').classList.add('text-moved');
             this.on('focus', function (e) {
-              return _this55.selectInternalElement('label').classList.remove('text-moved');
+              return _this55.selectInternalElement('ui-text').classList.remove('text-moved');
             });
             this.on('blur', function (e) {
               __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
                 if (_this55.label && !_this55.value) {
-                  _this55.selectInternalElement('label').classList.add('text-moved');
+                  _this55.selectInternalElement('ui-text').classList.add('text-moved');
                 }
               }, 600); // ripple animation is 500 on the ui-item
             });
@@ -5109,6 +5150,149 @@ var __run = function __run() {
 
         return Toolbar;
       }(Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__["a" /* default */]))
+    });
+
+    /***/
+  },
+  /* 36 */
+  /***/function (module, __webpack_exports__, __webpack_require__) {
+
+    "use strict";
+    /* harmony import */
+    var __WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__ = __webpack_require__(4);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+
+    /*
+     * tooltip.js
+     * @author jasmith79
+     * @copyright Jared Smith
+     * @license MIT
+     * You should have received a copy of the license with this work but it may also be found at
+     * https://opensource.org/licenses/MIT
+     *
+     * tooltip component for ui-components-lite.
+     */
+
+    var reflectedAttributes = ['for', 'position'];
+    var template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      position: absolute;\n      z-index: 2000;\n      background-color: #555;\n      color: #fff;\n      opacity: 0;\n      transition: opacity;\n      transition-duration: 300ms; \n      max-width: 200px;\n      max-height: 100px;\n    }\n\n    #tooltip {\n      font-size: 10px;\n      background-color: inherit;\n      color: inherit;\n      padding: 5px;\n      border-radius: 2%;\n      width: inherit;\n      height: inherit;\n    }\n\n    :host(.faded-in) {\n      opacity: 0.9;\n    }\n  </style>\n  <div id="tooltip">\n    <slot></slot>\n  </div>\n';
+
+    /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+      name: 'ui-tooltip',
+      template: template,
+      reflectedAttributes: reflectedAttributes,
+      definition: function (_Object$with13) {
+        _inherits(Tooltip, _Object$with13);
+
+        function Tooltip() {
+          _classCallCheck(this, Tooltip);
+
+          var _this73 = _possibleConstructorReturn(this, (Tooltip.__proto__ || Object.getPrototypeOf(Tooltip)).call(this));
+
+          _this73._forHandlers = [];
+          _this73._forElement = null;
+          return _this73;
+        }
+
+        _createClass(Tooltip, [{
+          key: 'init',
+          value: function init() {
+            _get(Tooltip.prototype.__proto__ || Object.getPrototypeOf(Tooltip.prototype), 'init', this).call(this);
+            this.floatingY = true;
+          }
+        }, {
+          key: '_updatePosition',
+          value: function _updatePosition() {
+            var _forElement$getBoundi = this._forElement.getBoundingClientRect(),
+                top = _forElement$getBoundi.top,
+                left = _forElement$getBoundi.left,
+                elHeight = _forElement$getBoundi.height,
+                elWidth = _forElement$getBoundi.width;
+
+            top += __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["d" /* global */].scrollY || __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["d" /* global */].pageYOffset;
+            left += __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["d" /* global */].scrollX || __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["d" /* global */].pageXOffset;
+
+            var _getBoundingClientRec = this.getBoundingClientRect(),
+                ttWidth = _getBoundingClientRec.width,
+                ttHeight = _getBoundingClientRec.height;
+
+            switch (this.position) {
+              case 'above':
+                this.style.top = top - ttHeight - 5 + 'px';
+                this.style.left = left + 'px';
+                break;
+
+              case 'below':
+                this.style.top = top + elHeight + 5 + 'px';
+                this.style.left = left + 'px';
+                break;
+
+              case 'left':
+                this.style.top = top + 'px';
+                this.style.left = left - ttWidth - 5 + 'px';
+                break;
+
+              default:
+                // defaults to being to the right of the element
+                this.style.top = top + 'px';
+                this.style.left = left + elWidth + 5 + 'px';
+                break;
+            }
+
+            return this;
+          }
+        }, {
+          key: 'connectedCallback',
+          value: function connectedCallback() {
+            var _this74 = this;
+
+            _get(Tooltip.prototype.__proto__ || Object.getPrototypeOf(Tooltip.prototype), 'connectedCallback', this).call(this);
+            if (!this._forHandlers.length) {
+              this._forHandlers.push(function (e) {
+                _this74.classList.remove('faded-in');
+              }, function (e) {
+                _this74._updatePosition();
+                _this74.classList.add('faded-in');
+              });
+            }
+
+            var shadowParent = function (node) {
+              while (node = node.parentNode) {
+                if (node.host) return node.host;
+                if (node === __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */]) return node;
+              }
+            }(this);
+
+            if (this.for) this._forElement = shadowParent.querySelector('#' + this.for);
+            if (!this._forElement) {
+              this._forElement = this.parentNode.host || this.parentNode;
+            }
+            if (!this._forElement) throw new Error('ui-tooltip must have a "for" attribute/property or a parent');
+
+            var _forHandlers = _slicedToArray(this._forHandlers, 2),
+                outHandler = _forHandlers[0],
+                inHandler = _forHandlers[1];
+
+            this._forElement.addEventListener('mouseenter', inHandler);
+            this._forElement.addEventListener('mouseleave', outHandler);
+          }
+        }, {
+          key: 'disconnectedCallback',
+          value: function disconnectedCallback() {
+            _get(Tooltip.prototype.__proto__ || Object.getPrototypeOf(Tooltip.prototype), 'disconnectedCallback', this).call(this);
+
+            var _forHandlers2 = _slicedToArray(this._forHandlers, 2),
+                outHandler = _forHandlers2[0],
+                inHandler = _forHandlers2[1];
+
+            this._forElement.removeEventListener('mouseenter', inHandler);
+            this._forElement.removeEventListener('mouseleave', outHandler);
+          }
+        }]);
+
+        return Tooltip;
+      }(Object(__WEBPACK_IMPORTED_MODULE_2__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__["a" /* default */]))
     });
 
     /***/

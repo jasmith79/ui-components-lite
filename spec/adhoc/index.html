@@ -44,6 +44,7 @@ ui-list {
 	  import '../../src/elements/tabs.js';
 	  import '../../src/elements/text.js';
 	  import '../../src/elements/toolbar.js';
+    import '../../src/elements/tooltip.js';
   </script>
   <ui-alert></ui-alert>
   <ui-toolbar is-tall>
@@ -83,8 +84,8 @@ ui-list {
         <ui-form id="form-1" updates-history>
           <ui-input name="foo" placeholder="type foo" required>foo</ui-input>
           <ui-drop-down name="dd" placeholder="Choose wisely.">
-            <ui-item>Fro</ui-item>
-            <ui-item value="Bro">Bar</ui-item>
+            <ui-item id="fro">Fro</ui-item>
+            <ui-item value="Bro" id="bro">Bar</ui-item>
           </ui-drop-down>
           <ui-input name="qux" default-value="fooey"></ui-input>
           <input name="bar" />

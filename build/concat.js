@@ -1100,13 +1100,19 @@ const FormControlBehavior = (() => {
             case 'value':
             case 'selected-index':
               if (now !== val) {
-                val = now;
-                this._validate();
+                // Need to wait a couple of ticks to allow the selected/value properties to update.
+                // although we can get current value from the attribute-change event, something
+                // might attempt to read list.selected or the value property/attribute on change
+                // and will expect it to be updated.
+                __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(() => {
+                  val = now;
+                  this._validate();
 
-                const evt = new Event('change');
-                evt.value = this.value;
-                evt.isValid = this.isValid;
-                this.dispatchEvent(evt);
+                  const evt = new Event('change');
+                  evt.value = this.value;
+                  evt.isValid = this.isValid;
+                  this.dispatchEvent(evt);
+                }, 0);
               }
 
               break;
@@ -2145,14 +2151,15 @@ template.innerHTML = `
       color: #999;
     }
 
-    label {
+    ui-text {
       /* janky, I know. TODO: find a way to make this work with transform: translate */
-      transition-property: top, left;
+      transition-property: top, left, font-size;
       transition-timing-function: ease;
       transition-duration: 1s;
       position: relative;
       top: 0px;
       left: 0px;
+      font-size: 14px;
     }
 
     #input {
@@ -2170,6 +2177,7 @@ template.innerHTML = `
     .text-moved {
       top: 20px;
       left: 10px;
+      font-size: 16px;
     }
   </style>
   <label><ui-text view-text="{{label}}"></ui-text></label>
@@ -2265,9 +2273,10 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_j
 
       if (empty) {
         this.classList.add('empty');
+        if (!this.placeholder) this.selectInternalElement('ui-text').classList.add('text-moved');
       } else {
         this.classList.remove('empty');
-        this.selectInternalElement('label').classList.remove('text-moved');
+        this.selectInternalElement('ui-text').classList.remove('text-moved');
       }
 
       return (super.value = value);
@@ -2277,6 +2286,7 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_j
       super.init();
       this._input = this.selectInternalElement('#input');
       const placeholder = this.attr('placeholder') || this.attr('default-value') || null;
+      const type = this.attr('type');
 
       if (this.attr('name')) {
         if (!this.attr('label')) this.attr('label', this.attr('name'));
@@ -2285,12 +2295,23 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_j
 
       if (placeholder) this.placeholder = placeholder;
 
-      if (this.attr('label') && !placeholder) this.selectInternalElement('label').classList.add('text-moved');
-      this.on('focus', e => this.selectInternalElement('label').classList.remove('text-moved'));
+      if (
+        this.attr('label') &&
+        !placeholder &&
+        type !== 'date' &&
+        type !== 'time'
+      ) {
+        this.selectInternalElement('ui-text').classList.add('text-moved');
+      }
+      
+      this.on('focus', e => {
+        this.selectInternalElement('ui-text').classList.remove('text-moved');
+      });
+
       this.on('blur', e => {
         __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(() => {
           if (this.label && !this.placeholder && !this.value) {
-            this.selectInternalElement('label').classList.add('text-moved');
+            this.selectInternalElement('ui-text').classList.add('text-moved');
           }
         }, 1);
       });
@@ -2344,6 +2365,7 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_j
       });
 
       this.on('attribute-change', ({ changed: { now, name, was } } ) => {
+        let txt;
         switch (name) {
           case 'name':
             this._input.name = now;
@@ -2362,15 +2384,39 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_j
             if (!this.value) this.value = now;
             break;
 
+          case 'label':
+            txt = this.selectInternalElement('ui-text');
+            if (now && !this.value && !this.placeholder) {
+              txt.classList.add('text-moved');
+            }
+            break;
+
+          case 'placeholder':
+            txt = this.selectInternalElement('ui-text')
+            if (now && txt.classList.contains('text-moved')) {
+              txt.classList.remove('text-moved');
+            }
+
+            if (now == null) {
+              this._input.removeAttribute(name);
+            } else {
+              this._input.setAttribute(name, (now || true));
+            }
+            break;
+
           case 'type':
             if (now === 'hidden') {
               this.hide();
               return;
             }
-            if (!['text', 'number', 'password', 'email'].includes(now)) return;
+
+            if ((now === 'date' || now === 'time') && !this.value) {
+              this.selectInternalElement('ui-text').classList.remove('text-moved');
+            }
+
+            if (!['text', 'number', 'password', 'email', 'date', 'time'].includes(now)) return;
             // fall-through
 
-          case 'placeholder':
           case 'required':
             if (now == null) {
               this._input.removeAttribute(name);
@@ -2508,8 +2554,8 @@ const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_4__temp_util
           this._selected.push(selection);
           this.dispatchEvent(new Event('change'));
         } else {
-          this.selectedIndex = this._items.indexOf(selection);
           this._selected = selection;
+          this.selectedIndex = this._items.indexOf(selection);
           this._items.forEach(item => {
             if (item !== selection) item.isSelected = false;
             item.attr('aria-selected', false);
@@ -2546,8 +2592,12 @@ const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_4__temp_util
       this.on('keydown', e => {
         let el = (() => {
           switch (e.keyCode) {
-            case 40: return this._items[(this._items.indexOf(el) + 1) % this._items.length];
-            case 38: return this._items[+(this._items.indexOf(el) - 1)];
+            case 40: 
+              return this._items[(this._items.indexOf(this.shadowRoot.activeElement) + 1) % this._items.length];
+            
+            case 38: 
+              return this._items[+(this._items.indexOf(this.shadowRoot.activeElement) - 1)];
+            
             default: return null;
           }
         })();
@@ -2656,7 +2706,8 @@ const Item = (() => {
     name: 'ui-item',
     template,
     reflectedAttributes,
-    definition: class Item extends Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_2__temp_animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_3__temp_utils_focusable_js__["a" /* default */]) {
+    // Right now overflow: hidden from ripple hides tooltips. TODO: fix
+    definition: class Item extends Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(/*Ripples, */__WEBPACK_IMPORTED_MODULE_3__temp_utils_focusable_js__["a" /* default */]) {
       constructor () {
         super();
         this._checkbox = null;
@@ -2741,6 +2792,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__temp_elements_tabs_js__ = __webpack_require__(34);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__temp_elements_text_js__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__temp_elements_toolbar_js__ = __webpack_require__(35);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__temp_elements_tooltip_js__ = __webpack_require__(36);
 
 
 
@@ -3756,25 +3808,26 @@ template.innerHTML = `
       display: none;
     }
 
-    label {
+    ui-text {
       /* janky, I know. TODO: find a way to make this work with transform: translate */
-      transition-property: top, left;
+      transition-property: top, left, font-size;
       transition-timing-function: ease;
       transition-duration: 1s;
       position: relative;
-      top: 0px;
+      top: 5px;
       left: 0px;
+      font-size: 14px;
     }
 
     .text-moved {
-      top: 20px;
+      top: 25px;
       left: 10px;
+      font-size: 16px;
     }
-
   </style>
   <label><ui-text view-text="{{label}}"></ui-text></label>
   <ui-item id="dummy-item" class="default">
-    <span id="dummy-item-content">...</span>
+    <span id="dummy-item-content"></span>
     <div class="arrow down"></div>
   </ui-item>
   <div id="list-holder" class="not-overflowing">
@@ -3862,12 +3915,12 @@ template.innerHTML = `
         this.selectInternalElement('label').setAttribute('for', this.attr('name'));
       }
 
-      if (this.attr('label')) this.selectInternalElement('label').classList.add('text-moved');
-      this.on('focus', e => this.selectInternalElement('label').classList.remove('text-moved'));
+      if (this.attr('label')) this.selectInternalElement('ui-text').classList.add('text-moved');
+      this.on('focus', e => this.selectInternalElement('ui-text').classList.remove('text-moved'));
       this.on('blur', e => {
         __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(() => {
           if (this.label && !this.value) {
-            this.selectInternalElement('label').classList.add('text-moved');
+            this.selectInternalElement('ui-text').classList.add('text-moved');
           }
         }, 600); // ripple animation is 500 on the ui-item
       });
@@ -5088,6 +5141,155 @@ template.innerHTML = `
           }
         }
       });
+    }
+  }
+}));
+
+
+/***/ }),
+/* 36 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+
+/*
+ * tooltip.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * tooltip component for ui-components-lite.
+ */
+
+
+
+
+
+
+const reflectedAttributes = ['for', 'position'];
+const template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+template.innerHTML = `
+  <style>
+    :host {
+      display: block;
+      position: absolute;
+      z-index: 2000;
+      background-color: #555;
+      color: #fff;
+      opacity: 0;
+      transition: opacity;
+      transition-duration: 300ms; 
+      max-width: 200px;
+      max-height: 100px;
+    }
+
+    #tooltip {
+      font-size: 10px;
+      background-color: inherit;
+      color: inherit;
+      padding: 5px;
+      border-radius: 2%;
+      width: inherit;
+      height: inherit;
+    }
+
+    :host(.faded-in) {
+      opacity: 0.9;
+    }
+  </style>
+  <div id="tooltip">
+    <slot></slot>
+  </div>
+`;
+
+/* unused harmony default export */ var _unused_webpack_default_export = (Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+  name: 'ui-tooltip',
+  template,
+  reflectedAttributes,
+  definition: class Tooltip extends Object(__WEBPACK_IMPORTED_MODULE_2__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__["a" /* default */]) {
+    constructor () {
+      super();
+      this._forHandlers = [];
+      this._forElement = null;
+    }
+
+    init () {
+      super.init();
+      this.floatingY = true;
+    }
+
+    _updatePosition () {
+      let { top, left, height: elHeight, width: elWidth } = this._forElement.getBoundingClientRect();
+      top += (__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["d" /* global */].scrollY || __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["d" /* global */].pageYOffset);
+      left += (__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["d" /* global */].scrollX || __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["d" /* global */].pageXOffset);
+      
+      let { width: ttWidth, height: ttHeight } = this.getBoundingClientRect();
+      switch (this.position) {
+        case 'above':
+          this.style.top = `${top - ttHeight - 5}px`;
+          this.style.left = `${left}px`;
+          break;
+
+        case 'below':
+          this.style.top = `${top + elHeight + 5}px`;
+          this.style.left = `${left}px`;
+          break;
+
+        case 'left':
+          this.style.top = `${top}px`;
+          this.style.left = `${left - ttWidth - 5}px`;
+          break;
+
+        default: // defaults to being to the right of the element
+          this.style.top = `${top}px`;
+          this.style.left = `${left + elWidth + 5}px`;
+          break;
+      }
+
+      return this;
+    }
+
+    connectedCallback () {
+      super.connectedCallback();
+      if (!this._forHandlers.length) {
+        this._forHandlers.push(
+          e => {
+            this.classList.remove('faded-in');
+          },
+          e => {
+            this._updatePosition();
+            this.classList.add('faded-in');
+          },
+        );
+      }
+
+      let shadowParent = (node => {
+        while (node = node.parentNode) {
+          if (node.host) return node.host;
+          if (node === __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */]) return node;
+        }
+      })(this); 
+      
+      if (this.for) this._forElement = shadowParent.querySelector(`#${this.for}`);
+      if (!this._forElement) {
+        this._forElement = this.parentNode.host || this.parentNode;
+      } 
+      if (!this._forElement) throw new Error('ui-tooltip must have a "for" attribute/property or a parent');
+      const [outHandler, inHandler] = this._forHandlers;
+      this._forElement.addEventListener('mouseenter', inHandler);
+      this._forElement.addEventListener('mouseleave', outHandler);
+    }
+
+    disconnectedCallback () {
+      super.disconnectedCallback();
+      const [outHandler, inHandler] = this._forHandlers;
+      this._forElement.removeEventListener('mouseenter', inHandler);
+      this._forElement.removeEventListener('mouseleave', outHandler);
     }
   }
 }));

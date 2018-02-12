@@ -10,12 +10,14 @@
  * tooltip component for ui-components-lite.
  */
 
+import Text from './text.js';
+
 import Floats from '../utils/float.js';
 import { UIBase, defineUIComponent, document, global } from '../utils/ui-component-base.js';
 
 import { mix } from '../../../mixwith/src/mixwith.js';
 
-const reflectedAttributes = ['for', 'position'];
+const reflectedAttributes = ['for', 'position', 'view-text'];
 const template = document.createElement('template');
 template.innerHTML = `
   <style>
@@ -47,11 +49,11 @@ template.innerHTML = `
     }
   </style>
   <div id="tooltip">
-    <slot></slot>
+    <ui-text view-text="{{view-text}}"></ui-text>
   </div>
 `;
 
-export default defineUIComponent({
+export const Tooltip = defineUIComponent({
   name: 'ui-tooltip',
   template,
   reflectedAttributes,
@@ -98,17 +100,42 @@ export default defineUIComponent({
       return this;
     }
 
+    _attachForElementHandlers () {
+      const [outHandler, inHandler] = this._forHandlers;
+      this._forElement.addEventListener('mouseenter', inHandler);
+      this._forElement.addEventListener('mouseleave', outHandler);
+      return this;
+    }
+
+    _removeForElementHandlers () {
+      const [outHandler, inHandler] = this._forHandlers;
+      this._forElement.removeEventListener('mouseenter', inHandler);
+      this._forElement.removeEventListener('mouseleave', outHandler);
+      return this;
+    }
+
+    show () {
+      this._updatePosition();
+      this.classList.add('faded-in');
+      return this;
+    }
+
+    hide () {
+      this.classList.remove('faded-in');
+      return this;
+    }
+
+    set isFor (el) {
+      this._forElement = el;
+      return this._attachForElementHandlers();
+    }
+
     connectedCallback () {
       super.connectedCallback();
       if (!this._forHandlers.length) {
         this._forHandlers.push(
-          e => {
-            this.classList.remove('faded-in');
-          },
-          e => {
-            this._updatePosition();
-            this.classList.add('faded-in');
-          },
+          e => (this.hide()),
+          e => (this.show()),
         );
       }
 
@@ -123,17 +150,34 @@ export default defineUIComponent({
       if (!this._forElement) {
         this._forElement = this.parentNode.host || this.parentNode;
       } 
+
       if (!this._forElement) throw new Error('ui-tooltip must have a "for" attribute/property or a parent');
-      const [outHandler, inHandler] = this._forHandlers;
-      this._forElement.addEventListener('mouseenter', inHandler);
-      this._forElement.addEventListener('mouseleave', outHandler);
+      this._attachForElementHandlers();    
+      
+      if (this.textContent && !this.attr('view-text') this.attr('view-text', this.textContent);
     }
 
     disconnectedCallback () {
       super.disconnectedCallback();
-      const [outHandler, inHandler] = this._forHandlers;
-      this._forElement.removeEventListener('mouseenter', inHandler);
-      this._forElement.removeEventListener('mouseleave', outHandler);
+      this._removeForElementHandlers();     
     }
   }
+});
+
+export const TooltipMixin = defineUIComponent({
+  name: 'ui-has-tooltip',
+  registerElement: false,
+  reflectedAttributes: ['tooltip'],
+  definition: class extends superclass {
+    constructor () {
+      super();
+      this._tooltip = document.createElement('ui-tooltip');
+      this._tooltip.isFor = this;
+      document.body.appendChild(this._tooltip);
+    }
+
+    init () {
+      
+    }
+  },
 });

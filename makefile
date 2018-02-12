@@ -37,7 +37,8 @@ build/tempindex.js: $(SRC_ELS) $(SRC_UTILS) $(SRC_ANIMS)
 	import './temp_elements/router.js';\
 	import './temp_elements/tabs.js';\
 	import './temp_elements/text.js';\
-	import './temp_elements/toolbar.js';" > $@
+	import './temp_elements/toolbar.js';\
+	import './temp_elements/tooltip.js';" > $@
 
 build/concat.js: build/tempindex.js
 	@mkdir -p $(@D)
@@ -115,6 +116,7 @@ build/index.js:
 	import './elements/router.min.js';\
 	import './elements/tabs.min.js';\
 	import './elements/text.min.js';\
-	import './elements/toolbar.min.js';" > $@
+	import './elements/toolbar.min.js';\
+	import './elements/tooltip.min.js';" > $@
 
 .PHONY: all clean serve

@@ -14,6 +14,7 @@
 
 import Checkbox from './checkbox.js';
 import { FormControlBehavior } from './form.js';
+import { TooltipMixin } from './tooltip.js';
 
 import Ripples from '../animations/rippler.js';
 
@@ -197,7 +198,7 @@ export const ListBehavior = superclass => defineUIComponent({
 
 export const Item = (() => {
   const template = document.createElement('template');
-  const reflectedAttributes = ['is-selected', 'value'];
+  const reflectedAttributes = ['is-selected', 'value', 'tooltip'];
   template.innerHTML = `
     <style>
       :host {
@@ -257,7 +258,7 @@ export const Item = (() => {
     name: 'ui-item',
     template,
     reflectedAttributes,
-    definition: class Item extends mix(UIBase).with(Ripples, Focusable) {
+    definition: class Item extends mix(UIBase).with(Ripples, Focusable, TooltipMixin) {
       constructor () {
         super();
         this._checkbox = null;
