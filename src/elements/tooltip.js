@@ -68,30 +68,30 @@ export default defineUIComponent({
     }
 
     _updatePosition () {
-      let { top, left } = this._forElement.getBoundingClientRect();
+      let { top, left, height: elHeight, width: elWidth } = this._forElement.getBoundingClientRect();
       top += (global.scrollY || global.pageYOffset);
       left += (global.scrollX || global.pageXOffset);
       
-      let { width, height } = this.getBoundingClientRect();
+      let { width: ttWidth, height: ttHeight } = this.getBoundingClientRect();
       switch (this.position) {
         case 'above':
-          this.style.top = `${top - (height + 5)}px`;
+          this.style.top = `${top - ttHeight - 5}px`;
           this.style.left = `${left}px`;
           break;
 
         case 'below':
-          this.style.top = `${top + height + 5}px`;
+          this.style.top = `${top + elHeight + 5}px`;
           this.style.left = `${left}px`;
           break;
 
         case 'left':
           this.style.top = `${top}px`;
-          this.style.left = `${left - (width + 5)}px`;
+          this.style.left = `${left - ttWidth - 5}px`;
           break;
 
         default: // defaults to being to the right of the element
           this.style.top = `${top}px`;
-          this.style.left = `${left + width + 5}px`;
+          this.style.left = `${left + elWidth + 5}px`;
           break;
       }
 
