@@ -173,12 +173,15 @@ export const TooltipMixin = superclass => defineUIComponent({
       super();
       this._tooltipElement = document.createElement('ui-tooltip');
       this._tooltipElement.isFor = this;
-      document.body.appendChild(this._tooltipElement);
     }
 
     init () {
       super.init();
-      if (this.tooltip) this._tooltipElement.viewText = this.tooltip;
+      if (this.tooltip) {
+        this._tooltipElement.viewText = this.tooltip;
+        document.body.appendChild(this._tooltipElement);
+      }
+
       this.watchAttribute(this, 'tooltip', now => {
         let inDOM = document.body.contains(this._tooltipElement);
         if (now && !inDOM) document.body.appendChild(this._tooltipElement);

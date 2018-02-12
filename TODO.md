@@ -45,6 +45,8 @@ beforeReady handlers invoked
 ui-ready fires
 onReady handlers invoked
 
+connectedCallback not included in above, because depending on when the CE is attached to an element in the DOM it might happen any time between right after the constructor and the end of time.
+
 So... refactoring to remove the dependence on defineUIComponent is definitely possible in the long run, unfortunately right now the ShadyCSS polyfill has the limitation of only supporting one call to ShadyCSS.prepareTemplate per tag name. Once that restriction is removed
 
 https://github.com/webcomponents/shadycss/issues/153
