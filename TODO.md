@@ -26,6 +26,7 @@ Fix default theme colors
 input with cached data when multiple form items share name, getting the array ,,value
 Fab has square outline
 fix how tooltip works, kinda hacky right now
+inactive tooltips should have lower z-index
 
 
 
