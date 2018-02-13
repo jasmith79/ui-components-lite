@@ -179,7 +179,7 @@ export const TooltipMixin = superclass => defineUIComponent({
       super.init();
       if (this.tooltip) {
         this._tooltipElement.viewText = this.tooltip;
-        document.body.appendChild(this._tooltipElement);
+        document.body.insertBefore(this._tooltipElement, document.body.firstElementChild);
       }
 
       this.watchAttribute(this, 'tooltip', now => {

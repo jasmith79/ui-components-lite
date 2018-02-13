@@ -12,6 +12,8 @@
  * If it does become possible this can be refactored to support extending HTMLButtonElement.
  */
 
+import { TooltipMixin } from './tooltip.js';
+
 import Ripples from '../animations/rippler.js';
 
 import Floats from '../utils/float.js';
@@ -54,7 +56,13 @@ const Button = defineUIComponent({
   name: 'ui-button',
   template,
   reflectedAttributes,
-  definition: class Button extends mix(UIBase).with(Centerable, Floats, Ripples, Focusable) {
+  definition: class Button extends mix(UIBase).with(
+    Centerable,
+    Floats,
+    Ripples,
+    Focusable,
+    TooltipMixin
+  ) {
     init () {
       super.init();
       this.attr('role', 'button');

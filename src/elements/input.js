@@ -13,6 +13,7 @@
  */
 
 import Text from './text.js';
+import { TooltipMixin } from './tooltip.js';
 import { FormControlBehavior } from './form.js';
 
 import Focusable from '../utils/focusable.js';
@@ -193,7 +194,7 @@ export const Input = defineUIComponent({
   name: 'ui-input',
   template,
   reflectedAttributes,
-  definition: class Input extends mix(UIBase).with(FormControlBehavior, Focusable) {
+  definition: class Input extends mix(UIBase).with(FormControlBehavior, Focusable, TooltipMixin) {
     constructor () {
       super();
       this._input = null;
