@@ -28,7 +28,7 @@ export default superclass => class DataBinder extends superclass {
   //
   // As of right now, only works if the parent is a UIComponent. Otherwise, it log a warning
   // and no-ops.
-  bindAttribute (attribute, parentAttribute, twoWay=false) {
+  bindAttribute (attribute, parentAttribute=attribute, twoWay=false) {
     let parent = null;
     let node = this;
     while (node = (node.parentNode || node.host)) { // need host for shadowRoots
