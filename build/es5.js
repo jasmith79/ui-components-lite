@@ -3455,9 +3455,10 @@ var __run = function __run() {
 
         _createClass(DataBinder, [{
           key: 'bindAttribute',
-          value: function bindAttribute(attribute, parentAttribute) {
+          value: function bindAttribute(attribute) {
             var _this47 = this;
 
+            var parentAttribute = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : attribute;
             var twoWay = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
             var parent = null;
@@ -4838,8 +4839,10 @@ var __run = function __run() {
                 this.selected = elem;
                 this._currentRoute = route;
                 this.attr('current-route', route);
-                if (data && Object.keys(data).length) elem.update(data);
-                elem.setAttribute('is-selected', true);
+                if (elem) {
+                  if (data && Object.keys(data).length) elem.update(data);
+                  elem.setAttribute('is-selected', true);
+                }
 
                 if (route === '/login') {
                   var username = elem.querySelector('.ui-login').selectInternalElement('[name="user"]');

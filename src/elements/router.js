@@ -110,8 +110,10 @@ export const Router = (() => {
           this.selected = elem;
           this._currentRoute = route;
           this.attr('current-route', route);
-          if (data && Object.keys(data).length) elem.update(data);
-          elem.setAttribute('is-selected', true);
+          if (elem) {
+            if (data && Object.keys(data).length) elem.update(data);
+            elem.setAttribute('is-selected', true);
+          }
 
           if (route === '/login') {
             let username = elem.querySelector('.ui-login').selectInternalElement('[name="user"]');

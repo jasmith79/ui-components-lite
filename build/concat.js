@@ -3282,7 +3282,7 @@ template.innerHTML = `
   //
   // As of right now, only works if the parent is a UIComponent. Otherwise, it log a warning
   // and no-ops.
-  bindAttribute (attribute, parentAttribute, twoWay=false) {
+  bindAttribute (attribute, parentAttribute=attribute, twoWay=false) {
     let parent = null;
     let node = this;
     while (node = (node.parentNode || node.host)) { // need host for shadowRoots
@@ -4778,8 +4778,10 @@ const Router = (() => {
           this.selected = elem;
           this._currentRoute = route;
           this.attr('current-route', route);
-          if (data && Object.keys(data).length) elem.update(data);
-          elem.setAttribute('is-selected', true);
+          if (elem) {
+            if (data && Object.keys(data).length) elem.update(data);
+            elem.setAttribute('is-selected', true);
+          }
 
           if (route === '/login') {
             let username = elem.querySelector('.ui-login').selectInternalElement('[name="user"]');
