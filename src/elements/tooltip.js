@@ -24,7 +24,7 @@ template.innerHTML = `
     :host {
       display: block;
       position: absolute;
-      z-index: 2000;
+      z-index: 0;
       background-color: #555;
       color: #fff;
       opacity: 0;
@@ -46,6 +46,7 @@ template.innerHTML = `
 
     :host(.faded-in) {
       opacity: 0.9;
+      z-index: 2000;
     }
   </style>
   <div id="tooltip">
@@ -115,8 +116,11 @@ export const Tooltip = defineUIComponent({
     }
 
     show () {
-      this._updatePosition();
-      this.classList.add('faded-in');
+      if (this.viewText) {
+        this._updatePosition();
+        this.classList.add('faded-in');
+      }
+      
       return this;
     }
 

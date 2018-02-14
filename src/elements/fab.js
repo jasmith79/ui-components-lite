@@ -22,6 +22,7 @@ template.innerHTML = `
       height: 74px;
       border-radius: 50%;
       background-color: var(--ui-theme-accent-color, purple);
+      outline: none;
     }
   </style>
 `;
