@@ -107,7 +107,6 @@ export default defineUIComponent({
 
     logout () {
       this.isLoggedIn = null;
-      this.selectInternalElement('[name="user"]').value = '';
       this.selectInternalElement('[name="pass"]').value = '';
       global.sessionStorage.setItem('ui-credentials', '');
       this.dispatchEvent(new CustomEvent('logout', { bubbles: true }));

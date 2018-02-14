@@ -157,7 +157,7 @@ export const Router = (() => {
         const url = this.hashBang ? `${base}#!${route}` : `${base}${route}`;
 
         if (this._login && !this._login.isLoggedIn) {
-          if (this.updatesHistory) this._updateHistory(route, url, data);
+          // if (this.updatesHistory) this._updateHistory(route, url, data);
           this._internalRoute('/login');
         } else {
           if (route && route in this._routes) {
