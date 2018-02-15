@@ -311,12 +311,16 @@ export default () => {
       let form = div.querySelector('ui-form');
       form.onReady(_ => {
         let ip = form.querySelector('ui-input');
-        ip.on('change', e => {
-          expect('' + global.location.href.match('foo=3')).toBe('foo=3');
-          global.history.replaceState({}, '', '/spec/auto');
-          done();
-        });
-        ip.value = 3;
+        // need the timeout because the form waits to attach the historyListener
+        // to avoid picking up the initial set
+        setTimeout(() => {
+          ip.on('change', e => {
+            expect('' + global.location.href.match('foo=3')).toBe('foo=3');
+            global.history.replaceState({}, '', '/spec/auto');
+            done();
+          });
+          ip.value = 3;
+        }, 10);
       }).catch(err => {
         console.error(err);
         throw err;

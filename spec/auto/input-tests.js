@@ -274,3 +274,151 @@ export default () => {
     });
   });
 };
+
+describe('ui-input:ipv4', () => {
+	let div;
+	beforeEach(() => {
+		div = document.createElement('div');
+		div.classList.add('remove-me');
+		document.body.appendChild(div);
+	});
+
+	afterEach(() => {
+		[...document.querySelectorAll('.remove-me')].forEach(el => {
+			document.body.removeChild(el);
+		});
+	});
+
+  it('should correctly validate ipv4 addresses', done => {
+    let goodList = [
+			'0.0.0.0',
+			'192.168.1.1',
+			'255.255.255.255'
+		];
+
+    let badList = [
+			'10.168.0001.100',  
+			'0.0.0.256',
+			'256.255.255.255',  
+			'256.0.0.0',
+			'192.168. 224.0',
+			'192.168.224.0 1',
+			'255.255',
+			'0.9.0.98.1'
+		];
+
+    div.innerHTML += '<ui-input type="ipv4"></ui-input>';
+    let input = div.querySelector('ui-input');
+    input.onReady(_ => {
+			expect(input.isValid).toBe(false);
+      let goodDone = Promise.all(goodList.map(ip => {
+        input.value = ip;
+        return new Promise(res => {
+          setTimeout(() => {
+            expect(input.isValid).toBe(true);
+            input.value = null;
+            setTimeout(() => {
+              expect(input.isValid).toBe(false);
+              res();
+            }, 10);
+          }, 10);
+        }); 
+      }));
+
+      let badDone = Promise.all(badList.map(ip => {
+        return new Promise(res => {
+					input.value = goodList[0];
+					setTimeout(() => {
+						expect(input.isValid).toBe(true);
+						input.value = ip;
+						setTimeout(() => {
+							expect(input.isValid).toBe(false);
+							res();
+						}, 10);
+					}, 10);
+        }) 
+      }));
+
+      Promise.all([goodDone, badDone]).then(done).catch(console.error);
+    }).catch(err => {
+      console.error(err);
+      throw err;
+    });
+  });
+});
+
+describe('ui-input:ipv6', () => {
+	let div;
+	beforeEach(() => {
+		div = document.createElement('div');
+		div.classList.add('remove-me');
+		document.body.appendChild(div);
+	});
+
+	afterEach(() => {
+		[...document.querySelectorAll('.remove-me')].forEach(el => {
+			document.body.removeChild(el);
+		});
+	});
+
+  it('should correctly validate ipv6 addresses', done => {
+    let goodList = [
+			'0000:0000:0000:0000:0000:0000:0000:0000',  
+			'fe00::1',
+			'fe80::217:f2ff:fe07:ed62',
+			'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff',  
+			'2001:0db8:0000:85a3:0000:0000:ac1f:8001',
+			'::1',
+			'1::'
+    ]
+
+    let badList = [
+			'02001:0000:1234:0000:0000:C1C0:ABCD:0876',
+			'2001:0000:1234:0000:00001:C1C0:ABCD:0876',
+			'2001:0000:1234: 0000:0000:C1C0:ABCD:0876',
+			'2001:0000:1234:0000:0000:C1C0:ABCD:0876 0',
+			'3ffe:0b00:0000:0001:0000:0000:000a',
+			'FF02:0000:0000:0000:0000:0000:0000:0000:0001',
+			'::1111:2222:3333:4444:5555:6666::',
+			'3ffe:b00::1::a'
+		];
+
+    div.innerHTML += '<ui-input type="ipv6"></ui-input>';
+    let input = div.querySelector('ui-input');
+    input.onReady(_ => {
+			expect(input.isValid).toBe(false);
+      let goodDone = Promise.all(goodList.map(ip => {
+        input.value = ip;
+        return new Promise(res => {
+          setTimeout(() => {
+            expect(input.isValid).toBe(true);
+            input.value = null;
+            setTimeout(() => {
+              expect(input.isValid).toBe(false);
+              res();
+            }, 10);
+          }, 10);
+        }); 
+      }));
+
+      let badDone = Promise.all(badList.map(ip => {
+        return new Promise(res => {
+					input.value = goodList[0];
+					setTimeout(() => {
+						expect(input.isValid).toBe(true);
+						input.value = ip;
+						setTimeout(() => {
+							expect(input.isValid).toBe(false);
+							res();
+						}, 10);
+					}, 10);
+        }) 
+      }));
+
+      Promise.all([goodDone, badDone]).then(done).catch(console.error);
+    }).catch(err => {
+      console.error(err);
+      throw err;
+    });
+  });
+});
