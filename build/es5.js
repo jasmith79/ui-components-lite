@@ -998,7 +998,7 @@ var __run = function __run() {
 
     var reflectedAttributes = ['for', 'position', 'view-text'];
     var template = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      position: absolute;\n      z-index: 2000;\n      background-color: #555;\n      color: #fff;\n      opacity: 0;\n      transition: opacity;\n      transition-duration: 300ms;\n      max-width: 200px;\n      max-height: 100px;\n    }\n\n    #tooltip {\n      font-size: 10px;\n      background-color: inherit;\n      color: inherit;\n      padding: 5px;\n      border-radius: 2%;\n      width: inherit;\n      height: inherit;\n    }\n\n    :host(.faded-in) {\n      opacity: 0.9;\n    }\n  </style>\n  <div id="tooltip">\n    <ui-text view-text="{{view-text}}"></ui-text>\n  </div>\n';
+    template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      position: absolute;\n      z-index: 0;\n      background-color: #555;\n      color: #fff;\n      opacity: 0;\n      transition: opacity;\n      transition-duration: 300ms;\n      max-width: 200px;\n      max-height: 100px;\n    }\n\n    #tooltip {\n      font-size: 10px;\n      background-color: inherit;\n      color: inherit;\n      padding: 5px;\n      border-radius: 2%;\n      width: inherit;\n      height: inherit;\n    }\n\n    :host(.faded-in) {\n      opacity: 0.9;\n      z-index: 2000;\n    }\n  </style>\n  <div id="tooltip">\n    <ui-text view-text="{{view-text}}"></ui-text>\n  </div>\n';
 
     var Tooltip = Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
       name: 'ui-tooltip',
@@ -1089,8 +1089,11 @@ var __run = function __run() {
         }, {
           key: 'show',
           value: function show() {
-            this._updatePosition();
-            this.classList.add('faded-in');
+            if (this.viewText) {
+              this._updatePosition();
+              this.classList.add('faded-in');
+            }
+
             return this;
           }
         }, {
@@ -1343,6 +1346,7 @@ var __run = function __run() {
                 try {
                   val = JSON.parse(el.value);
                 } catch (e) {
+                  // val = el.value.replace(',', '\\,'); // escape commas to correctly reconstruct arrays in url
                   val = el.value;
                 }
                 if (name in acc) {
@@ -1410,9 +1414,14 @@ var __run = function __run() {
                     route = parsed.route,
                     hashBang = parsed.hashBang;
 
-                var url = path;
+                var url = path.match(/\/$/) ? path.slice(0, path.length - 1) : path;
                 if (hashBang) url += '#!';
                 if (route) url += route;
+                if (data) {
+                  if (url.match(/\/$/)) url = url.slice(0, url.length - 1);
+                  if (!url.match(/#/) && !url.match(/\.w+$/)) url += '#';
+                }
+
                 url += Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["b" /* toQueryString */])(data);
                 __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].history.replaceState(data, '', url);
               };
@@ -1420,11 +1429,19 @@ var __run = function __run() {
               this._beforeReady(function (_) {
                 _this22.elements.forEach(function (el) {
                   if (el.tagName === 'INPUT') Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_normalizer_js__["a" /* inputNormalizer */])(el);
-                  if (_this22.updatesHistory) el[el.on ? 'on' : 'addEventListener']('change', historyListener);
                   el[el.on ? 'on' : 'addEventListener']('change', function (e) {
                     if (_this22.id) __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].localStorage.setItem(_this22.id, JSON.stringify(_this22.serialize()));
                   });
                 });
+              });
+
+              this.onReady(function (_) {
+                // We don't want to catch the initial population event, hence setTimeout
+                __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
+                  _this22.elements.forEach(function (el) {
+                    if (_this22.updatesHistory) el[el.on ? 'on' : 'addEventListener']('change', historyListener);
+                  });
+                }, 0);
               });
             }
           }, {
@@ -1449,35 +1466,39 @@ var __run = function __run() {
             set: function set(data) {
               var _this23 = this;
 
-              Object.entries(data).forEach(function (_ref16) {
-                var _ref17 = _slicedToArray(_ref16, 2),
-                    name = _ref17[0],
-                    val = _ref17[1];
+              if (data) {
+                Object.entries(data).forEach(function (_ref16) {
+                  var _ref17 = _slicedToArray(_ref16, 2),
+                      name = _ref17[0],
+                      val = _ref17[1];
 
-                var els = _this23.elements.filter(function (el) {
-                  return el.matches('[name="' + name + '"]');
+                  var els = _this23.elements.filter(function (el) {
+                    return el.matches('[name="' + name + '"]');
+                  });
+                  var values = void 0;
+                  if (els.length > 1) values = Array.isArray(val) ? val : val.split(',');
+                  els.forEach(function (el, i, arr) {
+                    var type = _this23._formControlType(el);
+                    var value = values ? values[i] : val;
+                    if (value === 'undefined' || value === 'null' || value == null) value = '';
+
+                    switch (type) {
+                      case 'formElement':
+                      case 'input':
+                        if (el.value !== value) el.value = value;
+                        break;
+
+                      case 'select':
+                        [].concat(_toConsumableArray(sel.options)).forEach(function (opt, j) {
+                          if (opt.value === value && j !== sel.selectedIndex) sel.selectedIndex = j;
+                        });
+                        break;
+                    }
+                  });
                 });
-                els.forEach(function (el, i, arr) {
-                  var type = _this23._formControlType(el);
-                  var value = Array.isArray(val) ? val[i] || val[val.length - 1] : val;
+              }
 
-                  if (value === 'undefined' || value === 'null') value = '';
-
-                  switch (type) {
-                    case 'formElement':
-                      if (el.value !== value) el.value = value;
-                      break;
-
-                    case 'select':
-                      [].concat(_toConsumableArray(sel.options)).forEach(function (opt, j) {
-                        if (opt.value === value && j !== sel.selectedIndex) sel.selectedIndex = j;
-                      });
-                      break;
-                  }
-                });
-              });
-
-              return this.data;
+              return data;
             }
           }]);
 
@@ -2110,7 +2131,7 @@ var __run = function __run() {
      */
 
     var template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      width: 74px;\n      height: 74px;\n      border-radius: 50%;\n      background-color: var(--ui-theme-accent-color, purple);\n    }\n  </style>\n';
+    template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      width: 74px;\n      height: 74px;\n      border-radius: 50%;\n      background-color: var(--ui-theme-accent-color, purple);\n      outline: none;\n    }\n  </style>\n';
 
     /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["b" /* defineUIComponent */])({
       name: 'ui-fab',
@@ -2411,12 +2432,12 @@ var __run = function __run() {
     };
 
     var toQueryString = function toQueryString(obj) {
-      return '?' + Object.entries(obj).map(function (_ref23) {
+      return obj && '?' + Object.entries(obj).map(function (_ref23) {
         var _ref24 = _slicedToArray(_ref23, 2),
             k = _ref24[0],
             v = _ref24[1];
 
-        return encodeURIComponent(k) + '=' + encodeURIComponent(v);
+        return encodeURIComponent(k) + '=' + encodeURIComponent(typeof v === 'string' ? v : JSON.stringify(v));
       }).join('&');
     };
 
@@ -2600,6 +2621,53 @@ var __run = function __run() {
       return [hr, m];
     };
 
+    var ipv4Validator = function ipv4Validator(value) {
+      if (!value) return false;
+      if (!value.match(/^[\.\d]+$/)) return false;
+      var arr = value.split('.').filter(function (x) {
+        return x;
+      });
+      return arr.length === 4 && arr.every(function (s) {
+        if (s.length > 3) return false;
+        var n = parseInt(s, 10);
+        return !Number.isNaN(n) && n >= 0 && n <= 255;
+      });
+    };
+
+    // not perfect, but like date and time probably close enough for now
+    var ipv6Validator = function ipv6Validator(value) {
+      if (!value) return false;
+      // cannot have more than one ::
+      var doubleColon = value.match(/::/g);
+      if (doubleColon && doubleColon.length > 1) return false;
+      // must start with and end with either :: or hex digit, must contain only : and hex digits
+      if (!value.match(/^(?:::|[a-fA-F0-9]{1,4})[:a-fA-F0-9]*(?:::|[a-fA-F0-9]{1,4})$/)) return false;
+
+      var s = void 0;
+      var groups = value.split(':').filter(function (x) {
+        return x;
+      });
+      if (groups.length < 8) {
+        var index = value.indexOf('::');
+        if (index === -1) return false;
+        var rep = 8 - groups.length;
+        var lead = index ? '' : '0000:'.repeat(rep);
+        var tail = index === value.length - 2 ? ':0000'.repeat(rep) : '';
+        s = lead || tail ? '' + lead + value.replace('::', '') + tail : value.replace('::', ':' + '0000:'.repeat(rep));
+
+        groups = s.split(':');
+      }
+      if (groups.length > 8) return false;
+      if (groups.some(function (s) {
+        return s.length > 4;
+      })) return false;
+      return groups.map(function (n) {
+        return parseInt(n, 16);
+      }).every(function (n) {
+        return !Number.isNaN(n) && n < 65536 && n > -1;
+      });
+    };
+
     var template = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
     template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      border-bottom: solid 1px;\n      border-bottom-color: #999;\n      min-height: 25px;\n      margin-bottom: 10px;\n      margin-top: 10px;\n      max-width: 200px;\n      color: var(--ui-theme-dark-text-color, #333);\n      outline-width: 0px;\n    }\n\n    :host(.focused) {\n      border-bottom-color: var(--ui-theme-primary-dark-color, blue);\n      box-shadow: 0px 4px 4px -4px;\n    }\n\n    :host(.empty) {\n      color: #999;\n    }\n\n    ui-text {\n      /* janky, I know. TODO: find a way to make this work with transform: translate */\n      transition-property: top, left, font-size;\n      transition-timing-function: ease;\n      transition-duration: 1s;\n      position: relative;\n      top: 0px;\n      left: 0px;\n      font-size: 14px;\n    }\n\n    #input {\n      border: none;\n      outline: none;\n      width: 90%;\n      margin-left: 5%;\n      margin-bottom: 3px;\n      height: 25px;\n      font-size: 16px;\n      color: inherit;\n      background-color: inherit; /* firefox changes the color */\n    }\n\n    .text-moved {\n      top: 20px;\n      left: 10px;\n      font-size: 16px;\n    }\n  </style>\n  <label><ui-text view-text="{{label}}"></ui-text></label>\n  <input id="input"/>\n';
 
@@ -2620,6 +2688,57 @@ var __run = function __run() {
         }
 
         _createClass(Input, [{
+          key: '_typeSetup',
+          value: function _typeSetup() {
+            var type = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'text';
+
+            switch (type.toLowerCase()) {
+              // TODO: replace these two with cross-platform date and time pickers?
+              case 'date':
+              case 'time':
+
+              case 'text':
+              case 'number':
+              case 'password':
+              case 'email':
+              case 'tel':
+              case 'url':
+                this.removeValidator(ipv4Validator);
+                this.removeValidator(ipv6Validator);
+                this._input.setAttribute('type', this.attr('type'));
+                break;
+
+              case 'ipv4':
+                this.removeValidator(ipv6Validator);
+                this.validate(ipv4Validator);
+                break;
+
+              case 'ipv6':
+                this.removeValidator(ipv4Validator);
+                this.validate(ipv6Validator);
+                break;
+            }
+
+            if (this.attr('type').toLowerCase() === 'date' && !DATE_TYPE_SUPPORTED) {
+              this.attr('placeholder', 'mm/dd/yyyy');
+              this.attr('pattern', '^[0-1][1-9]\/[1-3][1-9]\/\d{4}$');
+            }
+
+            if (this.attr('type').toLowerCase() === 'time' && !TIME_TYPE_SUPPORTED) {
+              this.attr('placeholder', '00:00 AM/PM');
+              this.attr('pattern', '^[0-2][0-9]:[0-5][0-9] [AP]M$');
+            }
+            if (type === 'hidden') {
+              this.hide();
+              return;
+            }
+
+            if ((type === 'date' || type === 'time') && !this.value) {
+              this.selectInternalElement('ui-text').classList.remove('text-moved');
+            }
+            return this;
+          }
+        }, {
           key: 'init',
           value: function init() {
             var _this35 = this;
@@ -2655,30 +2774,7 @@ var __run = function __run() {
             if (!this.attr('type')) this.type = 'text';
             if (!(this.value && this.value.length || this.attr('value'))) this.classList.add('empty');
 
-            switch (this.attr('type').toLowerCase()) {
-              // TODO: replace these two with cross-platform date and time pickers?
-              case 'date':
-              case 'time':
-
-              case 'text':
-              case 'number':
-              case 'password':
-              case 'email':
-              case 'tel':
-              case 'url':
-                this._input.setAttribute('type', this.attr('type'));
-                break;
-            }
-
-            if (this.attr('type').toLowerCase() === 'date' && !DATE_TYPE_SUPPORTED) {
-              this.attr('placeholder', 'mm/dd/yyyy');
-              this.attr('pattern', '^[0-1][1-9]\/[1-3][1-9]\/\d{4}$');
-            }
-
-            if (this.attr('type').toLowerCase() === 'time' && !TIME_TYPE_SUPPORTED) {
-              this.attr('placeholder', '00:00 AM/PM');
-              this.attr('pattern', '^[0-2][0-9]:[0-5][0-9] [AP]M$');
-            }
+            this._typeSetup(this.attr('type').toLowerCase());
 
             this._input.addEventListener('focus', function (e) {
               _this35.classList.add('focused');
@@ -2746,17 +2842,8 @@ var __run = function __run() {
                   break;
 
                 case 'type':
-                  if (now === 'hidden') {
-                    _this35.hide();
-                    return;
-                  }
-
-                  if ((now === 'date' || now === 'time') && !_this35.value) {
-                    _this35.selectInternalElement('ui-text').classList.remove('text-moved');
-                  }
-
-                  if (!['text', 'number', 'password', 'email', 'date', 'time'].includes(now)) return;
-                // fall-through
+                  _this35._typeSetup(now);
+                  break;
 
                 case 'required':
                   if (now == null) {
@@ -3279,7 +3366,6 @@ var __run = function __run() {
           key: 'logout',
           value: function logout() {
             this.isLoggedIn = null;
-            this.selectInternalElement('[name="user"]').value = '';
             this.selectInternalElement('[name="pass"]').value = '';
             __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].sessionStorage.setItem('ui-credentials', '');
             this.dispatchEvent(new CustomEvent('logout', { bubbles: true }));
@@ -4893,10 +4979,10 @@ var __run = function __run() {
               if (type === 'String') route = val;
               if (type.match(/HTML\w*Element/)) route = val.getAttribute('route-path');
               var base = path.match(/\/$/) ? path : path + '/';
-              var url = this.hashBang ? base + '#!' + route : '' + base + route;
+              var url = this.hashBang ? base.replace('#', '') + '#!' + route : '' + base + route;
 
               if (this._login && !this._login.isLoggedIn) {
-                if (this.updatesHistory) this._updateHistory(route, url, data);
+                // if (this.updatesHistory) this._updateHistory(route, url, data);
                 this._internalRoute('/login');
               } else {
                 if (route && route in this._routes) {
@@ -5070,6 +5156,8 @@ var __run = function __run() {
               if (this.updatesHistory) {
                 var qs = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["b" /* toQueryString */])(data);
                 if (qs !== '?') {
+                  var href = window.location.href.match(/\/$/) ? window.location.href.slice(0, window.location.href.length - 1) : window.location.href;
+
                   history.replaceState(data, '', window.location.href, window.location.href + qs);
                 }
               }
@@ -5111,11 +5199,6 @@ var __run = function __run() {
                     }, {}));
                   });
                 });
-
-                var data = localStorage.getItem(_this71.routePath);
-
-                // Check to see if it was written from query string first.
-                if (!_this71.data && data != null) _this71.update(JSON.parse(data));
               });
 
               this.on('attribute-change', function (_ref50) {
@@ -5125,9 +5208,13 @@ var __run = function __run() {
 
                 switch (name) {
                   case 'is-selected':
-                    if (!now || now && !_this71.isSelected) {
-                      var evtName = now ? 'component-selected' : 'component-deselected';
-                      _this71.dispatchEvent(new CustomEvent(evtName));
+                    if (now) {
+                      // Check to see if it was written from query string first.
+                      var data = localStorage.getItem(_this71.routePath);
+                      if (!_this71.data && data != null) _this71.update(JSON.parse(data));
+                      _this71.dispatchEvent(new CustomEvent('component-selected'));
+                    } else if (!now) {
+                      _this71.dispatchEvent(new CustomEvent('component-deselected'));
                     }
                     break;
                 }

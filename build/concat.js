@@ -890,7 +890,7 @@ template.innerHTML = `
     :host {
       display: block;
       position: absolute;
-      z-index: 2000;
+      z-index: 0;
       background-color: #555;
       color: #fff;
       opacity: 0;
@@ -912,6 +912,7 @@ template.innerHTML = `
 
     :host(.faded-in) {
       opacity: 0.9;
+      z-index: 2000;
     }
   </style>
   <div id="tooltip">
@@ -981,8 +982,11 @@ const Tooltip = Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base
     }
 
     show () {
-      this._updatePosition();
-      this.classList.add('faded-in');
+      if (this.viewText) {
+        this._updatePosition();
+        this.classList.add('faded-in');
+      }
+      
       return this;
     }
 
@@ -1239,31 +1243,33 @@ const Form = (() => {
       }
 
       set data (data) {
-        Object.entries(data).forEach(([name, val]) => {
-          const els = this.elements.filter(el => el.matches(`[name="${name}"]`));
-          els.forEach((el, i, arr) => {
-            const type = this._formControlType(el);
-            let value = Array.isArray(val) ?
-              (val[i] || val[val.length - 1]) :
-              val;
+        if (data) {
+          Object.entries(data).forEach(([name, val]) => {
+            const els = this.elements.filter(el => el.matches(`[name="${name}"]`));
+            let values;
+            if (els.length > 1) values = Array.isArray(val) ? val : val.split(',');
+            els.forEach((el, i, arr) => {
+              const type = this._formControlType(el);
+              let value = values ? values[i] : val;
+              if (value === 'undefined' || value === 'null' || value == null) value = '';
 
-            if (value === 'undefined' || value === 'null') value = '';
+              switch (type) {
+                case 'formElement':
+                case 'input':
+                  if (el.value !== value) el.value = value;
+                  break;
 
-            switch (type) {
-              case 'formElement':
-                if (el.value !== value) el.value = value;
-                break;
-
-              case 'select':
-                [...sel.options].forEach((opt, j) => {
-                  if (opt.value === value && j !== sel.selectedIndex) sel.selectedIndex = j;
-                });
-                break;
-            }
+                case 'select':
+                  [...sel.options].forEach((opt, j) => {
+                    if (opt.value === value && j !== sel.selectedIndex) sel.selectedIndex = j;
+                  });
+                  break;
+              }
+            });
           });
-        });
+        }
 
-        return this.data;
+        return data;
       }
 
       serialize () {
@@ -1272,6 +1278,7 @@ const Form = (() => {
           try {
             val = JSON.parse(el.value);
           } catch (e) {
+            // val = el.value.replace(',', '\\,'); // escape commas to correctly reconstruct arrays in url
             val = el.value;
           }
           if (name in acc) {
@@ -1320,9 +1327,14 @@ const Form = (() => {
           const data = this.serialize();
           const parsed = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["a" /* parseURL */])(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].location.href);
           const { path, route, hashBang } = parsed;
-          let url = path;
+          let url = path.match(/\/$/) ? path.slice(0, path.length - 1) : path;
           if (hashBang) url += '#!';
           if (route) url += route;
+          if (data) {
+            if (url.match(/\/$/)) url = url.slice(0, url.length - 1);
+            if (!url.match(/#/) && !url.match(/\.w+$/)) url += '#';
+          }
+
           url += Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["b" /* toQueryString */])(data);
           __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].history.replaceState(data, '', url);
         };
@@ -1330,11 +1342,19 @@ const Form = (() => {
         this._beforeReady(_ => {
           this.elements.forEach(el => {
             if (el.tagName === 'INPUT') Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_normalizer_js__["a" /* inputNormalizer */])(el);
-            if (this.updatesHistory) el[el.on ? 'on' : 'addEventListener']('change', historyListener);
             el[el.on ? 'on' : 'addEventListener']('change', e => {
               if (this.id) __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].localStorage.setItem(this.id, JSON.stringify(this.serialize()));
             });
           });
+        });
+
+        this.onReady(_ => {
+          // We don't want to catch the initial population event, hence setTimeout
+          __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(() => {
+            this.elements.forEach(el => {
+              if (this.updatesHistory) el[el.on ? 'on' : 'addEventListener']('change', historyListener);
+            });
+          }, 0);
         });
       }
     }
@@ -1924,6 +1944,7 @@ template.innerHTML = `
       height: 74px;
       border-radius: 50%;
       background-color: var(--ui-theme-accent-color, purple);
+      outline: none;
     }
   </style>
 `;
@@ -2184,8 +2205,8 @@ const parseURL = url => {
   };
 };
 
-const toQueryString = obj => '?' + Object.entries(obj)
-  .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+const toQueryString = obj => obj && '?' + Object.entries(obj)
+  .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(typeof v === 'string' ? v : JSON.stringify(v))}`)
   .join('&');
 
 window.parseURL = parseURL;
@@ -2345,6 +2366,48 @@ const parseTimeString = s => {
   return [hr, m];
 };
 
+const ipv4Validator = value => {
+  if (!value) return false;
+  if (!value.match(/^[\.\d]+$/)) return false;
+  const arr = value.split('.').filter(x => x);
+  return arr.length === 4 && 
+    arr.every(s => {
+      if (s.length > 3) return false;
+      let n = parseInt(s, 10);
+      return !Number.isNaN(n) && n >= 0 && n <= 255;
+    });
+};
+
+// not perfect, but like date and time probably close enough for now
+const ipv6Validator = value => {
+  if (!value) return false;
+  // cannot have more than one ::
+  let doubleColon = value.match(/::/g);
+  if (doubleColon && doubleColon.length > 1) return false;
+  // must start with and end with either :: or hex digit, must contain only : and hex digits
+  if (!value.match(/^(?:::|[a-fA-F0-9]{1,4})[:a-fA-F0-9]*(?:::|[a-fA-F0-9]{1,4})$/)) return false;
+  
+  let s;
+  let groups = value.split(':').filter(x => x);
+  if (groups.length < 8) {
+		let index = value.indexOf('::');
+    if (index === -1) return false;
+    let rep = 8 - groups.length;
+    let lead = index ? '' : '0000:'.repeat(rep);
+    let tail = index === (value.length - 2) ? ':0000'.repeat(rep) : '';
+    s = lead || tail ? 
+      `${lead}${value.replace('::', '')}${tail}` :
+      value.replace('::', `:${'0000:'.repeat(rep)}`);
+
+    groups = s.split(':');
+  }
+  if (groups.length > 8) return false;
+  if (groups.some(s => s.length > 4)) return false;
+  return groups
+    .map(n => parseInt(n, 16))
+    .every(n => !Number.isNaN(n) && n < 65536 && n > -1);
+};  
+
 const template = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
 template.innerHTML = `
   <style>
@@ -2410,6 +2473,54 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_j
     constructor () {
       super();
       this._input = null;
+    }
+
+    _typeSetup (type='text') {
+      switch (type.toLowerCase()) {
+        // TODO: replace these two with cross-platform date and time pickers?
+        case 'date':
+        case 'time':
+
+        case 'text':
+        case 'number':
+        case 'password':
+        case 'email':
+        case 'tel':
+        case 'url':
+          this.removeValidator(ipv4Validator);
+          this.removeValidator(ipv6Validator);
+          this._input.setAttribute('type', this.attr('type'));
+          break;
+
+        case 'ipv4':
+          this.removeValidator(ipv6Validator);
+          this.validate(ipv4Validator);
+          break;
+
+        case 'ipv6':
+          this.removeValidator(ipv4Validator);
+          this.validate(ipv6Validator);
+          break;
+      }
+
+      if (this.attr('type').toLowerCase() === 'date' && !DATE_TYPE_SUPPORTED) {
+        this.attr('placeholder', 'mm/dd/yyyy');
+        this.attr('pattern', '^[0-1][1-9]\/[1-3][1-9]\/\d{4}$');
+      }
+
+      if (this.attr('type').toLowerCase() === 'time' && !TIME_TYPE_SUPPORTED) {
+        this.attr('placeholder', '00:00 AM/PM');
+        this.attr('pattern', '^[0-2][0-9]:[0-5][0-9] [AP]M$');
+      }
+      if (type === 'hidden') {
+				this.hide();
+				return;
+			}
+
+			if ((type === 'date' || type === 'time') && !this.value) {
+				this.selectInternalElement('ui-text').classList.remove('text-moved');
+			}
+      return this;
     }
 
     get value () {
@@ -2537,30 +2648,7 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_j
       if (!this.attr('type')) this.type = 'text';
       if (!((this.value && this.value.length) || this.attr('value'))) this.classList.add('empty');
 
-      switch (this.attr('type').toLowerCase()) {
-        // TODO: replace these two with cross-platform date and time pickers?
-        case 'date':
-        case 'time':
-
-        case 'text':
-        case 'number':
-        case 'password':
-        case 'email':
-        case 'tel':
-        case 'url':
-          this._input.setAttribute('type', this.attr('type'));
-          break;
-      }
-
-      if (this.attr('type').toLowerCase() === 'date' && !DATE_TYPE_SUPPORTED) {
-        this.attr('placeholder', 'mm/dd/yyyy');
-        this.attr('pattern', '^[0-1][1-9]\/[1-3][1-9]\/\d{4}$');
-      }
-
-      if (this.attr('type').toLowerCase() === 'time' && !TIME_TYPE_SUPPORTED) {
-        this.attr('placeholder', '00:00 AM/PM');
-        this.attr('pattern', '^[0-2][0-9]:[0-5][0-9] [AP]M$');
-      }
+      this._typeSetup(this.attr('type').toLowerCase()); 
 
       this._input.addEventListener('focus', e => {
         this.classList.add('focused');
@@ -2623,17 +2711,8 @@ const Input = Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_j
             break;
 
           case 'type':
-            if (now === 'hidden') {
-              this.hide();
-              return;
-            }
-
-            if ((now === 'date' || now === 'time') && !this.value) {
-              this.selectInternalElement('ui-text').classList.remove('text-moved');
-            }
-
-            if (!['text', 'number', 'password', 'email', 'date', 'time'].includes(now)) return;
-            // fall-through
+            this._typeSetup(now);
+            break;
 
           case 'required':
             if (now == null) {
@@ -3135,7 +3214,6 @@ template.innerHTML = `
 
     logout () {
       this.isLoggedIn = null;
-      this.selectInternalElement('[name="user"]').value = '';
       this.selectInternalElement('[name="pass"]').value = '';
       __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].sessionStorage.setItem('ui-credentials', '');
       this.dispatchEvent(new CustomEvent('logout', { bubbles: true }));
@@ -4822,10 +4900,10 @@ const Router = (() => {
         if (type === 'String') route = val;
         if (type.match(/HTML\w*Element/)) route = val.getAttribute('route-path');
         const base = path.match(/\/$/) ? path : `${path}/`;
-        const url = this.hashBang ? `${base}#!${route}` : `${base}${route}`;
+        const url = this.hashBang ? `${base.replace('#', '')}#!${route}` : `${base}${route}`;
 
         if (this._login && !this._login.isLoggedIn) {
-          if (this.updatesHistory) this._updateHistory(route, url, data);
+          // if (this.updatesHistory) this._updateHistory(route, url, data);
           this._internalRoute('/login');
         } else {
           if (route && route in this._routes) {
@@ -4970,6 +5048,10 @@ const Route = (() => {
         if (this.updatesHistory) {
           const qs = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["b" /* toQueryString */])(data);
           if (qs !== '?') {
+            let href = window.location.href.match(/\/$/) ?
+              window.location.href.slice(0, window.location.href.length - 1) :
+              window.location.href;
+
             history.replaceState(data, '', window.location.href, window.location.href + qs);
           }
         }
@@ -5008,19 +5090,18 @@ const Route = (() => {
               }, {}));
             });
           });
-
-          let data = localStorage.getItem(this.routePath);
-
-          // Check to see if it was written from query string first.
-          if (!this.data && data != null) this.update(JSON.parse(data));
         });
 
         this.on('attribute-change', ({ changed: { now, name } }) => {
           switch (name) {
             case 'is-selected':
-              if (!now || (now && !this.isSelected)) {
-                const evtName = now ? 'component-selected' : 'component-deselected';
-                this.dispatchEvent(new CustomEvent(evtName));
+              if (now) {
+                // Check to see if it was written from query string first.
+                let data = localStorage.getItem(this.routePath);
+                if (!this.data && data != null) this.update(JSON.parse(data));
+                this.dispatchEvent(new CustomEvent('component-selected'));
+              } else if (!now) {
+                this.dispatchEvent(new CustomEvent('component-deselected'));
               }
               break;
           }
