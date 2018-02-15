@@ -18,7 +18,7 @@ import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.
 
 import { mix } from '../../../mixwith/src/mixwith.js';
 
-const reflectedAttributes = ['is-on', 'is-round'];
+const reflectedAttributes = ['is-on', 'is-square'];
 const template = document.createElement('template');
 template.innerHTML = `
   <style>
@@ -46,7 +46,7 @@ template.innerHTML = `
                   
     .slider {
       width: inherit;
-      height: inherit;
+      height: 10px;
       position: absolute;
       cursor: pointer;
       top: 0;
@@ -55,7 +55,8 @@ template.innerHTML = `
       bottom: 0;
       background-color: #CCC;
       transition: transform;
-      transition-timing: 400ms;
+      transition-duration: 400ms;
+      border-radius: 34px;
     }
 
     .slider:before {
@@ -64,10 +65,12 @@ template.innerHTML = `
       height: 26px;
       width: 26px;
       left: 4px;
-      bottom: 4px;
+      bottom: -9px;
       background-color: var(--ui-theme-light-text-color);
       transition: transform;
-      transition-timing: 400ms;
+      transition-duration: 400ms;
+      border-radius: 50%;
+      border: 1px solid #CCC;
     }
 
     input:checked + .slider {
@@ -77,13 +80,13 @@ template.innerHTML = `
     input:checked + .slider:before {
       transform: translateX(26px);
     }
-
-    :host([is-round]) .slider {
-      border-radius: 34px;
+    
+    :host([is-square]) .slider {
+      border-radius: 0;
     }
 
-    :host([is-round]) .slider:before {
-      border-radius: 50%;
+    :host([is-square]) .slider:before {
+      border-radius: 0;
     }
   </style>
   <label id="container">

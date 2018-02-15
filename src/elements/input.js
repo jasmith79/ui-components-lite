@@ -133,6 +133,48 @@ const parseTimeString = s => {
   return [hr, m];
 };
 
+const ipv4Validator = value => {
+  if (!value) return false;
+  if (!value.match(/^[\.\d]+$/)) return false;
+  const arr = value.split('.').filter(x => x);
+  return arr.length === 4 && 
+    arr.every(s => {
+      if (s.length > 3) return false;
+      let n = parseInt(s, 10);
+      return !Number.isNaN(n) && n >= 0 && n <= 255;
+    });
+};
+
+// not perfect, but like date and time probably close enough for now
+const ipv6Validator = value => {
+  if (!value) return false;
+  // cannot have more than one ::
+  let doubleColon = value.match(/::/g);
+  if (doubleColon && doubleColon.length > 1) return false;
+  // must start with and end with either :: or hex digit, must contain only : and hex digits
+  if (!value.match(/^(?:::|[a-fA-F0-9]{1,4})[:a-fA-F0-9]*(?:::|[a-fA-F0-9]{1,4})$/)) return false;
+  
+  let s;
+  let groups = value.split(':').filter(x => x);
+  if (groups.length < 8) {
+		let index = value.indexOf('::');
+    if (index === -1) return false;
+    let rep = 8 - groups.length;
+    let lead = index ? '' : '0000:'.repeat(rep);
+    let tail = index === (value.length - 2) ? ':0000'.repeat(rep) : '';
+    s = lead || tail ? 
+      `${lead}${value.replace('::', '')}${tail}` :
+      value.replace('::', `:${'0000:'.repeat(rep)}`);
+
+    groups = s.split(':');
+  }
+  if (groups.length > 8) return false;
+  if (groups.some(s => s.length > 4)) return false;
+  return groups
+    .map(n => parseInt(n, 16))
+    .every(n => !Number.isNaN(n) && n < 65536 && n > -1);
+};  
+
 const template = document.createElement('template');
 template.innerHTML = `
   <style>
@@ -198,6 +240,54 @@ export const Input = defineUIComponent({
     constructor () {
       super();
       this._input = null;
+    }
+
+    _typeSetup (type='text') {
+      switch (type.toLowerCase()) {
+        // TODO: replace these two with cross-platform date and time pickers?
+        case 'date':
+        case 'time':
+
+        case 'text':
+        case 'number':
+        case 'password':
+        case 'email':
+        case 'tel':
+        case 'url':
+          this.removeValidator(ipv4Validator);
+          this.removeValidator(ipv6Validator);
+          this._input.setAttribute('type', this.attr('type'));
+          break;
+
+        case 'ipv4':
+          this.removeValidator(ipv6Validator);
+          this.validate(ipv4Validator);
+          break;
+
+        case 'ipv6':
+          this.removeValidator(ipv4Validator);
+          this.validate(ipv6Validator);
+          break;
+      }
+
+      if (this.attr('type').toLowerCase() === 'date' && !DATE_TYPE_SUPPORTED) {
+        this.attr('placeholder', 'mm/dd/yyyy');
+        this.attr('pattern', '^[0-1][1-9]\/[1-3][1-9]\/\d{4}$');
+      }
+
+      if (this.attr('type').toLowerCase() === 'time' && !TIME_TYPE_SUPPORTED) {
+        this.attr('placeholder', '00:00 AM/PM');
+        this.attr('pattern', '^[0-2][0-9]:[0-5][0-9] [AP]M$');
+      }
+      if (type === 'hidden') {
+				this.hide();
+				return;
+			}
+
+			if ((type === 'date' || type === 'time') && !this.value) {
+				this.selectInternalElement('ui-text').classList.remove('text-moved');
+			}
+      return this;
     }
 
     get value () {
@@ -325,30 +415,7 @@ export const Input = defineUIComponent({
       if (!this.attr('type')) this.type = 'text';
       if (!((this.value && this.value.length) || this.attr('value'))) this.classList.add('empty');
 
-      switch (this.attr('type').toLowerCase()) {
-        // TODO: replace these two with cross-platform date and time pickers?
-        case 'date':
-        case 'time':
-
-        case 'text':
-        case 'number':
-        case 'password':
-        case 'email':
-        case 'tel':
-        case 'url':
-          this._input.setAttribute('type', this.attr('type'));
-          break;
-      }
-
-      if (this.attr('type').toLowerCase() === 'date' && !DATE_TYPE_SUPPORTED) {
-        this.attr('placeholder', 'mm/dd/yyyy');
-        this.attr('pattern', '^[0-1][1-9]\/[1-3][1-9]\/\d{4}$');
-      }
-
-      if (this.attr('type').toLowerCase() === 'time' && !TIME_TYPE_SUPPORTED) {
-        this.attr('placeholder', '00:00 AM/PM');
-        this.attr('pattern', '^[0-2][0-9]:[0-5][0-9] [AP]M$');
-      }
+      this._typeSetup(this.attr('type').toLowerCase()); 
 
       this._input.addEventListener('focus', e => {
         this.classList.add('focused');
@@ -411,17 +478,8 @@ export const Input = defineUIComponent({
             break;
 
           case 'type':
-            if (now === 'hidden') {
-              this.hide();
-              return;
-            }
-
-            if ((now === 'date' || now === 'time') && !this.value) {
-              this.selectInternalElement('ui-text').classList.remove('text-moved');
-            }
-
-            if (!['text', 'number', 'password', 'email', 'date', 'time'].includes(now)) return;
-            // fall-through
+            this._typeSetup(now);
+            break;
 
           case 'required':
             if (now == null) {
