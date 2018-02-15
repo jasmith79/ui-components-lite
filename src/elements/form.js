@@ -92,31 +92,33 @@ export const Form = (() => {
       }
 
       set data (data) {
-        Object.entries(data).forEach(([name, val]) => {
-          const els = this.elements.filter(el => el.matches(`[name="${name}"]`));
-          els.forEach((el, i, arr) => {
-            const type = this._formControlType(el);
-            let value = Array.isArray(val) ?
-              (val[i] || val[val.length - 1]) :
-              val;
+        if (data) {
+          Object.entries(data).forEach(([name, val]) => {
+            const els = this.elements.filter(el => el.matches(`[name="${name}"]`));
+            let values;
+            if (els.length > 1) values = Array.isArray(val) ? val : val.split(',');
+            els.forEach((el, i, arr) => {
+              const type = this._formControlType(el);
+              let value = values ? values[i] : val;
+              if (value === 'undefined' || value === 'null' || value == null) value = '';
 
-            if (value === 'undefined' || value === 'null') value = '';
+              switch (type) {
+                case 'formElement':
+                case 'input':
+                  if (el.value !== value) el.value = value;
+                  break;
 
-            switch (type) {
-              case 'formElement':
-                if (el.value !== value) el.value = value;
-                break;
-
-              case 'select':
-                [...sel.options].forEach((opt, j) => {
-                  if (opt.value === value && j !== sel.selectedIndex) sel.selectedIndex = j;
-                });
-                break;
-            }
+                case 'select':
+                  [...sel.options].forEach((opt, j) => {
+                    if (opt.value === value && j !== sel.selectedIndex) sel.selectedIndex = j;
+                  });
+                  break;
+              }
+            });
           });
-        });
+        }
 
-        return this.data;
+        return data;
       }
 
       serialize () {
@@ -125,6 +127,7 @@ export const Form = (() => {
           try {
             val = JSON.parse(el.value);
           } catch (e) {
+            // val = el.value.replace(',', '\\,'); // escape commas to correctly reconstruct arrays in url
             val = el.value;
           }
           if (name in acc) {
@@ -173,9 +176,14 @@ export const Form = (() => {
           const data = this.serialize();
           const parsed = parseURL(global.location.href);
           const { path, route, hashBang } = parsed;
-          let url = path;
+          let url = path.match(/\/$/) ? path.slice(0, path.length - 1) : path;
           if (hashBang) url += '#!';
           if (route) url += route;
+          if (data) {
+            if (url.match(/\/$/)) url = url.slice(0, url.length - 1);
+            if (!url.match(/#/) && !url.match(/\.w+$/)) url += '#';
+          }
+
           url += toQueryString(data);
           global.history.replaceState(data, '', url);
         };
@@ -183,11 +191,19 @@ export const Form = (() => {
         this._beforeReady(_ => {
           this.elements.forEach(el => {
             if (el.tagName === 'INPUT') inputNormalizer(el);
-            if (this.updatesHistory) el[el.on ? 'on' : 'addEventListener']('change', historyListener);
             el[el.on ? 'on' : 'addEventListener']('change', e => {
               if (this.id) global.localStorage.setItem(this.id, JSON.stringify(this.serialize()));
             });
           });
+        });
+
+        this.onReady(_ => {
+          // We don't want to catch the initial population event, hence setTimeout
+          global.setTimeout(() => {
+            this.elements.forEach(el => {
+              if (this.updatesHistory) el[el.on ? 'on' : 'addEventListener']('change', historyListener);
+            });
+          }, 0);
         });
       }
     }

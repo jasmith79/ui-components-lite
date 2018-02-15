@@ -14,8 +14,6 @@ add flow types
 
 DOCUMENT EVERYTHING
 
-Form inputs losing data? Test caching.
-
 Tooling and css vendor prefixes
 
 Responsive styles and MQs and breakpoints
@@ -23,9 +21,7 @@ Responsive styles and MQs and breakpoints
 Fix default theme colors
 
 **PRIORITY**
-input with cached data when multiple form items share name, getting the array ,,value
 fix how tooltip works, kinda hacky right now
-login after timeout broken?
 
 
 

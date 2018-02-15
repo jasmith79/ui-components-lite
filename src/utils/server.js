@@ -71,12 +71,12 @@ app.post('/data/formtest2', upload.array(), function(request, response) {
 
 app.get('*', function(request, response, next) {
   console.log(`URL: ${request.url}`);
-  if (request.url.match(/\.[0-9a-zA-Z]*$/)) {
-    console.log(`File ${request.url} requested, serving...`);
+  if (request.path.match(/\.[0-9a-zA-Z]*$/)) {
+    console.log(`File ${request.path} requested, serving...`);
     let npmDep = ['mixwith', 'jsstring', 'extracttype'].find(x => request.url.match(x));
     let path = npmDep ?
-      `${workingDirectory}/node_modules/${request.url}` :
-      `${workingDirectory}/${request.url}`;
+      `${workingDirectory}/node_modules/${request.path}` :
+      `${workingDirectory}/${request.path}`;
 
     response.sendFile(path);
     console.log('done.');
@@ -85,8 +85,9 @@ app.get('*', function(request, response, next) {
     next();
   }
 }, function (request, response, next) {
-  let index = request.url.match(/\/$/) ? request.url : `${request.url}/`;
-  let pathPieces = request.url.split('/').filter(x => x);
+  console.log(`path is ${request.path}`);
+  let index = request.path.match(/\/$/) ? request.url : `${request.url}/`;
+  let pathPieces = request.path.split('/').filter(x => x);
   try {
     console.log('Checking directory for index.html...');
     const index = request.url.match(/\/$/) ? request.url : `${request.url}/`;

@@ -154,7 +154,7 @@ export const Router = (() => {
         if (type === 'String') route = val;
         if (type.match(/HTML\w*Element/)) route = val.getAttribute('route-path');
         const base = path.match(/\/$/) ? path : `${path}/`;
-        const url = this.hashBang ? `${base}#!${route}` : `${base}${route}`;
+        const url = this.hashBang ? `${base.replace('#', '')}#!${route}` : `${base}${route}`;
 
         if (this._login && !this._login.isLoggedIn) {
           // if (this.updatesHistory) this._updateHistory(route, url, data);
@@ -300,6 +300,10 @@ export const Route = (() => {
         if (this.updatesHistory) {
           const qs = toQueryString(data);
           if (qs !== '?') {
+            let href = window.location.href.match(/\/$/) ?
+              window.location.href.slice(0, window.location.href.length - 1) :
+              window.location.href;
+
             history.replaceState(data, '', window.location.href, window.location.href + qs);
           }
         }
@@ -338,19 +342,18 @@ export const Route = (() => {
               }, {}));
             });
           });
-
-          let data = localStorage.getItem(this.routePath);
-
-          // Check to see if it was written from query string first.
-          if (!this.data && data != null) this.update(JSON.parse(data));
         });
 
         this.on('attribute-change', ({ changed: { now, name } }) => {
           switch (name) {
             case 'is-selected':
-              if (!now || (now && !this.isSelected)) {
-                const evtName = now ? 'component-selected' : 'component-deselected';
-                this.dispatchEvent(new CustomEvent(evtName));
+              if (now) {
+                // Check to see if it was written from query string first.
+                let data = localStorage.getItem(this.routePath);
+                if (!this.data && data != null) this.update(JSON.parse(data));
+                this.dispatchEvent(new CustomEvent('component-selected'));
+              } else if (!now) {
+                this.dispatchEvent(new CustomEvent('component-deselected'));
               }
               break;
           }
