@@ -22,7 +22,6 @@ Fix default theme colors
 
 **PRIORITY**
 fix how tooltip works, kinda hacky right now
-add ipv4, 6 input types
 
 
 
