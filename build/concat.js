@@ -5295,6 +5295,10 @@ template.innerHTML = `
         ip.checked = !ip.checked;
         this.value = ip.checked;
       });
+
+      this.on('change', ({ value }) => {
+        ip.checked = Boolean(this.value);
+      });
     }
   }
 }));

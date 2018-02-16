@@ -5324,6 +5324,12 @@ var __run = function __run() {
             ip.checked = !ip.checked;
             _this74.value = ip.checked;
           });
+
+          _this74.on('change', function (_ref53) {
+            var value = _ref53.value;
+
+            ip.checked = Boolean(_this74.value);
+          });
           return _this74;
         }
 
@@ -5489,10 +5495,10 @@ var __run = function __run() {
               }, 1000);
             });
 
-            this.on('attribute-change', function (_ref53) {
-              var _ref53$changed = _ref53.changed,
-                  now = _ref53$changed.now,
-                  name = _ref53$changed.name;
+            this.on('attribute-change', function (_ref54) {
+              var _ref54$changed = _ref54.changed,
+                  now = _ref54$changed.now,
+                  name = _ref54$changed.name;
 
               switch (name) {
                 case 'selected-index':
