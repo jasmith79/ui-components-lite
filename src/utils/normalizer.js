@@ -45,4 +45,6 @@ export const inputNormalizer = input => {
   input.addEventListener('focus', e => {
     before = input.value;
   });
+
+  return input;
 };

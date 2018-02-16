@@ -14,6 +14,7 @@ import Checkbox from './checkbox.js';
 import { FormControlBehavior } from './form.js';
 
 import Floats from '../utils/float.js';
+import { inputNormalizer } from '../utils/normalizer.js';
 import { UIBase, defineUIComponent, document } from '../utils/ui-component-base.js';
 
 import { mix } from '../../../mixwith/src/mixwith.js';
@@ -43,7 +44,7 @@ template.innerHTML = `
       height: inherit;
       position: inherit;
     }
-                  
+
     .slider {
       width: inherit;
       height: 10px;
@@ -80,7 +81,7 @@ template.innerHTML = `
     input:checked + .slider:before {
       transform: translateX(26px);
     }
-    
+
     :host([is-square]) .slider {
       border-radius: 0;
     }
@@ -102,8 +103,11 @@ export default defineUIComponent({
   definition: class Toggle extends mix(UIBase).with(FormControlBehavior, Floats) {
     constructor () {
       super();
-      this.selectInternalElement('input').addEventListener('change', e => {
-        this.value = e.target.checked;
+      const ip = this.selectInternalElement('input');
+      inputNormalizer(ip);
+      this.on('click enter-key', e => {
+        ip.checked = !ip.checked;
+        this.value = ip.checked;
       });
     }
   }

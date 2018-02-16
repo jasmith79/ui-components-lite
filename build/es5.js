@@ -106,7 +106,7 @@ var __run = function __run() {
     __webpack_require__.d(__webpack_exports__, "a", function () {
       return UIBase;
     });
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__styler_js__ = __webpack_require__(18);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__styler_js__ = __webpack_require__(19);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__binder_js__ = __webpack_require__(26);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__dom_utils_js__ = __webpack_require__(27);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__attribute_analyzer_js__ = __webpack_require__(11);
@@ -856,7 +856,7 @@ var __run = function __run() {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__temp_utils_normalizer_js__ = __webpack_require__(21);
+    var __WEBPACK_IMPORTED_MODULE_0__temp_utils_normalizer_js__ = __webpack_require__(16);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__ = __webpack_require__(22);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
@@ -1203,7 +1203,7 @@ var __run = function __run() {
     var __WEBPACK_IMPORTED_MODULE_0__tooltip_js__ = __webpack_require__(8);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_animations_rippler_js__ = __webpack_require__(12);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_float_js__ = __webpack_require__(4);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_centerer_js__ = __webpack_require__(19);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_centerer_js__ = __webpack_require__(20);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__temp_utils_focusable_js__ = __webpack_require__(7);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
@@ -2160,6 +2160,74 @@ var __run = function __run() {
 
     "use strict";
     /* harmony import */
+    var __WEBPACK_IMPORTED_MODULE_0__ui_component_base_js__ = __webpack_require__(0);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+
+    var changeTriggers = ['keyup', 'paste', 'input'];
+
+    var debounce = function debounce(n, immed, f) {
+      var _ref19 = function () {
+        switch (Object(__WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__["a" /* default */])(immed)) {
+          case 'Boolean':
+            return [f, immed];
+          case 'Function':
+            return [immed, false];
+          default:
+            throw new TypeError('Unrecognized arguments ' + immed + ' and ' + f + ' to function debounce.');
+        }
+      }(),
+          _ref20 = _slicedToArray(_ref19, 2),
+          fn = _ref20[0],
+          now = _ref20[1];
+
+      var timer = null;
+      return function () {
+        var _this33 = this;
+
+        for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+          args[_key5] = arguments[_key5];
+        }
+
+        if (timer === null && now) {
+          fn.apply(this, args);
+        }
+        __WEBPACK_IMPORTED_MODULE_0__ui_component_base_js__["d" /* global */].clearTimeout(timer);
+        timer = __WEBPACK_IMPORTED_MODULE_0__ui_component_base_js__["d" /* global */].setTimeout(function () {
+          return fn.apply(_this33, args);
+        }, n);
+        return timer;
+      };
+    };
+
+    // Makes input change event consistent across browsers
+    var inputNormalizer = function inputNormalizer(input) {
+      var before = null;
+      changeTriggers.forEach(function (evtName) {
+        return input.addEventListener(evtName, debounce(500, function (e) {
+          if (input.value !== before) {
+            before = input.value;
+            var evt = new Event('change');
+            evt.value = input.value;
+            input.dispatchEvent(evt);
+          }
+        }));
+      });
+
+      input.addEventListener('focus', function (e) {
+        before = input.value;
+      });
+
+      return input;
+    };
+    /* harmony export (immutable) */__webpack_exports__["a"] = inputNormalizer;
+
+    /***/
+  },
+  /* 17 */
+  /***/function (module, __webpack_exports__, __webpack_require__) {
+
+    "use strict";
+    /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__checkbox_js__ = __webpack_require__(15);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__form_js__ = __webpack_require__(5);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__tooltip_js__ = __webpack_require__(8);
@@ -2194,11 +2262,11 @@ var __run = function __run() {
           function definition() {
             _classCallCheck(this, definition);
 
-            var _this33 = _possibleConstructorReturn(this, (definition.__proto__ || Object.getPrototypeOf(definition)).call(this));
+            var _this34 = _possibleConstructorReturn(this, (definition.__proto__ || Object.getPrototypeOf(definition)).call(this));
 
-            _this33._items = [];
-            _this33._selected = null;
-            return _this33;
+            _this34._items = [];
+            _this34._selected = null;
+            return _this34;
           }
 
           // Using a closure here because getting the item back out of the Event object is unreliable.
@@ -2207,23 +2275,23 @@ var __run = function __run() {
           _createClass(definition, [{
             key: '_itemHandlerFactory',
             value: function _itemHandlerFactory(item) {
-              var _this34 = this;
+              var _this35 = this;
 
               var h = handlerCache.get(item);
               if (h) return h;
               var f = function f(e) {
-                if (_this34.multiple === true) {
-                  if (!item.isSelected && !_this34.selected.includes(item)) {
+                if (_this35.multiple === true) {
+                  if (!item.isSelected && !_this35.selected.includes(item)) {
                     item.isSelected = true;
-                    _this34.selected = item; // pushes in setter
+                    _this35.selected = item; // pushes in setter
                   } else if (item.isSelected) {
                     item.isSelected = false;
-                    _this34._deSelect(item);
+                    _this35._deSelect(item);
                   }
                 } else {
-                  if (!item.isSelected && item !== _this34.selected) {
+                  if (!item.isSelected && item !== _this35.selected) {
                     item.isSelected = true;
-                    _this34.selected = item;
+                    _this35.selected = item;
                   }
                 }
 
@@ -2247,14 +2315,14 @@ var __run = function __run() {
           }, {
             key: 'appendChild',
             value: function appendChild(node) {
-              var _this35 = this;
+              var _this36 = this;
 
               var p = node.onReady(function (el) {
                 if (el.matches && el.matches('.ui-item')) {
-                  el.on('click', _this35._itemHandlerFactory(el));
-                  _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'appendChild', _this35).call(_this35, el);
-                  _this35._items.push(el);
-                  if (el.isSelected) _this35.selected = el;
+                  el.on('click', _this36._itemHandlerFactory(el));
+                  _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'appendChild', _this36).call(_this36, el);
+                  _this36._items.push(el);
+                  if (el.isSelected) _this36.selected = el;
                 }
               });
               if (this._pendingDOM) this._pendingDOM.push(p);
@@ -2263,17 +2331,17 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this36 = this;
+              var _this37 = this;
 
               _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'init', this).call(this);
               this.on('keydown', function (e) {
                 var el = function () {
                   switch (e.keyCode) {
                     case 40:
-                      return _this36._items[(_this36._items.indexOf(_this36.shadowRoot.activeElement) + 1) % _this36._items.length];
+                      return _this37._items[(_this37._items.indexOf(_this37.shadowRoot.activeElement) + 1) % _this37._items.length];
 
                     case 38:
-                      return _this36._items[+(_this36._items.indexOf(_this36.shadowRoot.activeElement) - 1)];
+                      return _this37._items[+(_this37._items.indexOf(_this37.shadowRoot.activeElement) - 1)];
 
                     default:
                       return null;
@@ -2283,41 +2351,41 @@ var __run = function __run() {
                 if (el) el.focus();
               });
 
-              this.on('attribute-change', function (_ref19) {
-                var _ref19$changed = _ref19.changed,
-                    now = _ref19$changed.now,
-                    name = _ref19$changed.name;
+              this.on('attribute-change', function (_ref21) {
+                var _ref21$changed = _ref21.changed,
+                    now = _ref21$changed.now,
+                    name = _ref21$changed.name;
 
                 switch (name) {
                   case 'multiple':
                     if (now === true) {
-                      _this36.selectedIndex = -1;
-                      _this36._selected = _this36._selected ? [_this36._selected] : [];
-                      _this36.attr('aria-multiselectable', true);
+                      _this37.selectedIndex = -1;
+                      _this37._selected = _this37._selected ? [_this37._selected] : [];
+                      _this37.attr('aria-multiselectable', true);
                     } else {
-                      _this36.attr('aria-multiselectable', false);
-                      _this36.selected = _this36.selected == null ? null : _this36.selected[0];
+                      _this37.attr('aria-multiselectable', false);
+                      _this37.selected = _this37.selected == null ? null : _this37.selected[0];
                     }
                     break;
 
                   case 'selected-index':
-                    if (now === -1 || _this36.multiple) return;
-                    if (!_this36._items[now]) {
+                    if (now === -1 || _this37.multiple) return;
+                    if (!_this37._items[now]) {
                       console.warn('Attempted to set invalid index ' + now + ' for element.');
-                      _this36.attr('selected-index', was);
+                      _this37.attr('selected-index', was);
                       return;
                     }
 
-                    if (_this36._items[now] !== _this36.selected) _this36.selected = now;
+                    if (_this37._items[now] !== _this37.selected) _this37.selected = now;
                     break;
                 }
               });
 
               this._beforeReady(function (_) {
-                _this36.selectAll('.ui-item').map(function (item) {
-                  _this36._items.push(item);
-                  if (item.attr('is-selected')) _this36.selected = item;
-                  item.on('click enter-key', _this36._itemHandlerFactory(item));
+                _this37.selectAll('.ui-item').map(function (item) {
+                  _this37._items.push(item);
+                  if (item.attr('is-selected')) _this37.selected = item;
+                  item.on('click enter-key', _this37._itemHandlerFactory(item));
                 });
               });
             }
@@ -2404,43 +2472,43 @@ var __run = function __run() {
           function Item() {
             _classCallCheck(this, Item);
 
-            var _this37 = _possibleConstructorReturn(this, (Item.__proto__ || Object.getPrototypeOf(Item)).call(this));
+            var _this38 = _possibleConstructorReturn(this, (Item.__proto__ || Object.getPrototypeOf(Item)).call(this));
 
-            _this37._checkbox = null;
-            _this37._content = null;
-            return _this37;
+            _this38._checkbox = null;
+            _this38._content = null;
+            return _this38;
           }
 
           _createClass(Item, [{
             key: 'init',
             value: function init() {
-              var _this38 = this;
+              var _this39 = this;
 
               _get(Item.prototype.__proto__ || Object.getPrototypeOf(Item.prototype), 'init', this).call(this);
               this.attr('role', 'listoption');
               this._beforeReady(function (_) {
-                _this38._checkbox = _this38.selectInternalElement('ui-checkbox');
-                _this38._content = _this38.selectInternalElement('#content');
-                if (!_this38.value || _this38.value.toString() === 'true') _this38.value = _this38.textContent;
-                if (!_this38.isSelected) _this38.isSelected = false;
+                _this39._checkbox = _this39.selectInternalElement('ui-checkbox');
+                _this39._content = _this39.selectInternalElement('#content');
+                if (!_this39.value || _this39.value.toString() === 'true') _this39.value = _this39.textContent;
+                if (!_this39.isSelected) _this39.isSelected = false;
               });
 
-              this.on('attribute-change', function (_ref20) {
-                var _ref20$changed = _ref20.changed,
-                    now = _ref20$changed.now,
-                    name = _ref20$changed.name;
+              this.on('attribute-change', function (_ref22) {
+                var _ref22$changed = _ref22.changed,
+                    now = _ref22$changed.now,
+                    name = _ref22$changed.name;
 
                 switch (name) {
                   case 'is-selected':
-                    _this38.onReady(function (_) {
+                    _this39.onReady(function (_) {
                       if (now) {
-                        _this38.classList.add('selected');
-                        _this38._checkbox.checked = true;
-                        _this38.dispatchEvent(new CustomEvent('component-selected'));
+                        _this39.classList.add('selected');
+                        _this39._checkbox.checked = true;
+                        _this39.dispatchEvent(new CustomEvent('component-selected'));
                       } else {
-                        _this38.classList.remove('selected');
-                        _this38._checkbox.checked = false;
-                        _this38.dispatchEvent(new CustomEvent('component-deselected'));
+                        _this39.classList.remove('selected');
+                        _this39._checkbox.checked = false;
+                        _this39.dispatchEvent(new CustomEvent('component-deselected'));
                       }
                     });
                     break;
@@ -2487,13 +2555,13 @@ var __run = function __run() {
 
     /***/
   },
-  /* 17 */
+  /* 18 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(6);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__dialog_js__ = __webpack_require__(20);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__dialog_js__ = __webpack_require__(21);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__ = __webpack_require__(2);
     /*
      * alert.js
@@ -2524,7 +2592,7 @@ var __run = function __run() {
         _createClass(Alert, [{
           key: 'init',
           value: function init() {
-            var _this41 = this;
+            var _this42 = this;
 
             _get(Alert.prototype.__proto__ || Object.getPrototypeOf(Alert.prototype), 'init', this).call(this);
             this.attr('role', 'alert');
@@ -2532,7 +2600,7 @@ var __run = function __run() {
             this.smallDialog = true;
             this.attr('is-modal', true);
             this.watchAttribute(this, 'is-open', function (open) {
-              open ? _this41._backdrop.show() : _this41._backdrop.hide();
+              open ? _this42._backdrop.show() : _this42._backdrop.hide();
             });
 
             var closer = this.selectInternalElement('#closer');
@@ -2565,7 +2633,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 18 */
+  /* 19 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -2626,10 +2694,10 @@ var __run = function __run() {
       }
 
       var style = __WEBPACK_IMPORTED_MODULE_0__dom_js__["c" /* document */].createElement('style');
-      style.innerHTML = ':root { ' + Object.entries(theme).reduce(function (s, _ref21) {
-        var _ref22 = _slicedToArray(_ref21, 2),
-            k = _ref22[0],
-            v = _ref22[1];
+      style.innerHTML = ':root { ' + Object.entries(theme).reduce(function (s, _ref23) {
+        var _ref24 = _slicedToArray(_ref23, 2),
+            k = _ref24[0],
+            v = _ref24[1];
 
         return k in defaultThemeObj ? s + ' ' + toCSSVar(k) + ':' + v + ';' : s;
       }, '') + ' }';
@@ -2654,7 +2722,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 19 */
+  /* 20 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -2700,7 +2768,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 20 */
+  /* 21 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -2769,13 +2837,13 @@ var __run = function __run() {
         function Dialog() {
           _classCallCheck(this, Dialog);
 
-          var _this43 = _possibleConstructorReturn(this, (Dialog.__proto__ || Object.getPrototypeOf(Dialog)).call(this));
+          var _this44 = _possibleConstructorReturn(this, (Dialog.__proto__ || Object.getPrototypeOf(Dialog)).call(this));
 
-          _this43._backdrop = null;
+          _this44._backdrop = null;
           __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["d" /* global */].addEventListener('logout', function (e) {
-            _this43.close();
+            _this44.close();
           });
-          return _this43;
+          return _this44;
         }
 
         // Intercepts calls to appendChild so buttons can be appropriately used.
@@ -2784,15 +2852,15 @@ var __run = function __run() {
         _createClass(Dialog, [{
           key: 'appendChild',
           value: function appendChild(node) {
-            var _this44 = this;
+            var _this45 = this;
 
             if (node && node.onReady) {
               node.onReady(function (el) {
                 if (el && el.matches && el.matches('.ui-button')) {
-                  incorporateButtonChild(_this44, el);
-                  _this44.shadowRoot.appendChild(el);
+                  incorporateButtonChild(_this45, el);
+                  _this45.shadowRoot.appendChild(el);
                 } else {
-                  _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'appendChild', _this44).call(_this44, node);
+                  _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'appendChild', _this45).call(_this45, node);
                 }
               });
             }
@@ -2814,7 +2882,7 @@ var __run = function __run() {
         }, {
           key: 'init',
           value: function init() {
-            var _this45 = this;
+            var _this46 = this;
 
             _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'init', this).call(this);
             this.hide();
@@ -2824,45 +2892,45 @@ var __run = function __run() {
             __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["c" /* document */].body.appendChild(this._backdrop);
 
             this._beforeReady(function (_) {
-              [].concat(_toConsumableArray(_this45.selectInternalAll('.ui-button')), _toConsumableArray(_this45.selectAll('.ui-button'))).forEach(function (el) {
-                return incorporateButtonChild(_this45, el);
+              [].concat(_toConsumableArray(_this46.selectInternalAll('.ui-button')), _toConsumableArray(_this46.selectAll('.ui-button'))).forEach(function (el) {
+                return incorporateButtonChild(_this46, el);
               });
             });
 
             var closer = function closer(e) {
-              _this45.close();
+              _this46.close();
             };
 
-            this.on('attribute-change', function (_ref23) {
-              var _ref23$changed = _ref23.changed,
-                  now = _ref23$changed.now,
-                  name = _ref23$changed.name;
+            this.on('attribute-change', function (_ref25) {
+              var _ref25$changed = _ref25.changed,
+                  now = _ref25$changed.now,
+                  name = _ref25$changed.name;
 
               switch (name) {
                 case 'small-dialog':
-                  return now ? (_this45.classList.add('small-dialog'), _this45.classList.remove('medium-dialog', 'large-dialog')) : _this45.classList.remove('small-dialog');
+                  return now ? (_this46.classList.add('small-dialog'), _this46.classList.remove('medium-dialog', 'large-dialog')) : _this46.classList.remove('small-dialog');
 
                 case 'medium-dialog':
-                  return now ? (_this45.classList.add('medium-dialog'), _this45.classList.remove('small-dialog', 'large-dialog')) : _this45.classList.remove('medium-dialog');
+                  return now ? (_this46.classList.add('medium-dialog'), _this46.classList.remove('small-dialog', 'large-dialog')) : _this46.classList.remove('medium-dialog');
 
                 case 'large-dialog':
-                  return now ? (_this45.classList.add('large-dialog'), _this45.classList.remove('small-dialog', 'medium-dialog')) : _this45.classList.remove('large-dialog');
+                  return now ? (_this46.classList.add('large-dialog'), _this46.classList.remove('small-dialog', 'medium-dialog')) : _this46.classList.remove('large-dialog');
 
                 case 'scrollable-dialog':
-                  return now ? _this45.classList.add('scrollable-dialog') : _this45.classList.remove('scrollable-dialog');
+                  return now ? _this46.classList.add('scrollable-dialog') : _this46.classList.remove('scrollable-dialog');
 
                 case 'is-modal':
-                  return now ? _this45._backdrop.on('click', closer) : _this45._backdrop.remove(closer);
+                  return now ? _this46._backdrop.on('click', closer) : _this46._backdrop.remove(closer);
 
                 case 'is-open':
                   if (now) {
-                    if (_this45.isModal) _this45._backdrop.show();
-                    _this45.show();
-                    _this45.dispatchEvent(new CustomEvent('dialog-opened'));
+                    if (_this46.isModal) _this46._backdrop.show();
+                    _this46.show();
+                    _this46.dispatchEvent(new CustomEvent('dialog-opened'));
                   } else {
-                    _this45._backdrop.hide();
-                    _this45.hide();
-                    _this45.dispatchEvent(new CustomEvent('dialog-closed'));
+                    _this46._backdrop.hide();
+                    _this46.hide();
+                    _this46.dispatchEvent(new CustomEvent('dialog-closed'));
                   }
               }
             });
@@ -2874,72 +2942,6 @@ var __run = function __run() {
     });
 
     /* harmony default export */__webpack_exports__["a"] = Dialog;
-
-    /***/
-  },
-  /* 21 */
-  /***/function (module, __webpack_exports__, __webpack_require__) {
-
-    "use strict";
-    /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__ui_component_base_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
-
-    var changeTriggers = ['keyup', 'paste', 'input'];
-
-    var debounce = function debounce(n, immed, f) {
-      var _ref24 = function () {
-        switch (Object(__WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__["a" /* default */])(immed)) {
-          case 'Boolean':
-            return [f, immed];
-          case 'Function':
-            return [immed, false];
-          default:
-            throw new TypeError('Unrecognized arguments ' + immed + ' and ' + f + ' to function debounce.');
-        }
-      }(),
-          _ref25 = _slicedToArray(_ref24, 2),
-          fn = _ref25[0],
-          now = _ref25[1];
-
-      var timer = null;
-      return function () {
-        var _this46 = this;
-
-        for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-          args[_key5] = arguments[_key5];
-        }
-
-        if (timer === null && now) {
-          fn.apply(this, args);
-        }
-        __WEBPACK_IMPORTED_MODULE_0__ui_component_base_js__["d" /* global */].clearTimeout(timer);
-        timer = __WEBPACK_IMPORTED_MODULE_0__ui_component_base_js__["d" /* global */].setTimeout(function () {
-          return fn.apply(_this46, args);
-        }, n);
-        return timer;
-      };
-    };
-
-    // Makes input change event consistent across browsers
-    var inputNormalizer = function inputNormalizer(input) {
-      var before = null;
-      changeTriggers.forEach(function (evtName) {
-        return input.addEventListener(evtName, debounce(500, function (e) {
-          if (input.value !== before) {
-            before = input.value;
-            var evt = new Event('change');
-            evt.value = input.value;
-            input.dispatchEvent(evt);
-          }
-        }));
-      });
-
-      input.addEventListener('focus', function (e) {
-        before = input.value;
-      });
-    };
-    /* harmony export (immutable) */__webpack_exports__["a"] = inputNormalizer;
 
     /***/
   },
@@ -3073,7 +3075,7 @@ var __run = function __run() {
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__tooltip_js__ = __webpack_require__(8);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__form_js__ = __webpack_require__(5);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_focusable_js__ = __webpack_require__(7);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__temp_utils_normalizer_js__ = __webpack_require__(21);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__temp_utils_normalizer_js__ = __webpack_require__(16);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
@@ -3625,7 +3627,7 @@ var __run = function __run() {
     "use strict";
 
     Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__build_temp_elements_alert_js__ = __webpack_require__(17);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__build_temp_elements_alert_js__ = __webpack_require__(18);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__build_temp_elements_hamburger_js__ = __webpack_require__(29);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__build_temp_elements_checkbox_js__ = __webpack_require__(15);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__build_temp_elements_input_js__ = __webpack_require__(23);
@@ -3641,8 +3643,8 @@ var __run = function __run() {
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_13__build_temp_elements_button_js__ = __webpack_require__(6);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_14__build_temp_elements_toggle_js__ = __webpack_require__(36);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_15__build_temp_elements_backdrop_js__ = __webpack_require__(14);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_16__build_temp_elements_list_js__ = __webpack_require__(16);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_17__build_temp_elements_dialog_js__ = __webpack_require__(20);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_16__build_temp_elements_list_js__ = __webpack_require__(17);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_17__build_temp_elements_dialog_js__ = __webpack_require__(21);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_18__build_temp_elements_fab_js__ = __webpack_require__(24);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_19__build_temp_elements_drop_down_js__ = __webpack_require__(37);
 
@@ -4169,7 +4171,7 @@ var __run = function __run() {
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__card_js__ = __webpack_require__(13);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__fab_js__ = __webpack_require__(24);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__alert_js__ = __webpack_require__(17);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__alert_js__ = __webpack_require__(18);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__form_js__ = __webpack_require__(5);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__input_js__ = __webpack_require__(23);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__ = __webpack_require__(0);
@@ -4358,7 +4360,7 @@ var __run = function __run() {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__list_js__ = __webpack_require__(16);
+    var __WEBPACK_IMPORTED_MODULE_0__list_js__ = __webpack_require__(17);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
@@ -4639,7 +4641,7 @@ var __run = function __run() {
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__ = __webpack_require__(2);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_styler_js__ = __webpack_require__(18);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_styler_js__ = __webpack_require__(19);
     /*
      * easer.js
      * @author jasmith79
@@ -4767,7 +4769,7 @@ var __run = function __run() {
     var __WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__ = __webpack_require__(4);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_attribute_analyzer_js__ = __webpack_require__(11);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_centerer_js__ = __webpack_require__(19);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_centerer_js__ = __webpack_require__(20);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
     /*
      * toolbar.js
@@ -5285,8 +5287,9 @@ var __run = function __run() {
     var __WEBPACK_IMPORTED_MODULE_0__checkbox_js__ = __webpack_require__(15);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__form_js__ = __webpack_require__(5);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_float_js__ = __webpack_require__(4);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_normalizer_js__ = __webpack_require__(16);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
 
     /*
      * toggle.js
@@ -5300,10 +5303,10 @@ var __run = function __run() {
      */
 
     var reflectedAttributes = ['is-on', 'is-square'];
-    var template = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    :host {\n      display: inline-block;\n      width: 60px;\n      height: 34px;\n      position: relative;\n    }\n\n    :host(:hover) .slider {\n      box-shadow: inset 0 0 0 99999px rgba(80,80,80,0.2);\n    }\n\n    input {\n      display: none;\n    }\n\n    #container {\n      display: inherit;\n      width: inherit;\n      height: inherit;\n      position: inherit;\n    }\n                  \n    .slider {\n      width: inherit;\n      height: 10px;\n      position: absolute;\n      cursor: pointer;\n      top: 0;\n      left: 0;\n      right: 0;\n      bottom: 0;\n      background-color: #CCC;\n      transition: transform;\n      transition-duration: 400ms;\n      border-radius: 34px;\n    }\n\n    .slider:before {\n      position: absolute;\n      content: "";\n      height: 26px;\n      width: 26px;\n      left: 4px;\n      bottom: -9px;\n      background-color: var(--ui-theme-light-text-color);\n      transition: transform;\n      transition-duration: 400ms;\n      border-radius: 50%;\n      border: 1px solid #CCC;\n    }\n\n    input:checked + .slider {\n      background-color: var(--ui-theme-primary-dark-color);\n    }\n\n    input:checked + .slider:before {\n      transform: translateX(26px);\n    }\n    \n    :host([is-square]) .slider {\n      border-radius: 0;\n    }\n\n    :host([is-square]) .slider:before {\n      border-radius: 0;\n    }\n  </style>\n  <label id="container">\n    <input type="checkbox" />\n    <div class="slider"></div>\n  </label>\n';
+    var template = __WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    :host {\n      display: inline-block;\n      width: 60px;\n      height: 34px;\n      position: relative;\n    }\n\n    :host(:hover) .slider {\n      box-shadow: inset 0 0 0 99999px rgba(80,80,80,0.2);\n    }\n\n    input {\n      display: none;\n    }\n\n    #container {\n      display: inherit;\n      width: inherit;\n      height: inherit;\n      position: inherit;\n    }\n\n    .slider {\n      width: inherit;\n      height: 10px;\n      position: absolute;\n      cursor: pointer;\n      top: 0;\n      left: 0;\n      right: 0;\n      bottom: 0;\n      background-color: #CCC;\n      transition: transform;\n      transition-duration: 400ms;\n      border-radius: 34px;\n    }\n\n    .slider:before {\n      position: absolute;\n      content: "";\n      height: 26px;\n      width: 26px;\n      left: 4px;\n      bottom: -9px;\n      background-color: var(--ui-theme-light-text-color);\n      transition: transform;\n      transition-duration: 400ms;\n      border-radius: 50%;\n      border: 1px solid #CCC;\n    }\n\n    input:checked + .slider {\n      background-color: var(--ui-theme-primary-dark-color);\n    }\n\n    input:checked + .slider:before {\n      transform: translateX(26px);\n    }\n\n    :host([is-square]) .slider {\n      border-radius: 0;\n    }\n\n    :host([is-square]) .slider:before {\n      border-radius: 0;\n    }\n  </style>\n  <label id="container">\n    <input type="checkbox" />\n    <div class="slider"></div>\n  </label>\n';
 
-    /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+    /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
       name: 'ui-toggle',
       reflectedAttributes: reflectedAttributes,
       template: template,
@@ -5315,14 +5318,17 @@ var __run = function __run() {
 
           var _this74 = _possibleConstructorReturn(this, (Toggle.__proto__ || Object.getPrototypeOf(Toggle)).call(this));
 
-          _this74.selectInternalElement('input').addEventListener('change', function (e) {
-            _this74.value = e.target.checked;
+          var ip = _this74.selectInternalElement('input');
+          Object(__WEBPACK_IMPORTED_MODULE_3__temp_utils_normalizer_js__["a" /* inputNormalizer */])(ip);
+          _this74.on('click enter-key', function (e) {
+            ip.checked = !ip.checked;
+            _this74.value = ip.checked;
           });
           return _this74;
         }
 
         return Toggle;
-      }(Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_1__form_js__["a" /* FormControlBehavior */], __WEBPACK_IMPORTED_MODULE_2__temp_utils_float_js__["a" /* default */]))
+      }(Object(__WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_4__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_1__form_js__["a" /* FormControlBehavior */], __WEBPACK_IMPORTED_MODULE_2__temp_utils_float_js__["a" /* default */]))
     });
 
     /***/
@@ -5333,7 +5339,7 @@ var __run = function __run() {
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(9);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__list_js__ = __webpack_require__(16);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__list_js__ = __webpack_require__(17);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__ = __webpack_require__(7);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
