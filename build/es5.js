@@ -93,7 +93,7 @@ var __run = function __run() {
     /******/__webpack_require__.p = "";
     /******/
     /******/ // Load entry module and return exports
-    /******/return __webpack_require__(__webpack_require__.s = 22);
+    /******/return __webpack_require__(__webpack_require__.s = 25);
     /******/
   })(
   /************************************************************************/
@@ -106,11 +106,11 @@ var __run = function __run() {
     __webpack_require__.d(__webpack_exports__, "a", function () {
       return UIBase;
     });
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__styler_js__ = __webpack_require__(14);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__binder_js__ = __webpack_require__(24);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__dom_utils_js__ = __webpack_require__(25);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__styler_js__ = __webpack_require__(18);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__binder_js__ = __webpack_require__(26);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__dom_utils_js__ = __webpack_require__(27);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__attribute_analyzer_js__ = __webpack_require__(11);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__promise_from_event_js__ = __webpack_require__(26);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__promise_from_event_js__ = __webpack_require__(28);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__dom_js__ = __webpack_require__(2);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_jsstring_src_jsstring_js__ = __webpack_require__(10);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
@@ -855,61 +855,343 @@ var __run = function __run() {
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
+    /* harmony import */
+    var __WEBPACK_IMPORTED_MODULE_0__temp_utils_normalizer_js__ = __webpack_require__(21);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__ = __webpack_require__(22);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
     /*
-     * focusable.js
+     * form.js
      * @author jasmith79
      * @copyright Jared Smith
      * @license MIT
      * You should have received a copy of the license with this work but it may also be found at
      * https://opensource.org/licenses/MIT
      *
-     * Mixin for custom elements that can receive keyboard focus.
+     * form component for ui-components-lite.
+     *
+     * NOTE: it is not currently (and may never) be possible to extend built-in elements like Form.
+     * If it does become possible this can be refactored to support extending HTMLFormElement.
      */
 
-    /* harmony default export */
-    __webpack_exports__["a"] = function (superclass) {
-      return function (_superclass2) {
-        _inherits(Focusable, _superclass2);
+    // TODO external ui-input not getting cached data? input elements lose data sometimes
+    // on multiple reloads?
 
-        function Focusable() {
-          _classCallCheck(this, Focusable);
+    var Form = function () {
+      var reflectedAttributes = ['action', 'method', 'autocomplete', 'response-type', 'updates-history'];
+      var template = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+      template.innerHTML = '\n    <style>\n      :host {\n        display: block;\n      }\n    </style>\n    <slot></slot>\n  ';
 
-          return _possibleConstructorReturn(this, (Focusable.__proto__ || Object.getPrototypeOf(Focusable)).call(this));
-        }
+      return Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+        name: 'ui-form',
+        template: template,
+        reflectedAttributes: reflectedAttributes,
+        definition: function (_WEBPACK_IMPORTED_MO) {
+          _inherits(Form, _WEBPACK_IMPORTED_MO);
 
-        _createClass(Focusable, [{
-          key: 'setActive',
-          value: function setActive() {
-            var index = this.attr('tabindex');
-            if (index === null || index < 0) this.attr('tabindex', '0');
-            return this;
+          function Form() {
+            _classCallCheck(this, Form);
+
+            var _this11 = _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).call(this));
+
+            _this11._form = null;
+            _this11._formUIComponents = null;
+            return _this11;
           }
-        }, {
-          key: 'setInactive',
-          value: function setInactive() {
-            this.attr('tabindex', '-1');
-            return this;
-          }
-        }, {
-          key: 'init',
-          value: function init() {
-            var _this12 = this;
 
-            _get(Focusable.prototype.__proto__ || Object.getPrototypeOf(Focusable.prototype), 'init', this).call(this);
-            if (this.attr('tabindex') === null) this.attr('tabindex', '-1');
-            this.on('keydown', function (e) {
-              if (e.keyCode === 13) {
-                var evt = new CustomEvent('enter-key');
-                evt.keyCode = 13;
-                _this12.dispatchEvent(evt);
+          _createClass(Form, [{
+            key: '_formControlType',
+            value: function _formControlType(el) {
+              var _this12 = this;
+
+              return el && el.matches && function () {
+                if (el.matches('input[name]') || el.matches('input[form="' + _this12.id + '"]')) return 'input';
+
+                if (el.matches('select[name]') || el.matches('select[form="' + _this12.id + '"]')) return 'select';
+
+                if (el.matches('.ui-form-behavior') || el.matches('.ui-form-behavior[form="' + _this12.id + '"]')) return 'formElement';
+
+                return false;
+              }();
+            }
+          }, {
+            key: 'serialize',
+            value: function serialize() {
+              return this.elements.reduce(function (acc, el) {
+                var val = void 0,
+                    name = el.getAttribute('name');
+                try {
+                  val = JSON.parse(el.value);
+                } catch (e) {
+                  // val = el.value.replace(',', '\\,'); // escape commas to correctly reconstruct arrays in url
+                  val = el.value;
+                }
+                if (name in acc) {
+                  if (!Array.isArray(acc[name])) acc[name] = [acc[name]];
+                  acc[name].push(val);
+                } else {
+                  acc[name] = val;
+                }
+                return acc;
+              }, {});
+            }
+          }, {
+            key: 'submit',
+            value: function submit() {
+              var _ref15 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+                  argURL = _ref15.url,
+                  meth = _ref15.method,
+                  headers = _ref15.headers,
+                  responseType = _ref15.responseType;
+
+              if (this.isValid) {
+                var url = argURL || this.action;
+                var method = meth || this.method || 'POST';
+                var opts = {
+                  method: method,
+                  body: this.data
+                };
+
+                if (headers) opts.headers = headers;
+                var result = fetch(url, opts);
+                var evt = new Event('submit');
+                evt.pendingResult = result;
+                this.dispatchEvent(evt);
+                switch ((responseType || this.responseType || 'text').toLowerCase()) {
+                  case 'text':
+                  case 'html':
+                    return result.then(function (resp) {
+                      return resp.text();
+                    });
+
+                  case 'json':
+                    return result.then(function (resp) {
+                      return resp.json();
+                    });
+                  default:
+                    return result;
+                }
+              } else {
+                return Promise.reject(new Error('Attempted to submit invalid form.'));
               }
-            });
-          }
-        }]);
+            }
+          }, {
+            key: 'init',
+            value: function init() {
+              var _this13 = this;
 
-        return Focusable;
-      }(superclass);
-    };
+              _get(Form.prototype.__proto__ || Object.getPrototypeOf(Form.prototype), 'init', this).call(this);
+              this.attr('is-data-element', true);
+              this.attr('role', 'form');
+
+              var historyListener = function historyListener(e) {
+                var data = _this13.serialize();
+                var parsed = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["a" /* parseURL */])(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].location.href);
+                var path = parsed.path,
+                    route = parsed.route,
+                    hashBang = parsed.hashBang;
+
+                var url = path.match(/\/$/) ? path.slice(0, path.length - 1) : path;
+                if (hashBang) url += '#!';
+                if (route) url += route;
+                if (data) {
+                  if (url.match(/\/$/)) url = url.slice(0, url.length - 1);
+                  if (!url.match(/#/) && !url.match(/\.w+$/)) url += '#';
+                }
+
+                url += Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["b" /* toQueryString */])(data);
+                __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].history.replaceState(data, '', url);
+              };
+
+              this._beforeReady(function (_) {
+                _this13.elements.forEach(function (el) {
+                  if (el.tagName === 'INPUT') Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_normalizer_js__["a" /* inputNormalizer */])(el);
+                  el[el.on ? 'on' : 'addEventListener']('change', function (e) {
+                    if (_this13.id) __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].localStorage.setItem(_this13.id, JSON.stringify(_this13.serialize()));
+                  });
+                });
+              });
+
+              this.onReady(function (_) {
+                // We don't want to catch the initial population event, hence setTimeout
+                __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
+                  _this13.elements.forEach(function (el) {
+                    if (_this13.updatesHistory) el[el.on ? 'on' : 'addEventListener']('change', historyListener);
+                  });
+                }, 0);
+              });
+            }
+          }, {
+            key: 'elements',
+            get: function get() {
+              return this.id ? [].concat(_toConsumableArray(new Set([].concat(_toConsumableArray(this.selectAll('input[name], select[name], .ui-form-behavior[name]')), _toConsumableArray(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].querySelectorAll('[form="' + this.id + '"]')))))) : this.selectAll('input[name], select[name], .ui-form-behavior');
+            }
+          }, {
+            key: 'isValid',
+            get: function get() {
+              return !this.querySelector(':invalid') && !this.querySelector('.invalid');
+            }
+          }, {
+            key: 'data',
+            get: function get() {
+              return this.elements.reduce(function (formdata, el) {
+                var name = el.getAttribute('name');
+                if (name) formdata.append(name, el.value == null ? '' : el.value);
+                return formdata;
+              }, new FormData());
+            },
+            set: function set(data) {
+              var _this14 = this;
+
+              if (data) {
+                Object.entries(data).forEach(function (_ref16) {
+                  var _ref17 = _slicedToArray(_ref16, 2),
+                      name = _ref17[0],
+                      val = _ref17[1];
+
+                  var els = _this14.elements.filter(function (el) {
+                    return el.matches('[name="' + name + '"]');
+                  });
+                  var values = void 0;
+                  if (els.length > 1) values = Array.isArray(val) ? val : val.split(',');
+                  els.forEach(function (el, i, arr) {
+                    var type = _this14._formControlType(el);
+                    var value = values ? values[i] : val;
+                    if (value === 'undefined' || value === 'null' || value == null) value = '';
+
+                    switch (type) {
+                      case 'formElement':
+                      case 'input':
+                        if (el.value !== value) el.value = value;
+                        break;
+
+                      case 'select':
+                        [].concat(_toConsumableArray(sel.options)).forEach(function (opt, j) {
+                          if (opt.value === value && j !== sel.selectedIndex) sel.selectedIndex = j;
+                        });
+                        break;
+                    }
+                  });
+                });
+              }
+
+              return data;
+            }
+          }]);
+
+          return Form;
+        }(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["a" /* UIBase */])
+      });
+    }();
+    /* unused harmony export Form */
+
+    var FormControlBehavior = function () {
+      var reflectedAttributes = ['name', 'value', 'required', 'is-valid', 'placeholder'];
+      return function (superclass) {
+        return Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+          name: 'ui-form-behavior',
+          registerElement: false,
+          reflectedAttributes: reflectedAttributes,
+          definition: function (_superclass2) {
+            _inherits(definition, _superclass2);
+
+            function definition() {
+              _classCallCheck(this, definition);
+
+              var _this15 = _possibleConstructorReturn(this, (definition.__proto__ || Object.getPrototypeOf(definition)).call(this));
+
+              _this15._validators = [];
+              return _this15;
+            }
+
+            _createClass(definition, [{
+              key: '_validate',
+              value: function _validate() {
+                var _this16 = this;
+
+                var isValid = this._validators.length ? this._validators.every(function (f) {
+                  return f(_this16.value);
+                }) : true;
+
+                this.isValid = isValid;
+                this.classList.remove(isValid ? 'invalid' : 'valid');
+                this.classList.add(isValid ? 'valid' : 'invalid');
+                return isValid;
+              }
+            }, {
+              key: 'validate',
+              value: function validate(validator) {
+                if (!this._validators.includes(validator)) {
+                  this._validators.push(validator);
+                  this._validate();
+                }
+                return this;
+              }
+            }, {
+              key: 'removeValidator',
+              value: function removeValidator(validator) {
+                this._validators = this._validators.filter(function (f) {
+                  return f !== validator;
+                });
+                this._validate();
+                return this;
+              }
+            }, {
+              key: 'init',
+              value: function init() {
+                var _this17 = this;
+
+                _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'init', this).call(this);
+                var val = this.value;
+                this.on('attribute-change', function (_ref18) {
+                  var _ref18$changed = _ref18.changed,
+                      now = _ref18$changed.now,
+                      name = _ref18$changed.name;
+
+                  switch (name) {
+                    case 'value':
+                    case 'selected-index':
+                      if (now !== val) {
+                        // Need to wait a couple of ticks to allow the selected/value properties to update.
+                        // although we can get current value from the attribute-change event, something
+                        // might attempt to read list.selected or the value property/attribute on change
+                        // and will expect it to be updated.
+                        __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
+                          val = now;
+                          _this17._validate();
+
+                          var evt = new Event('change');
+                          evt.value = _this17.value;
+                          evt.isValid = _this17.isValid;
+                          _this17.dispatchEvent(evt);
+                        }, 0);
+                      }
+
+                      break;
+
+                    case 'required':
+                      var reqHandler = function reqHandler(value) {
+                        return value != null && value !== '';
+                      };
+                      if (now) {
+                        _this17.validate(reqHandler);
+                      } else {
+                        _this17.removeValidator(reqHandler);
+                      }
+
+                      break;
+                  }
+                });
+              }
+            }]);
+
+            return definition;
+          }(superclass)
+        });
+      };
+    }();
+    /* harmony export (immutable) */__webpack_exports__["a"] = FormControlBehavior;
 
     /***/
   },
@@ -918,11 +1200,11 @@ var __run = function __run() {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__tooltip_js__ = __webpack_require__(7);
+    var __WEBPACK_IMPORTED_MODULE_0__tooltip_js__ = __webpack_require__(8);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_animations_rippler_js__ = __webpack_require__(12);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_float_js__ = __webpack_require__(4);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_centerer_js__ = __webpack_require__(16);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__temp_utils_focusable_js__ = __webpack_require__(5);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_centerer_js__ = __webpack_require__(19);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__temp_utils_focusable_js__ = __webpack_require__(7);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
     /*
@@ -979,8 +1261,70 @@ var __run = function __run() {
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
+    /*
+     * focusable.js
+     * @author jasmith79
+     * @copyright Jared Smith
+     * @license MIT
+     * You should have received a copy of the license with this work but it may also be found at
+     * https://opensource.org/licenses/MIT
+     *
+     * Mixin for custom elements that can receive keyboard focus.
+     */
+
+    /* harmony default export */
+    __webpack_exports__["a"] = function (superclass) {
+      return function (_superclass3) {
+        _inherits(Focusable, _superclass3);
+
+        function Focusable() {
+          _classCallCheck(this, Focusable);
+
+          return _possibleConstructorReturn(this, (Focusable.__proto__ || Object.getPrototypeOf(Focusable)).call(this));
+        }
+
+        _createClass(Focusable, [{
+          key: 'setActive',
+          value: function setActive() {
+            var index = this.attr('tabindex');
+            if (index === null || index < 0) this.attr('tabindex', '0');
+            return this;
+          }
+        }, {
+          key: 'setInactive',
+          value: function setInactive() {
+            this.attr('tabindex', '-1');
+            return this;
+          }
+        }, {
+          key: 'init',
+          value: function init() {
+            var _this20 = this;
+
+            _get(Focusable.prototype.__proto__ || Object.getPrototypeOf(Focusable.prototype), 'init', this).call(this);
+            if (this.attr('tabindex') === null) this.attr('tabindex', '-1');
+            this.on('keydown', function (e) {
+              if (e.keyCode === 13) {
+                var evt = new CustomEvent('enter-key');
+                evt.keyCode = 13;
+                _this20.dispatchEvent(evt);
+              }
+            });
+          }
+        }]);
+
+        return Focusable;
+      }(superclass);
+    };
+
+    /***/
+  },
+  /* 8 */
+  /***/function (module, __webpack_exports__, __webpack_require__) {
+
+    "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(8);
+    var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(9);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_float_js__ = __webpack_require__(4);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
@@ -1010,11 +1354,11 @@ var __run = function __run() {
         function Tooltip() {
           _classCallCheck(this, Tooltip);
 
-          var _this14 = _possibleConstructorReturn(this, (Tooltip.__proto__ || Object.getPrototypeOf(Tooltip)).call(this));
+          var _this21 = _possibleConstructorReturn(this, (Tooltip.__proto__ || Object.getPrototypeOf(Tooltip)).call(this));
 
-          _this14._forHandlers = [];
-          _this14._forElement = null;
-          return _this14;
+          _this21._forHandlers = [];
+          _this21._forElement = null;
+          return _this21;
         }
 
         _createClass(Tooltip, [{
@@ -1105,14 +1449,14 @@ var __run = function __run() {
         }, {
           key: 'connectedCallback',
           value: function connectedCallback() {
-            var _this15 = this;
+            var _this22 = this;
 
             _get(Tooltip.prototype.__proto__ || Object.getPrototypeOf(Tooltip.prototype), 'connectedCallback', this).call(this);
             if (!this._forHandlers.length) {
               this._forHandlers.push(function (e) {
-                return _this15.hide();
+                return _this22.hide();
               }, function (e) {
-                return _this15.show();
+                return _this22.show();
               });
             }
 
@@ -1157,23 +1501,23 @@ var __run = function __run() {
         name: 'ui-has-tooltip',
         registerElement: false,
         reflectedAttributes: ['tooltip'],
-        definition: function (_superclass3) {
-          _inherits(definition, _superclass3);
+        definition: function (_superclass4) {
+          _inherits(definition, _superclass4);
 
           function definition() {
             _classCallCheck(this, definition);
 
-            var _this16 = _possibleConstructorReturn(this, (definition.__proto__ || Object.getPrototypeOf(definition)).call(this));
+            var _this23 = _possibleConstructorReturn(this, (definition.__proto__ || Object.getPrototypeOf(definition)).call(this));
 
-            _this16._tooltipElement = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-tooltip');
-            _this16._tooltipElement.isFor = _this16;
-            return _this16;
+            _this23._tooltipElement = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-tooltip');
+            _this23._tooltipElement.isFor = _this23;
+            return _this23;
           }
 
           _createClass(definition, [{
             key: 'init',
             value: function init() {
-              var _this17 = this;
+              var _this24 = this;
 
               _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'init', this).call(this);
               if (this.tooltip) {
@@ -1182,10 +1526,10 @@ var __run = function __run() {
               }
 
               this.watchAttribute(this, 'tooltip', function (now) {
-                var inDOM = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.contains(_this17._tooltipElement);
-                if (now && !inDOM) __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.appendChild(_this17._tooltipElement);
-                if (!now && inDOM) __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.removeChild(_this17._tooltipElement);
-                _this17._tooltipElement.viewText = now;
+                var inDOM = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.contains(_this24._tooltipElement);
+                if (now && !inDOM) __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.appendChild(_this24._tooltipElement);
+                if (!now && inDOM) __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.removeChild(_this24._tooltipElement);
+                _this24._tooltipElement.viewText = now;
               });
             }
           }]);
@@ -1198,7 +1542,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 8 */
+  /* 9 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -1226,16 +1570,16 @@ var __run = function __run() {
       name: 'ui-text',
       reflectedAttributes: reflectedAttributes,
       template: template,
-      definition: function (_WEBPACK_IMPORTED_MO) {
-        _inherits(Text, _WEBPACK_IMPORTED_MO);
+      definition: function (_WEBPACK_IMPORTED_MO2) {
+        _inherits(Text, _WEBPACK_IMPORTED_MO2);
 
         function Text() {
           _classCallCheck(this, Text);
 
-          var _this18 = _possibleConstructorReturn(this, (Text.__proto__ || Object.getPrototypeOf(Text)).call(this));
+          var _this25 = _possibleConstructorReturn(this, (Text.__proto__ || Object.getPrototypeOf(Text)).call(this));
 
-          _this18._textHolder = null;
-          return _this18;
+          _this25._textHolder = null;
+          return _this25;
         }
 
         // Override the default textContent property
@@ -1244,12 +1588,12 @@ var __run = function __run() {
         _createClass(Text, [{
           key: 'init',
           value: function init() {
-            var _this19 = this;
+            var _this26 = this;
 
             _get(Text.prototype.__proto__ || Object.getPrototypeOf(Text.prototype), 'init', this).call(this);
             this._textHolder = this.selectInternalElement('#text-holder');
             this.watchAttribute(this, 'view-text', function (val) {
-              _this19._textHolder.textContent = val || _this19.innerHTML; // render innerHTML as a fallback
+              _this26._textHolder.textContent = val || _this26.innerHTML; // render innerHTML as a fallback
             });
 
             if (this.innerHTML && !this.viewText) this.viewText = this.innerHTML;
@@ -1270,350 +1614,6 @@ var __run = function __run() {
     });
 
     /* unused harmony default export */var _unused_webpack_default_export = Text;
-
-    /***/
-  },
-  /* 9 */
-  /***/function (module, __webpack_exports__, __webpack_require__) {
-
-    "use strict";
-    /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__temp_utils_normalizer_js__ = __webpack_require__(18);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__ = __webpack_require__(19);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
-    /*
-     * form.js
-     * @author jasmith79
-     * @copyright Jared Smith
-     * @license MIT
-     * You should have received a copy of the license with this work but it may also be found at
-     * https://opensource.org/licenses/MIT
-     *
-     * form component for ui-components-lite.
-     *
-     * NOTE: it is not currently (and may never) be possible to extend built-in elements like Form.
-     * If it does become possible this can be refactored to support extending HTMLFormElement.
-     */
-
-    // TODO external ui-input not getting cached data? input elements lose data sometimes
-    // on multiple reloads?
-
-    var Form = function () {
-      var reflectedAttributes = ['action', 'method', 'autocomplete', 'response-type', 'updates-history'];
-      var template = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-      template.innerHTML = '\n    <style>\n      :host {\n        display: block;\n      }\n    </style>\n    <slot></slot>\n  ';
-
-      return Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
-        name: 'ui-form',
-        template: template,
-        reflectedAttributes: reflectedAttributes,
-        definition: function (_WEBPACK_IMPORTED_MO2) {
-          _inherits(Form, _WEBPACK_IMPORTED_MO2);
-
-          function Form() {
-            _classCallCheck(this, Form);
-
-            var _this20 = _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).call(this));
-
-            _this20._form = null;
-            _this20._formUIComponents = null;
-            return _this20;
-          }
-
-          _createClass(Form, [{
-            key: '_formControlType',
-            value: function _formControlType(el) {
-              var _this21 = this;
-
-              return el && el.matches && function () {
-                if (el.matches('input[name]') || el.matches('input[form="' + _this21.id + '"]')) return 'input';
-
-                if (el.matches('select[name]') || el.matches('select[form="' + _this21.id + '"]')) return 'select';
-
-                if (el.matches('.ui-form-behavior') || el.matches('.ui-form-behavior[form="' + _this21.id + '"]')) return 'formElement';
-
-                return false;
-              }();
-            }
-          }, {
-            key: 'serialize',
-            value: function serialize() {
-              return this.elements.reduce(function (acc, el) {
-                var val = void 0,
-                    name = el.getAttribute('name');
-                try {
-                  val = JSON.parse(el.value);
-                } catch (e) {
-                  // val = el.value.replace(',', '\\,'); // escape commas to correctly reconstruct arrays in url
-                  val = el.value;
-                }
-                if (name in acc) {
-                  if (!Array.isArray(acc[name])) acc[name] = [acc[name]];
-                  acc[name].push(val);
-                } else {
-                  acc[name] = val;
-                }
-                return acc;
-              }, {});
-            }
-          }, {
-            key: 'submit',
-            value: function submit() {
-              var _ref15 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-                  argURL = _ref15.url,
-                  meth = _ref15.method,
-                  headers = _ref15.headers,
-                  responseType = _ref15.responseType;
-
-              if (this.isValid) {
-                var url = argURL || this.action;
-                var method = meth || this.method || 'POST';
-                var opts = {
-                  method: method,
-                  body: this.data
-                };
-
-                if (headers) opts.headers = headers;
-                var result = fetch(url, opts);
-                var evt = new Event('submit');
-                evt.pendingResult = result;
-                this.dispatchEvent(evt);
-                switch ((responseType || this.responseType || 'text').toLowerCase()) {
-                  case 'text':
-                  case 'html':
-                    return result.then(function (resp) {
-                      return resp.text();
-                    });
-
-                  case 'json':
-                    return result.then(function (resp) {
-                      return resp.json();
-                    });
-                  default:
-                    return result;
-                }
-              } else {
-                return Promise.reject(new Error('Attempted to submit invalid form.'));
-              }
-            }
-          }, {
-            key: 'init',
-            value: function init() {
-              var _this22 = this;
-
-              _get(Form.prototype.__proto__ || Object.getPrototypeOf(Form.prototype), 'init', this).call(this);
-              this.attr('is-data-element', true);
-              this.attr('role', 'form');
-
-              var historyListener = function historyListener(e) {
-                var data = _this22.serialize();
-                var parsed = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["a" /* parseURL */])(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].location.href);
-                var path = parsed.path,
-                    route = parsed.route,
-                    hashBang = parsed.hashBang;
-
-                var url = path.match(/\/$/) ? path.slice(0, path.length - 1) : path;
-                if (hashBang) url += '#!';
-                if (route) url += route;
-                if (data) {
-                  if (url.match(/\/$/)) url = url.slice(0, url.length - 1);
-                  if (!url.match(/#/) && !url.match(/\.w+$/)) url += '#';
-                }
-
-                url += Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["b" /* toQueryString */])(data);
-                __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].history.replaceState(data, '', url);
-              };
-
-              this._beforeReady(function (_) {
-                _this22.elements.forEach(function (el) {
-                  if (el.tagName === 'INPUT') Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_normalizer_js__["a" /* inputNormalizer */])(el);
-                  el[el.on ? 'on' : 'addEventListener']('change', function (e) {
-                    if (_this22.id) __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].localStorage.setItem(_this22.id, JSON.stringify(_this22.serialize()));
-                  });
-                });
-              });
-
-              this.onReady(function (_) {
-                // We don't want to catch the initial population event, hence setTimeout
-                __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-                  _this22.elements.forEach(function (el) {
-                    if (_this22.updatesHistory) el[el.on ? 'on' : 'addEventListener']('change', historyListener);
-                  });
-                }, 0);
-              });
-            }
-          }, {
-            key: 'elements',
-            get: function get() {
-              return this.id ? [].concat(_toConsumableArray(new Set([].concat(_toConsumableArray(this.selectAll('input[name], select[name], .ui-form-behavior[name]')), _toConsumableArray(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].querySelectorAll('[form="' + this.id + '"]')))))) : this.selectAll('input[name], select[name], .ui-form-behavior');
-            }
-          }, {
-            key: 'isValid',
-            get: function get() {
-              return !this.querySelector(':invalid') && !this.querySelector('.invalid');
-            }
-          }, {
-            key: 'data',
-            get: function get() {
-              return this.elements.reduce(function (formdata, el) {
-                var name = el.getAttribute('name');
-                if (name) formdata.append(name, el.value == null ? '' : el.value);
-                return formdata;
-              }, new FormData());
-            },
-            set: function set(data) {
-              var _this23 = this;
-
-              if (data) {
-                Object.entries(data).forEach(function (_ref16) {
-                  var _ref17 = _slicedToArray(_ref16, 2),
-                      name = _ref17[0],
-                      val = _ref17[1];
-
-                  var els = _this23.elements.filter(function (el) {
-                    return el.matches('[name="' + name + '"]');
-                  });
-                  var values = void 0;
-                  if (els.length > 1) values = Array.isArray(val) ? val : val.split(',');
-                  els.forEach(function (el, i, arr) {
-                    var type = _this23._formControlType(el);
-                    var value = values ? values[i] : val;
-                    if (value === 'undefined' || value === 'null' || value == null) value = '';
-
-                    switch (type) {
-                      case 'formElement':
-                      case 'input':
-                        if (el.value !== value) el.value = value;
-                        break;
-
-                      case 'select':
-                        [].concat(_toConsumableArray(sel.options)).forEach(function (opt, j) {
-                          if (opt.value === value && j !== sel.selectedIndex) sel.selectedIndex = j;
-                        });
-                        break;
-                    }
-                  });
-                });
-              }
-
-              return data;
-            }
-          }]);
-
-          return Form;
-        }(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["a" /* UIBase */])
-      });
-    }();
-    /* unused harmony export Form */
-
-    var FormControlBehavior = function () {
-      var reflectedAttributes = ['name', 'value', 'required', 'is-valid', 'placeholder'];
-      return function (superclass) {
-        return Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
-          name: 'ui-form-behavior',
-          registerElement: false,
-          reflectedAttributes: reflectedAttributes,
-          definition: function (_superclass4) {
-            _inherits(definition, _superclass4);
-
-            function definition() {
-              _classCallCheck(this, definition);
-
-              var _this24 = _possibleConstructorReturn(this, (definition.__proto__ || Object.getPrototypeOf(definition)).call(this));
-
-              _this24._validators = [];
-              return _this24;
-            }
-
-            _createClass(definition, [{
-              key: '_validate',
-              value: function _validate() {
-                var _this25 = this;
-
-                var isValid = this._validators.length ? this._validators.every(function (f) {
-                  return f(_this25.value);
-                }) : true;
-
-                this.isValid = isValid;
-                this.classList.remove(isValid ? 'invalid' : 'valid');
-                this.classList.add(isValid ? 'valid' : 'invalid');
-                return isValid;
-              }
-            }, {
-              key: 'validate',
-              value: function validate(validator) {
-                if (!this._validators.includes(validator)) {
-                  this._validators.push(validator);
-                  this._validate();
-                }
-                return this;
-              }
-            }, {
-              key: 'removeValidator',
-              value: function removeValidator(validator) {
-                this._validators = this._validators.filter(function (f) {
-                  return f !== validator;
-                });
-                this._validate();
-                return this;
-              }
-            }, {
-              key: 'init',
-              value: function init() {
-                var _this26 = this;
-
-                _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'init', this).call(this);
-                var val = this.value;
-                this.on('attribute-change', function (_ref18) {
-                  var _ref18$changed = _ref18.changed,
-                      now = _ref18$changed.now,
-                      name = _ref18$changed.name;
-
-                  switch (name) {
-                    case 'value':
-                    case 'selected-index':
-                      if (now !== val) {
-                        // Need to wait a couple of ticks to allow the selected/value properties to update.
-                        // although we can get current value from the attribute-change event, something
-                        // might attempt to read list.selected or the value property/attribute on change
-                        // and will expect it to be updated.
-                        __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-                          val = now;
-                          _this26._validate();
-
-                          var evt = new Event('change');
-                          evt.value = _this26.value;
-                          evt.isValid = _this26.isValid;
-                          _this26.dispatchEvent(evt);
-                        }, 0);
-                      }
-
-                      break;
-
-                    case 'required':
-                      var reqHandler = function reqHandler(value) {
-                        return value != null && value !== '';
-                      };
-                      if (now) {
-                        _this26.validate(reqHandler);
-                      } else {
-                        _this26.removeValidator(reqHandler);
-                      }
-
-                      break;
-                  }
-                });
-              }
-            }]);
-
-            return definition;
-          }(superclass)
-        });
-      };
-    }();
-    /* harmony export (immutable) */__webpack_exports__["a"] = FormControlBehavior;
 
     /***/
   },
@@ -2027,6 +2027,548 @@ var __run = function __run() {
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
+    /* harmony import */
+    var __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+    /*
+     * backdrop.js
+     * @author jasmith79
+     * @copyright Jared Smith
+     * @license MIT
+     * You should have received a copy of the license with this work but it may also be found at
+     * https://opensource.org/licenses/MIT
+     *
+     * backdrop component for ui-components-lite. Meant primarily for use in modal components.
+     */
+
+    var template = __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      height: 100vh;\n      width: 100vw;\n      background-color: rgba(0,0,0,0.7);\n      position: absolute;\n      top: 0px;\n      left: 0px;\n      z-index: 10000;\n    }\n  </style>\n';
+
+    var Backdrop = Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+      name: 'ui-backdrop',
+      template: template,
+      definition: function (_WEBPACK_IMPORTED_MO3) {
+        _inherits(Backdrop, _WEBPACK_IMPORTED_MO3);
+
+        function Backdrop() {
+          _classCallCheck(this, Backdrop);
+
+          // Elements that use this element should set this property to themselves as a
+          // debugging aid.
+          var _this30 = _possibleConstructorReturn(this, (Backdrop.__proto__ || Object.getPrototypeOf(Backdrop)).call(this));
+
+          _this30.for = null;
+          return _this30;
+        }
+
+        _createClass(Backdrop, [{
+          key: 'init',
+          value: function init() {
+            _get(Backdrop.prototype.__proto__ || Object.getPrototypeOf(Backdrop.prototype), 'init', this).call(this);
+            this.hide();
+          }
+        }]);
+
+        return Backdrop;
+      }(__WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["a" /* UIBase */])
+    });
+
+    /* unused harmony default export */var _unused_webpack_default_export = Backdrop;
+
+    /***/
+  },
+  /* 15 */
+  /***/function (module, __webpack_exports__, __webpack_require__) {
+
+    "use strict";
+    /* harmony import */
+    var __WEBPACK_IMPORTED_MODULE_0__form_js__ = __webpack_require__(5);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_animations_rippler_js__ = __webpack_require__(12);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__ = __webpack_require__(7);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+    /*
+     * checkbox.js
+     * @author jasmith79
+     * @copyright Jared Smith
+     * @license MIT
+     * You should have received a copy of the license with this work but it may also be found at
+     * https://opensource.org/licenses/MIT
+     *
+     * checkbox component for ui-components-lite.
+    
+     * NOTE: it is not currently possible to extend specific HTMLElements, leading
+     * to this element being rather convoluted. Once it's possible to extend input
+     * directly this should be refactored.
+     */
+
+    var template = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    :host {\n      display: inline-block;\n      height: 25px;\n      width: 25px;\n      background-color: #DDD;\n      position: relative;\n      border-radius: 5%;\n    }\n\n    :host(:hover) {\n      box-shadow: inset 0 0 0 99999px rgba(150,150,150,0.2);\n    }\n\n    :host:before {\n      content:"";\n      position: absolute;\n      display: none;\n      left: 9px;\n      top: 5px;\n      width: 5px;\n      height: 10px;\n      border: solid #fff;\n      border-width: 0 3px 3px 0;\n      transform: rotate(45deg);\n    }\n\n    :host(.checked) {\n      background-color: var(--ui-theme-primary-dark-color, blue);\n    }\n\n    :host(.checked):before {\n      display: block;\n    }\n  </style>\n';
+
+    var reflectedAttributes = ['checked'];
+
+    var Checkbox = Object(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+      name: 'ui-checkbox',
+      template: template,
+      reflectedAttributes: reflectedAttributes,
+      definition: function (_Object$with5) {
+        _inherits(Checkbox, _Object$with5);
+
+        function Checkbox() {
+          _classCallCheck(this, Checkbox);
+
+          var _this31 = _possibleConstructorReturn(this, (Checkbox.__proto__ || Object.getPrototypeOf(Checkbox)).call(this));
+
+          _this31._formElement = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('input');
+          _this31._formElement.style.opacity = 0;
+          _this31._formElement.type = 'checkbox';
+          return _this31;
+        }
+
+        _createClass(Checkbox, [{
+          key: 'init',
+          value: function init() {
+            var _this32 = this;
+
+            _get(Checkbox.prototype.__proto__ || Object.getPrototypeOf(Checkbox.prototype), 'init', this).call(this);
+            this.attr('role', 'checkbox');
+            this.watchAttribute(this, 'checked', function (now) {
+              now ? _this32.classList.add('checked') : _this32.classList.remove('checked');
+            });
+
+            this.on('click', function (e) {
+              _this32.checked = !_this32.checked;
+              _this32.attr('aria-checked', _this32.checked);
+            });
+          }
+        }, {
+          key: 'value',
+          get: function get() {
+            return this.checked != null;
+          }
+        }]);
+
+        return Checkbox;
+      }(Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_1__temp_animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_0__form_js__["a" /* FormControlBehavior */]))
+    });
+
+    /* unused harmony default export */var _unused_webpack_default_export = Checkbox;
+
+    /***/
+  },
+  /* 16 */
+  /***/function (module, __webpack_exports__, __webpack_require__) {
+
+    "use strict";
+    /* harmony import */
+    var __WEBPACK_IMPORTED_MODULE_0__checkbox_js__ = __webpack_require__(15);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__form_js__ = __webpack_require__(5);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__tooltip_js__ = __webpack_require__(8);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_animations_rippler_js__ = __webpack_require__(12);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__temp_utils_focusable_js__ = __webpack_require__(7);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+    /*
+     * list.js
+     * @author jasmith79
+     * @copyright Jared Smith
+     * @license MIT
+     * You should have received a copy of the license with this work but it may also be found at
+     * https://opensource.org/licenses/MIT
+     *
+     * list component for ui-components-lite.
+     *
+     * NOTE: it is not currently (and may never) be possible to extend built-in elements like <ul>.
+     * If it does become possible this can be refactored to support extending <ul> or <ol>.
+     */
+
+    var handlerCache = new WeakMap();
+    var ListBehavior = function ListBehavior(superclass) {
+      return Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+        name: 'ui-list-behavior',
+        reflectedAttributes: ['multiple', 'selected-index'],
+        registerElement: false,
+        definition: function (_Object$with6) {
+          _inherits(definition, _Object$with6);
+
+          function definition() {
+            _classCallCheck(this, definition);
+
+            var _this33 = _possibleConstructorReturn(this, (definition.__proto__ || Object.getPrototypeOf(definition)).call(this));
+
+            _this33._items = [];
+            _this33._selected = null;
+            return _this33;
+          }
+
+          // Using a closure here because getting the item back out of the Event object is unreliable.
+
+
+          _createClass(definition, [{
+            key: '_itemHandlerFactory',
+            value: function _itemHandlerFactory(item) {
+              var _this34 = this;
+
+              var h = handlerCache.get(item);
+              if (h) return h;
+              var f = function f(e) {
+                if (_this34.multiple === true) {
+                  if (!item.isSelected && !_this34.selected.includes(item)) {
+                    item.isSelected = true;
+                    _this34.selected = item; // pushes in setter
+                  } else if (item.isSelected) {
+                    item.isSelected = false;
+                    _this34._deSelect(item);
+                  }
+                } else {
+                  if (!item.isSelected && item !== _this34.selected) {
+                    item.isSelected = true;
+                    _this34.selected = item;
+                  }
+                }
+
+                return;
+              };
+
+              handlerCache.set(item, f);
+              return f;
+            }
+          }, {
+            key: '_deSelect',
+            value: function _deSelect(item) {
+              if (this.multiple === true) {
+                this._selected = this._selected.filter(function (x) {
+                  return x !== item;
+                });
+                this.dispatchEvent(new Event('change'));
+              }
+              return this;
+            }
+          }, {
+            key: 'appendChild',
+            value: function appendChild(node) {
+              var _this35 = this;
+
+              var p = node.onReady(function (el) {
+                if (el.matches && el.matches('.ui-item')) {
+                  el.on('click', _this35._itemHandlerFactory(el));
+                  _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'appendChild', _this35).call(_this35, el);
+                  _this35._items.push(el);
+                  if (el.isSelected) _this35.selected = el;
+                }
+              });
+              if (this._pendingDOM) this._pendingDOM.push(p);
+              return node;
+            }
+          }, {
+            key: 'init',
+            value: function init() {
+              var _this36 = this;
+
+              _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'init', this).call(this);
+              this.on('keydown', function (e) {
+                var el = function () {
+                  switch (e.keyCode) {
+                    case 40:
+                      return _this36._items[(_this36._items.indexOf(_this36.shadowRoot.activeElement) + 1) % _this36._items.length];
+
+                    case 38:
+                      return _this36._items[+(_this36._items.indexOf(_this36.shadowRoot.activeElement) - 1)];
+
+                    default:
+                      return null;
+                  }
+                }();
+
+                if (el) el.focus();
+              });
+
+              this.on('attribute-change', function (_ref19) {
+                var _ref19$changed = _ref19.changed,
+                    now = _ref19$changed.now,
+                    name = _ref19$changed.name;
+
+                switch (name) {
+                  case 'multiple':
+                    if (now === true) {
+                      _this36.selectedIndex = -1;
+                      _this36._selected = _this36._selected ? [_this36._selected] : [];
+                      _this36.attr('aria-multiselectable', true);
+                    } else {
+                      _this36.attr('aria-multiselectable', false);
+                      _this36.selected = _this36.selected == null ? null : _this36.selected[0];
+                    }
+                    break;
+
+                  case 'selected-index':
+                    if (now === -1 || _this36.multiple) return;
+                    if (!_this36._items[now]) {
+                      console.warn('Attempted to set invalid index ' + now + ' for element.');
+                      _this36.attr('selected-index', was);
+                      return;
+                    }
+
+                    if (_this36._items[now] !== _this36.selected) _this36.selected = now;
+                    break;
+                }
+              });
+
+              this._beforeReady(function (_) {
+                _this36.selectAll('.ui-item').map(function (item) {
+                  _this36._items.push(item);
+                  if (item.attr('is-selected')) _this36.selected = item;
+                  item.on('click enter-key', _this36._itemHandlerFactory(item));
+                });
+              });
+            }
+          }, {
+            key: 'items',
+            get: function get() {
+              return this.selectAll('.ui-item');
+            }
+          }, {
+            key: 'value',
+            get: function get() {
+              return this.selected && this.selected.map ? this.selected.map(function (x) {
+                return x ? x.value : '';
+              }).join(',') : this.selected && this.selected.value || null;
+            },
+            set: function set(value) {
+              this.selected = value;
+            }
+          }, {
+            key: 'selected',
+            get: function get() {
+              return this._selected;
+            },
+            set: function set(value) {
+              if (value === null) {
+                this._selected = null;
+                return;
+              }
+
+              var type = Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__["a" /* default */])(value);
+              var selection = void 0;
+              switch (type) {
+                case 'Number':
+                  selection = this._items[value];
+                  break;
+
+                case 'String':
+                  selection = this.querySelector('[value="' + value + '"]');
+                  if (!selection) selection = this._items.filter(function (x) {
+                    return x.textContent === value;
+                  })[0];
+                  break;
+              }
+
+              if (type.match(/HTML\w*Element/) && this._items.includes(value)) selection = value;
+              if (selection) {
+                selection.attr('aria-selected', true);
+                selection.isSelected = true;
+                if (this.multiple === true) {
+                  this._selected.push(selection);
+                  this.dispatchEvent(new Event('change'));
+                } else {
+                  this._selected = selection;
+                  this.selectedIndex = this._items.indexOf(selection);
+                  this._items.forEach(function (item) {
+                    if (item !== selection) item.isSelected = false;
+                    item.attr('aria-selected', false);
+                  });
+                }
+              }
+
+              return selection;
+            }
+          }]);
+
+          return definition;
+        }(Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(superclass).with(__WEBPACK_IMPORTED_MODULE_1__form_js__["a" /* FormControlBehavior */]))
+      });
+    };
+    /* harmony export (immutable) */__webpack_exports__["b"] = ListBehavior;
+
+    var Item = function () {
+      var template = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+      var reflectedAttributes = ['is-selected', 'value', 'tooltip'];
+      template.innerHTML = '\n    <style>\n      :host {\n        --ui-theme-ripple-color: var(--ui-theme-primary-dark-color, rgb(0, 139, 163));\n        display: block;\n        margin-top: 10px;\n        margin-bottom: 10px;\n        min-height: 20px;\n        background-color: inherit;\n        color: inherit;\n        border-radius: 0;\n        text-transform: capitalize;\n        width: 90%;\n        margin-left: 5%;\n        padding-top: 4px;\n      }\n\n      :host(:hover) {\n        color: var(--ui-theme-primary-dark-color, #999);\n      }\n\n      :host(.selected) {\n        border-bottom: 1px solid var(--ui-theme-primary-dark-color, rgb(0, 139, 163));\n      }\n\n      .ui-checkbox {\n        display: none;\n        height: 18px;\n        width: 18px;\n        float: left;\n      }\n\n      .ui-checkbox::before {\n        top: 2px;\n        height: 9px;\n        left: 5px;\n      }\n\n      :host-context([multiple="true"]) {\n        border-bottom: none;\n      }\n\n      :host-context([multiple="true"]) ui-checkbox {\n        display: inline-block;\n      }\n\n      :host-context([multiple="true"]) #content {\n        position: relative;\n        left: -10px; /* offsets checkbox */\n      }\n    </style>\n    <ui-checkbox></ui-checkbox>\n    <span id="content"><slot></slot></span>\n  ';
+
+      return Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+        name: 'ui-item',
+        template: template,
+        reflectedAttributes: reflectedAttributes,
+        definition: function (_Object$with7) {
+          _inherits(Item, _Object$with7);
+
+          function Item() {
+            _classCallCheck(this, Item);
+
+            var _this37 = _possibleConstructorReturn(this, (Item.__proto__ || Object.getPrototypeOf(Item)).call(this));
+
+            _this37._checkbox = null;
+            _this37._content = null;
+            return _this37;
+          }
+
+          _createClass(Item, [{
+            key: 'init',
+            value: function init() {
+              var _this38 = this;
+
+              _get(Item.prototype.__proto__ || Object.getPrototypeOf(Item.prototype), 'init', this).call(this);
+              this.attr('role', 'listoption');
+              this._beforeReady(function (_) {
+                _this38._checkbox = _this38.selectInternalElement('ui-checkbox');
+                _this38._content = _this38.selectInternalElement('#content');
+                if (!_this38.value || _this38.value.toString() === 'true') _this38.value = _this38.textContent;
+                if (!_this38.isSelected) _this38.isSelected = false;
+              });
+
+              this.on('attribute-change', function (_ref20) {
+                var _ref20$changed = _ref20.changed,
+                    now = _ref20$changed.now,
+                    name = _ref20$changed.name;
+
+                switch (name) {
+                  case 'is-selected':
+                    _this38.onReady(function (_) {
+                      if (now) {
+                        _this38.classList.add('selected');
+                        _this38._checkbox.checked = true;
+                        _this38.dispatchEvent(new CustomEvent('component-selected'));
+                      } else {
+                        _this38.classList.remove('selected');
+                        _this38._checkbox.checked = false;
+                        _this38.dispatchEvent(new CustomEvent('component-deselected'));
+                      }
+                    });
+                    break;
+                }
+              });
+            }
+          }]);
+
+          return Item;
+        }(Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_3__temp_animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_4__temp_utils_focusable_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_2__tooltip_js__["a" /* TooltipMixin */]))
+      });
+    }();
+    /* harmony export (immutable) */__webpack_exports__["a"] = Item;
+
+    var List = function () {
+      var template = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+      template.innerHTML = '\n    <style>\n      :host {\n        display: block;\n        text-align: center;\n        margin: 5px;\n      }\n    </style>\n    <slot></slot>\n  ';
+
+      return Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+        name: 'ui-list',
+        template: template,
+        definition: function (_Object$with8) {
+          _inherits(List, _Object$with8);
+
+          function List() {
+            _classCallCheck(this, List);
+
+            return _possibleConstructorReturn(this, (List.__proto__ || Object.getPrototypeOf(List)).apply(this, arguments));
+          }
+
+          _createClass(List, [{
+            key: 'init',
+            value: function init() {
+              _get(List.prototype.__proto__ || Object.getPrototypeOf(List.prototype), 'init', this).call(this);
+              this.attr('role', 'list');
+            }
+          }]);
+
+          return List;
+        }(Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(ListBehavior))
+      });
+    }();
+    /* unused harmony export List */
+
+    /***/
+  },
+  /* 17 */
+  /***/function (module, __webpack_exports__, __webpack_require__) {
+
+    "use strict";
+    /* harmony import */
+    var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(6);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__dialog_js__ = __webpack_require__(20);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__ = __webpack_require__(2);
+    /*
+     * alert.js
+     * @author jasmith79
+     * @copyright Jared Smith
+     * @license MIT
+     * You should have received a copy of the license with this work but it may also be found at
+     * https://opensource.org/licenses/MIT
+     *
+     * alert component for ui-components-lite.
+     */
+
+    var template = __WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    :host {\n      top: 30%;\n    }\n\n    #content {\n      width: 90%;\n      margin-left: auto;\n      margin-right: auto;\n      height: 65%;\n    }\n\n    #closer {\n      background-color: var(--ui-theme-warning-color, #e83673);\n      color: var(--ui-theme-light-text-color, #fff);\n      position: relative;\n      width: 105px;\n      height: 50px;\n      top: 12px;\n      left: calc(100% - 105px);\n    }\n  </style>\n  <div id="content"></div>\n  <ui-button id="closer" dialog-dismiss>Close</ui-button>\n';
+
+    var Alert = Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__["b" /* defineUIComponent */])({
+      name: 'ui-alert',
+      template: template,
+      definition: function (_WEBPACK_IMPORTED_MO4) {
+        _inherits(Alert, _WEBPACK_IMPORTED_MO4);
+
+        function Alert() {
+          _classCallCheck(this, Alert);
+
+          return _possibleConstructorReturn(this, (Alert.__proto__ || Object.getPrototypeOf(Alert)).apply(this, arguments));
+        }
+
+        _createClass(Alert, [{
+          key: 'init',
+          value: function init() {
+            var _this41 = this;
+
+            _get(Alert.prototype.__proto__ || Object.getPrototypeOf(Alert.prototype), 'init', this).call(this);
+            this.attr('role', 'alert');
+            this.scrollableDialog = false;
+            this.smallDialog = true;
+            this.attr('is-modal', true);
+            this.watchAttribute(this, 'is-open', function (open) {
+              open ? _this41._backdrop.show() : _this41._backdrop.hide();
+            });
+
+            var closer = this.selectInternalElement('#closer');
+            this.on('dialog-opened', function (e) {
+              closer.focus();
+            });
+          }
+        }, {
+          key: 'alert',
+          value: function alert(txt) {
+            this.textContent = txt;
+            return this.open();
+          }
+        }, {
+          key: 'textContent',
+          get: function get() {
+            return this.selectInternalElement('#content').textContent;
+          },
+          set: function set(txt) {
+            this.selectInternalElement('#content').textContent = txt;
+            return this;
+          }
+        }]);
+
+        return Alert;
+      }(__WEBPACK_IMPORTED_MODULE_1__dialog_js__["a" /* default */])
+    });
+
+    /* unused harmony default export */var _unused_webpack_default_export = Alert;
+
+    /***/
+  },
+  /* 18 */
+  /***/function (module, __webpack_exports__, __webpack_require__) {
+
+    "use strict";
     /* unused harmony export applyTheme */
     /* unused harmony export revertTheme */
     /* harmony export (binding) */
@@ -2084,10 +2626,10 @@ var __run = function __run() {
       }
 
       var style = __WEBPACK_IMPORTED_MODULE_0__dom_js__["c" /* document */].createElement('style');
-      style.innerHTML = ':root { ' + Object.entries(theme).reduce(function (s, _ref19) {
-        var _ref20 = _slicedToArray(_ref19, 2),
-            k = _ref20[0],
-            v = _ref20[1];
+      style.innerHTML = ':root { ' + Object.entries(theme).reduce(function (s, _ref21) {
+        var _ref22 = _slicedToArray(_ref21, 2),
+            k = _ref22[0],
+            v = _ref22[1];
 
         return k in defaultThemeObj ? s + ' ' + toCSSVar(k) + ':' + v + ';' : s;
       }, '') + ' }';
@@ -2112,54 +2654,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 15 */
-  /***/function (module, __webpack_exports__, __webpack_require__) {
-
-    "use strict";
-    /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(6);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__ = __webpack_require__(2);
-    /*
-     * fab.js
-     * @author jasmith79
-     * @copyright Jared Smith
-     * @license MIT
-     * You should have received a copy of the license with this work but it may also be found at
-     * https://opensource.org/licenses/MIT
-     *
-     * floating action button component for ui-components-lite.
-     */
-
-    var template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      width: 74px;\n      height: 74px;\n      border-radius: 50%;\n      background-color: var(--ui-theme-accent-color, purple);\n      outline: none;\n    }\n  </style>\n';
-
-    /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["b" /* defineUIComponent */])({
-      name: 'ui-fab',
-      template: template,
-      definition: function (_WEBPACK_IMPORTED_MO3) {
-        _inherits(Fab, _WEBPACK_IMPORTED_MO3);
-
-        function Fab() {
-          _classCallCheck(this, Fab);
-
-          return _possibleConstructorReturn(this, (Fab.__proto__ || Object.getPrototypeOf(Fab)).apply(this, arguments));
-        }
-
-        _createClass(Fab, [{
-          key: 'init',
-          value: function init() {
-            _get(Fab.prototype.__proto__ || Object.getPrototypeOf(Fab.prototype), 'init', this).call(this);
-            this.floatingY = true;
-          }
-        }]);
-
-        return Fab;
-      }(__WEBPACK_IMPORTED_MODULE_0__button_js__["a" /* default */])
-    });
-
-    /***/
-  },
-  /* 16 */
+  /* 19 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -2205,60 +2700,184 @@ var __run = function __run() {
 
     /***/
   },
-  /* 17 */
+  /* 20 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+    var __WEBPACK_IMPORTED_MODULE_0__card_js__ = __webpack_require__(13);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__backdrop_js__ = __webpack_require__(14);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__button_js__ = __webpack_require__(6);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_float_js__ = __webpack_require__(4);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__ = __webpack_require__(2);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
     /*
-     * backdrop.js
+     * dialog.js
      * @author jasmith79
      * @copyright Jared Smith
      * @license MIT
      * You should have received a copy of the license with this work but it may also be found at
      * https://opensource.org/licenses/MIT
      *
-     * backdrop component for ui-components-lite. Meant primarily for use in modal components.
+     * dialog component for ui-components-lite.
      */
 
-    var template = __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      height: 100vh;\n      width: 100vw;\n      background-color: rgba(0,0,0,0.7);\n      position: absolute;\n      top: 0px;\n      left: 0px;\n      z-index: 10000;\n    }\n  </style>\n';
+    var template = __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      position: absolute;\n      padding: 20px;\n      z-index: 10001;\n      background-color: #fff;\n      overflow: hidden;\n    }\n\n    :host(.large-dialog) {\n      width: 80%;\n      height: 80%;\n      top: 8%;\n      left: 9%;\n    }\n\n    :host(.small-dialog) {\n      width: 250px;\n      height: 185px;\n      top: calc(50vh - 130px);\n      left: calc(50vw - 155px);\n    }\n\n    :host(.medium-dialog) {\n      width: 50%;\n      height: 50%;\n      top: 20%;\n      left: 25%;\n    }\n\n    :host(.scrollable-dialog) {\n      overflow: scroll;\n    }\n  </style>\n';
 
-    var Backdrop = Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
-      name: 'ui-backdrop',
+    var reflectedAttributes = ['is-open', 'is-modal', 'small-dialog', 'medium-dialog', 'large-dialog', 'scrollable-dialog'];
+
+    var manipulators = new WeakMap();
+    var incorporateButtonChild = function incorporateButtonChild(el, child) {
+      var manip = manipulators.get(el);
+      if (!manip) {
+        manip = [function (e) {
+          el.close();
+          el.dispatchEvent(new CustomEvent('dialog-dismiss'));
+        }, function (e) {
+          el.close();
+          el.dispatchEvent(new CustomEvent('dialog-confirm'));
+        }];
+        manipulators.set(el, manip);
+      }
+
+      var _manip = manip,
+          _manip2 = _slicedToArray(_manip, 2),
+          dismisser = _manip2[0],
+          confirmer = _manip2[1];
+
+      if (child.attr('dialog-dismiss')) child.on('click enter-key', dismisser);
+      if (child.attr('dialog-confirm')) child.on('click enter-key', confirmer);
+      child.watchAttribute(child, 'dialog-dismiss', function (now) {
+        now ? child.on('click enter-key', dismisser) : child.remove(dismisser);
+      });
+
+      child.watchAttribute(child, 'dialog-confirm', function (now) {
+        now ? child.on('click enter-key', confirmer) : child.remove(confirmer);
+      });
+
+      return el;
+    };
+
+    var Dialog = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["b" /* defineUIComponent */])({
+      name: 'ui-dialog',
       template: template,
-      definition: function (_WEBPACK_IMPORTED_MO4) {
-        _inherits(Backdrop, _WEBPACK_IMPORTED_MO4);
+      reflectedAttributes: reflectedAttributes,
+      definition: function (_WEBPACK_IMPORTED_MO5) {
+        _inherits(Dialog, _WEBPACK_IMPORTED_MO5);
 
-        function Backdrop() {
-          _classCallCheck(this, Backdrop);
+        function Dialog() {
+          _classCallCheck(this, Dialog);
 
-          // Elements that use this element should set this property to themselves as a
-          // debugging aid.
-          var _this32 = _possibleConstructorReturn(this, (Backdrop.__proto__ || Object.getPrototypeOf(Backdrop)).call(this));
+          var _this43 = _possibleConstructorReturn(this, (Dialog.__proto__ || Object.getPrototypeOf(Dialog)).call(this));
 
-          _this32.for = null;
-          return _this32;
+          _this43._backdrop = null;
+          __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["d" /* global */].addEventListener('logout', function (e) {
+            _this43.close();
+          });
+          return _this43;
         }
 
-        _createClass(Backdrop, [{
+        // Intercepts calls to appendChild so buttons can be appropriately used.
+
+
+        _createClass(Dialog, [{
+          key: 'appendChild',
+          value: function appendChild(node) {
+            var _this44 = this;
+
+            if (node && node.onReady) {
+              node.onReady(function (el) {
+                if (el && el.matches && el.matches('.ui-button')) {
+                  incorporateButtonChild(_this44, el);
+                  _this44.shadowRoot.appendChild(el);
+                } else {
+                  _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'appendChild', _this44).call(_this44, node);
+                }
+              });
+            }
+
+            return node;
+          }
+        }, {
+          key: 'open',
+          value: function open(txt) {
+            this.isOpen = true;
+            return this;
+          }
+        }, {
+          key: 'close',
+          value: function close() {
+            this.isOpen = false;
+            return this;
+          }
+        }, {
           key: 'init',
           value: function init() {
-            _get(Backdrop.prototype.__proto__ || Object.getPrototypeOf(Backdrop.prototype), 'init', this).call(this);
+            var _this45 = this;
+
+            _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'init', this).call(this);
             this.hide();
+            this.attr('role', 'dialog');
+            this._backdrop = __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["c" /* document */].createElement('ui-backdrop');
+            this._backdrop.for = this;
+            __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["c" /* document */].body.appendChild(this._backdrop);
+
+            this._beforeReady(function (_) {
+              [].concat(_toConsumableArray(_this45.selectInternalAll('.ui-button')), _toConsumableArray(_this45.selectAll('.ui-button'))).forEach(function (el) {
+                return incorporateButtonChild(_this45, el);
+              });
+            });
+
+            var closer = function closer(e) {
+              _this45.close();
+            };
+
+            this.on('attribute-change', function (_ref23) {
+              var _ref23$changed = _ref23.changed,
+                  now = _ref23$changed.now,
+                  name = _ref23$changed.name;
+
+              switch (name) {
+                case 'small-dialog':
+                  return now ? (_this45.classList.add('small-dialog'), _this45.classList.remove('medium-dialog', 'large-dialog')) : _this45.classList.remove('small-dialog');
+
+                case 'medium-dialog':
+                  return now ? (_this45.classList.add('medium-dialog'), _this45.classList.remove('small-dialog', 'large-dialog')) : _this45.classList.remove('medium-dialog');
+
+                case 'large-dialog':
+                  return now ? (_this45.classList.add('large-dialog'), _this45.classList.remove('small-dialog', 'medium-dialog')) : _this45.classList.remove('large-dialog');
+
+                case 'scrollable-dialog':
+                  return now ? _this45.classList.add('scrollable-dialog') : _this45.classList.remove('scrollable-dialog');
+
+                case 'is-modal':
+                  return now ? _this45._backdrop.on('click', closer) : _this45._backdrop.remove(closer);
+
+                case 'is-open':
+                  if (now) {
+                    if (_this45.isModal) _this45._backdrop.show();
+                    _this45.show();
+                    _this45.dispatchEvent(new CustomEvent('dialog-opened'));
+                  } else {
+                    _this45._backdrop.hide();
+                    _this45.hide();
+                    _this45.dispatchEvent(new CustomEvent('dialog-closed'));
+                  }
+              }
+            });
           }
         }]);
 
-        return Backdrop;
-      }(__WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["a" /* UIBase */])
+        return Dialog;
+      }(__WEBPACK_IMPORTED_MODULE_0__card_js__["a" /* default */])
     });
 
-    /* unused harmony default export */var _unused_webpack_default_export = Backdrop;
+    /* harmony default export */__webpack_exports__["a"] = Dialog;
 
     /***/
   },
-  /* 18 */
+  /* 21 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -2269,7 +2888,7 @@ var __run = function __run() {
     var changeTriggers = ['keyup', 'paste', 'input'];
 
     var debounce = function debounce(n, immed, f) {
-      var _ref21 = function () {
+      var _ref24 = function () {
         switch (Object(__WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__["a" /* default */])(immed)) {
           case 'Boolean':
             return [f, immed];
@@ -2279,13 +2898,13 @@ var __run = function __run() {
             throw new TypeError('Unrecognized arguments ' + immed + ' and ' + f + ' to function debounce.');
         }
       }(),
-          _ref22 = _slicedToArray(_ref21, 2),
-          fn = _ref22[0],
-          now = _ref22[1];
+          _ref25 = _slicedToArray(_ref24, 2),
+          fn = _ref25[0],
+          now = _ref25[1];
 
       var timer = null;
       return function () {
-        var _this33 = this;
+        var _this46 = this;
 
         for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
           args[_key5] = arguments[_key5];
@@ -2296,7 +2915,7 @@ var __run = function __run() {
         }
         __WEBPACK_IMPORTED_MODULE_0__ui_component_base_js__["d" /* global */].clearTimeout(timer);
         timer = __WEBPACK_IMPORTED_MODULE_0__ui_component_base_js__["d" /* global */].setTimeout(function () {
-          return fn.apply(_this33, args);
+          return fn.apply(_this46, args);
         }, n);
         return timer;
       };
@@ -2324,7 +2943,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 19 */
+  /* 22 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -2432,10 +3051,10 @@ var __run = function __run() {
     };
 
     var toQueryString = function toQueryString(obj) {
-      return obj && '?' + Object.entries(obj).map(function (_ref23) {
-        var _ref24 = _slicedToArray(_ref23, 2),
-            k = _ref24[0],
-            v = _ref24[1];
+      return obj && '?' + Object.entries(obj).map(function (_ref26) {
+        var _ref27 = _slicedToArray(_ref26, 2),
+            k = _ref27[0],
+            v = _ref27[1];
 
         return encodeURIComponent(k) + '=' + encodeURIComponent(typeof v === 'string' ? v : JSON.stringify(v));
       }).join('&');
@@ -2445,16 +3064,16 @@ var __run = function __run() {
 
     /***/
   },
-  /* 20 */
+  /* 23 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(8);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__tooltip_js__ = __webpack_require__(7);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__form_js__ = __webpack_require__(9);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_focusable_js__ = __webpack_require__(5);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__temp_utils_normalizer_js__ = __webpack_require__(18);
+    var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(9);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__tooltip_js__ = __webpack_require__(8);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__form_js__ = __webpack_require__(5);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_focusable_js__ = __webpack_require__(7);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__temp_utils_normalizer_js__ = __webpack_require__(21);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
@@ -2675,16 +3294,16 @@ var __run = function __run() {
       name: 'ui-input',
       template: template,
       reflectedAttributes: reflectedAttributes,
-      definition: function (_Object$with5) {
-        _inherits(Input, _Object$with5);
+      definition: function (_Object$with9) {
+        _inherits(Input, _Object$with9);
 
         function Input() {
           _classCallCheck(this, Input);
 
-          var _this34 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this));
+          var _this47 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this));
 
-          _this34._input = null;
-          return _this34;
+          _this47._input = null;
+          return _this47;
         }
 
         _createClass(Input, [{
@@ -2741,7 +3360,7 @@ var __run = function __run() {
         }, {
           key: 'init',
           value: function init() {
-            var _this35 = this;
+            var _this48 = this;
 
             _get(Input.prototype.__proto__ || Object.getPrototypeOf(Input.prototype), 'init', this).call(this);
             this._input = this.selectInternalElement('#input');
@@ -2760,13 +3379,13 @@ var __run = function __run() {
             }
 
             this.on('focus', function (e) {
-              _this35.selectInternalElement('ui-text').classList.remove('text-moved');
+              _this48.selectInternalElement('ui-text').classList.remove('text-moved');
             });
 
             this.on('blur', function (e) {
               __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-                if (_this35.label && !_this35.placeholder && !_this35.value) {
-                  _this35.selectInternalElement('ui-text').classList.add('text-moved');
+                if (_this48.label && !_this48.placeholder && !_this48.value) {
+                  _this48.selectInternalElement('ui-text').classList.add('text-moved');
                 }
               }, 1);
             });
@@ -2777,79 +3396,79 @@ var __run = function __run() {
             this._typeSetup(this.attr('type').toLowerCase());
 
             this._input.addEventListener('focus', function (e) {
-              _this35.classList.add('focused');
+              _this48.classList.add('focused');
             });
 
             this._input.addEventListener('blur', function (e) {
-              _this35.classList.remove('focused');
+              _this48.classList.remove('focused');
             });
 
             Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_normalizer_js__["a" /* inputNormalizer */])(this._input);
 
             this.on('focus', function (_) {
-              _this35._input.focus();
+              _this48._input.focus();
             });
 
             this._input.addEventListener('change', function (e) {
-              if (_this35.value !== _this35._input.value) {
-                _this35.value = _this35._input.value;
+              if (_this48.value !== _this48._input.value) {
+                _this48.value = _this48._input.value;
               }
             });
 
-            this.on('attribute-change', function (_ref25) {
-              var _ref25$changed = _ref25.changed,
-                  now = _ref25$changed.now,
-                  name = _ref25$changed.name,
-                  was = _ref25$changed.was;
+            this.on('attribute-change', function (_ref28) {
+              var _ref28$changed = _ref28.changed,
+                  now = _ref28$changed.now,
+                  name = _ref28$changed.name,
+                  was = _ref28$changed.was;
 
               var txt = void 0;
               switch (name) {
                 case 'name':
-                  _this35._input.name = now;
-                  _this35.name = now;
-                  _this35.selectInternalElement('label').setAttribute('for', _this35.name);
+                  _this48._input.name = now;
+                  _this48.name = now;
+                  _this48.selectInternalElement('label').setAttribute('for', _this48.name);
                   break;
 
                 case 'value':
                   var val = now === true ? '' : now;
-                  if (_this35._input.value !== val) {
-                    _this35._input.value = !val && _this35.defaultValue ? _this35.defaultValue : val;
+                  if (_this48._input.value !== val) {
+                    _this48._input.value = !val && _this48.defaultValue ? _this48.defaultValue : val;
                   }
                   break;
 
                 case 'default-value':
-                  if (!_this35.value) _this35.value = now;
+                  if (!_this48.value) _this48.value = now;
                   break;
 
                 case 'label':
-                  txt = _this35.selectInternalElement('ui-text');
-                  if (now && !_this35.value && !_this35.placeholder) {
+                  txt = _this48.selectInternalElement('ui-text');
+                  if (now && !_this48.value && !_this48.placeholder) {
                     txt.classList.add('text-moved');
                   }
                   break;
 
                 case 'placeholder':
-                  txt = _this35.selectInternalElement('ui-text');
+                  txt = _this48.selectInternalElement('ui-text');
                   if (now && txt.classList.contains('text-moved')) {
                     txt.classList.remove('text-moved');
                   }
 
                   if (now == null) {
-                    _this35._input.removeAttribute(name);
+                    _this48._input.removeAttribute(name);
                   } else {
-                    _this35._input.setAttribute(name, now || true);
+                    _this48._input.setAttribute(name, now || true);
                   }
                   break;
 
                 case 'type':
-                  _this35._typeSetup(now);
+                  _this48._typeSetup(now);
                   break;
 
                 case 'required':
                   if (now == null) {
-                    _this35._input.removeAttribute(name);
+                    _this48._input.removeAttribute(name);
                   } else {
-                    _this35._input.setAttribute(name, now || true);
+                    _this48._input.setAttribute(name, now || true);
                   }
                   break;
               }
@@ -2953,550 +3572,83 @@ var __run = function __run() {
 
     /***/
   },
-  /* 21 */
+  /* 24 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__checkbox_js__ = __webpack_require__(30);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__form_js__ = __webpack_require__(9);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__tooltip_js__ = __webpack_require__(7);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_animations_rippler_js__ = __webpack_require__(12);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__temp_utils_focusable_js__ = __webpack_require__(5);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+    var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(6);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__ = __webpack_require__(2);
     /*
-     * list.js
+     * fab.js
      * @author jasmith79
      * @copyright Jared Smith
      * @license MIT
      * You should have received a copy of the license with this work but it may also be found at
      * https://opensource.org/licenses/MIT
      *
-     * list component for ui-components-lite.
-     *
-     * NOTE: it is not currently (and may never) be possible to extend built-in elements like <ul>.
-     * If it does become possible this can be refactored to support extending <ul> or <ol>.
+     * floating action button component for ui-components-lite.
      */
 
-    var handlerCache = new WeakMap();
-    var ListBehavior = function ListBehavior(superclass) {
-      return Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
-        name: 'ui-list-behavior',
-        reflectedAttributes: ['multiple', 'selected-index'],
-        registerElement: false,
-        definition: function (_Object$with6) {
-          _inherits(definition, _Object$with6);
+    var template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      width: 74px;\n      height: 74px;\n      border-radius: 50%;\n      background-color: var(--ui-theme-accent-color, purple);\n      outline: none;\n    }\n  </style>\n';
 
-          function definition() {
-            _classCallCheck(this, definition);
+    /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["b" /* defineUIComponent */])({
+      name: 'ui-fab',
+      template: template,
+      definition: function (_WEBPACK_IMPORTED_MO6) {
+        _inherits(Fab, _WEBPACK_IMPORTED_MO6);
 
-            var _this36 = _possibleConstructorReturn(this, (definition.__proto__ || Object.getPrototypeOf(definition)).call(this));
+        function Fab() {
+          _classCallCheck(this, Fab);
 
-            _this36._items = [];
-            _this36._selected = null;
-            return _this36;
+          return _possibleConstructorReturn(this, (Fab.__proto__ || Object.getPrototypeOf(Fab)).apply(this, arguments));
+        }
+
+        _createClass(Fab, [{
+          key: 'init',
+          value: function init() {
+            _get(Fab.prototype.__proto__ || Object.getPrototypeOf(Fab.prototype), 'init', this).call(this);
+            this.floatingY = true;
           }
+        }]);
 
-          // Using a closure here because getting the item back out of the Event object is unreliable.
-
-
-          _createClass(definition, [{
-            key: '_itemHandlerFactory',
-            value: function _itemHandlerFactory(item) {
-              var _this37 = this;
-
-              var h = handlerCache.get(item);
-              if (h) return h;
-              var f = function f(e) {
-                if (_this37.multiple === true) {
-                  if (!item.isSelected && !_this37.selected.includes(item)) {
-                    item.isSelected = true;
-                    _this37.selected = item; // pushes in setter
-                  } else if (item.isSelected) {
-                    item.isSelected = false;
-                    _this37._deSelect(item);
-                  }
-                } else {
-                  if (!item.isSelected && item !== _this37.selected) {
-                    item.isSelected = true;
-                    _this37.selected = item;
-                  }
-                }
-
-                return;
-              };
-
-              handlerCache.set(item, f);
-              return f;
-            }
-          }, {
-            key: '_deSelect',
-            value: function _deSelect(item) {
-              if (this.multiple === true) {
-                this._selected = this._selected.filter(function (x) {
-                  return x !== item;
-                });
-                this.dispatchEvent(new Event('change'));
-              }
-              return this;
-            }
-          }, {
-            key: 'appendChild',
-            value: function appendChild(node) {
-              var _this38 = this;
-
-              var p = node.onReady(function (el) {
-                if (el.matches && el.matches('.ui-item')) {
-                  el.on('click', _this38._itemHandlerFactory(el));
-                  _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'appendChild', _this38).call(_this38, el);
-                  _this38._items.push(el);
-                  if (el.isSelected) _this38.selected = el;
-                }
-              });
-              if (this._pendingDOM) this._pendingDOM.push(p);
-              return node;
-            }
-          }, {
-            key: 'init',
-            value: function init() {
-              var _this39 = this;
-
-              _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'init', this).call(this);
-              this.on('keydown', function (e) {
-                var el = function () {
-                  switch (e.keyCode) {
-                    case 40:
-                      return _this39._items[(_this39._items.indexOf(_this39.shadowRoot.activeElement) + 1) % _this39._items.length];
-
-                    case 38:
-                      return _this39._items[+(_this39._items.indexOf(_this39.shadowRoot.activeElement) - 1)];
-
-                    default:
-                      return null;
-                  }
-                }();
-
-                if (el) el.focus();
-              });
-
-              this.on('attribute-change', function (_ref26) {
-                var _ref26$changed = _ref26.changed,
-                    now = _ref26$changed.now,
-                    name = _ref26$changed.name;
-
-                switch (name) {
-                  case 'multiple':
-                    if (now === true) {
-                      _this39.selectedIndex = -1;
-                      _this39._selected = _this39._selected ? [_this39._selected] : [];
-                      _this39.attr('aria-multiselectable', true);
-                    } else {
-                      _this39.attr('aria-multiselectable', false);
-                      _this39.selected = _this39.selected == null ? null : _this39.selected[0];
-                    }
-                    break;
-
-                  case 'selected-index':
-                    if (now === -1 || _this39.multiple) return;
-                    if (!_this39._items[now]) {
-                      console.warn('Attempted to set invalid index ' + now + ' for element.');
-                      _this39.attr('selected-index', was);
-                      return;
-                    }
-
-                    if (_this39._items[now] !== _this39.selected) _this39.selected = now;
-                    break;
-                }
-              });
-
-              this._beforeReady(function (_) {
-                _this39.selectAll('.ui-item').map(function (item) {
-                  _this39._items.push(item);
-                  if (item.attr('is-selected')) _this39.selected = item;
-                  item.on('click enter-key', _this39._itemHandlerFactory(item));
-                });
-              });
-            }
-          }, {
-            key: 'items',
-            get: function get() {
-              return this.selectAll('.ui-item');
-            }
-          }, {
-            key: 'value',
-            get: function get() {
-              return this.selected && this.selected.map ? this.selected.map(function (x) {
-                return x ? x.value : '';
-              }).join(',') : this.selected && this.selected.value || null;
-            },
-            set: function set(value) {
-              this.selected = value;
-            }
-          }, {
-            key: 'selected',
-            get: function get() {
-              return this._selected;
-            },
-            set: function set(value) {
-              if (value === null) {
-                this._selected = null;
-                return;
-              }
-
-              var type = Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__["a" /* default */])(value);
-              var selection = void 0;
-              switch (type) {
-                case 'Number':
-                  selection = this._items[value];
-                  break;
-
-                case 'String':
-                  selection = this.querySelector('[value="' + value + '"]');
-                  if (!selection) selection = this._items.filter(function (x) {
-                    return x.textContent === value;
-                  })[0];
-                  break;
-              }
-
-              if (type.match(/HTML\w*Element/) && this._items.includes(value)) selection = value;
-              if (selection) {
-                selection.attr('aria-selected', true);
-                selection.isSelected = true;
-                if (this.multiple === true) {
-                  this._selected.push(selection);
-                  this.dispatchEvent(new Event('change'));
-                } else {
-                  this._selected = selection;
-                  this.selectedIndex = this._items.indexOf(selection);
-                  this._items.forEach(function (item) {
-                    if (item !== selection) item.isSelected = false;
-                    item.attr('aria-selected', false);
-                  });
-                }
-              }
-
-              return selection;
-            }
-          }]);
-
-          return definition;
-        }(Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(superclass).with(__WEBPACK_IMPORTED_MODULE_1__form_js__["a" /* FormControlBehavior */]))
-      });
-    };
-    /* harmony export (immutable) */__webpack_exports__["b"] = ListBehavior;
-
-    var Item = function () {
-      var template = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-      var reflectedAttributes = ['is-selected', 'value', 'tooltip'];
-      template.innerHTML = '\n    <style>\n      :host {\n        --ui-theme-ripple-color: var(--ui-theme-primary-dark-color, rgb(0, 139, 163));\n        display: block;\n        margin-top: 10px;\n        margin-bottom: 10px;\n        min-height: 20px;\n        background-color: inherit;\n        color: inherit;\n        border-radius: 0;\n        text-transform: capitalize;\n        width: 90%;\n        margin-left: 5%;\n        padding-top: 4px;\n      }\n\n      :host(:hover) {\n        color: var(--ui-theme-primary-dark-color, #999);\n      }\n\n      :host(.selected) {\n        border-bottom: 1px solid var(--ui-theme-primary-dark-color, rgb(0, 139, 163));\n      }\n\n      .ui-checkbox {\n        display: none;\n        height: 18px;\n        width: 18px;\n        float: left;\n      }\n\n      .ui-checkbox::before {\n        top: 2px;\n        height: 9px;\n        left: 5px;\n      }\n\n      :host-context([multiple="true"]) {\n        border-bottom: none;\n      }\n\n      :host-context([multiple="true"]) ui-checkbox {\n        display: inline-block;\n      }\n\n      :host-context([multiple="true"]) #content {\n        position: relative;\n        left: -10px; /* offsets checkbox */\n      }\n    </style>\n    <ui-checkbox></ui-checkbox>\n    <span id="content"><slot></slot></span>\n  ';
-
-      return Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
-        name: 'ui-item',
-        template: template,
-        reflectedAttributes: reflectedAttributes,
-        definition: function (_Object$with7) {
-          _inherits(Item, _Object$with7);
-
-          function Item() {
-            _classCallCheck(this, Item);
-
-            var _this40 = _possibleConstructorReturn(this, (Item.__proto__ || Object.getPrototypeOf(Item)).call(this));
-
-            _this40._checkbox = null;
-            _this40._content = null;
-            return _this40;
-          }
-
-          _createClass(Item, [{
-            key: 'init',
-            value: function init() {
-              var _this41 = this;
-
-              _get(Item.prototype.__proto__ || Object.getPrototypeOf(Item.prototype), 'init', this).call(this);
-              this.attr('role', 'listoption');
-              this._beforeReady(function (_) {
-                _this41._checkbox = _this41.selectInternalElement('ui-checkbox');
-                _this41._content = _this41.selectInternalElement('#content');
-                if (!_this41.value || _this41.value.toString() === 'true') _this41.value = _this41.textContent;
-                if (!_this41.isSelected) _this41.isSelected = false;
-              });
-
-              this.on('attribute-change', function (_ref27) {
-                var _ref27$changed = _ref27.changed,
-                    now = _ref27$changed.now,
-                    name = _ref27$changed.name;
-
-                switch (name) {
-                  case 'is-selected':
-                    _this41.onReady(function (_) {
-                      if (now) {
-                        _this41.classList.add('selected');
-                        _this41._checkbox.checked = true;
-                        _this41.dispatchEvent(new CustomEvent('component-selected'));
-                      } else {
-                        _this41.classList.remove('selected');
-                        _this41._checkbox.checked = false;
-                        _this41.dispatchEvent(new CustomEvent('component-deselected'));
-                      }
-                    });
-                    break;
-                }
-              });
-            }
-          }]);
-
-          return Item;
-        }(Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_3__temp_animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_4__temp_utils_focusable_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_2__tooltip_js__["a" /* TooltipMixin */]))
-      });
-    }();
-    /* harmony export (immutable) */__webpack_exports__["a"] = Item;
-
-    var List = function () {
-      var template = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-      template.innerHTML = '\n    <style>\n      :host {\n        display: block;\n        text-align: center;\n        margin: 5px;\n      }\n    </style>\n    <slot></slot>\n  ';
-
-      return Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
-        name: 'ui-list',
-        template: template,
-        definition: function (_Object$with8) {
-          _inherits(List, _Object$with8);
-
-          function List() {
-            _classCallCheck(this, List);
-
-            return _possibleConstructorReturn(this, (List.__proto__ || Object.getPrototypeOf(List)).apply(this, arguments));
-          }
-
-          _createClass(List, [{
-            key: 'init',
-            value: function init() {
-              _get(List.prototype.__proto__ || Object.getPrototypeOf(List.prototype), 'init', this).call(this);
-              this.attr('role', 'list');
-            }
-          }]);
-
-          return List;
-        }(Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(ListBehavior))
-      });
-    }();
-    /* unused harmony export List */
+        return Fab;
+      }(__WEBPACK_IMPORTED_MODULE_0__button_js__["a" /* default */])
+    });
 
     /***/
   },
-  /* 22 */
+  /* 25 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
 
     Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__temp_elements_login_js__ = __webpack_require__(23);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_elements_fab_js__ = __webpack_require__(15);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_elements_drop_down_js__ = __webpack_require__(29);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_elements_drawer_js__ = __webpack_require__(31);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__temp_elements_hamburger_js__ = __webpack_require__(33);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__temp_elements_input_js__ = __webpack_require__(20);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__temp_elements_router_js__ = __webpack_require__(34);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__temp_elements_tabs_js__ = __webpack_require__(35);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_8__temp_elements_text_js__ = __webpack_require__(8);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_9__temp_elements_toolbar_js__ = __webpack_require__(36);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_10__temp_elements_tooltip_js__ = __webpack_require__(7);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_0__build_temp_elements_alert_js__ = __webpack_require__(17);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__build_temp_elements_hamburger_js__ = __webpack_require__(29);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__build_temp_elements_checkbox_js__ = __webpack_require__(15);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__build_temp_elements_input_js__ = __webpack_require__(23);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__build_temp_elements_form_js__ = __webpack_require__(5);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__build_temp_elements_login_js__ = __webpack_require__(30);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_6__build_temp_elements_tabs_js__ = __webpack_require__(31);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_7__build_temp_elements_card_js__ = __webpack_require__(13);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_8__build_temp_elements_drawer_js__ = __webpack_require__(32);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_9__build_temp_elements_toolbar_js__ = __webpack_require__(34);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_10__build_temp_elements_router_js__ = __webpack_require__(35);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_11__build_temp_elements_tooltip_js__ = __webpack_require__(8);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_12__build_temp_elements_text_js__ = __webpack_require__(9);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_13__build_temp_elements_button_js__ = __webpack_require__(6);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_14__build_temp_elements_toggle_js__ = __webpack_require__(36);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_15__build_temp_elements_backdrop_js__ = __webpack_require__(14);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_16__build_temp_elements_list_js__ = __webpack_require__(16);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_17__build_temp_elements_dialog_js__ = __webpack_require__(20);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_18__build_temp_elements_fab_js__ = __webpack_require__(24);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_19__build_temp_elements_drop_down_js__ = __webpack_require__(37);
 
     /***/
   },
-  /* 23 */
-  /***/function (module, __webpack_exports__, __webpack_require__) {
-
-    "use strict";
-    /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__card_js__ = __webpack_require__(13);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__fab_js__ = __webpack_require__(15);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__alert_js__ = __webpack_require__(27);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__form_js__ = __webpack_require__(9);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__input_js__ = __webpack_require__(20);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__ = __webpack_require__(0);
-    /*
-     * login.js
-     * @author jasmith79
-     * @copyright Jared Smith
-     * @license MIT
-     * You should have received a copy of the license with this work but it may also be found at
-     * https://opensource.org/licenses/MIT
-     *
-     * login component for ui-components-lite.
-     */
-
-    var INVALID = 'Invalid login credentials. Please double-check your username and password.';
-    var FAILURE = 'Could not connect to the server to verify your identity. Please check the console for details.';
-
-    var reflectedAttributes = ['is-logged-in', 'data-url', 'session-timeout'];
-    var template = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    ui-card {\n      width: 300px;\n      height: 315px;\n    }\n\n    ui-input {\n      margin-bottom: 30px;\n    }\n\n    ui-fab {\n      float: right;\n      position: relative;\n      left: 15px;\n    }\n\n    h2 {\n      color: #AAA;\n      font-style: italic;\n      margin-bottom: 40px;\n    }\n\n    #heading {\n      width: 70%;\n      margin-left: 10%;\n      border-bottom: var(--ui-theme-dark-text-color, #999);\n    }\n\n    .arrow {\n      border: solid #fff;\n      border-width: 0 4px 5px 0;\n      display: inline-block;\n      padding: 3px;\n      position: relative;\n      transform: rotate(45deg);\n      height: 25px;\n      width: 12px;\n      top: -2px;\n      left: 2px;\n    }\n\n    :host {\n      position: relative;\n      left: 50px;\n      top: 50px;\n    }\n  </style>\n  <ui-card>\n    <h2 id="heading">Login</h2>\n    <ui-form>\n      <ui-input name="user" label="User" tabindex="1" required></ui-input>\n      <ui-input name="pass" label="Password" type="password" tabindex="1" required></ui-input>\n      <ui-fab tabindex="1"><div class="arrow"></div></ui-fab>\n    </ui-form>\n  </ui-card>\n';
-
-    /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
-      name: 'ui-login',
-      reflectedAttributes: reflectedAttributes,
-      template: template,
-      definition: function (_WEBPACK_IMPORTED_MO5) {
-        _inherits(Login, _WEBPACK_IMPORTED_MO5);
-
-        function Login() {
-          _classCallCheck(this, Login);
-
-          var _this43 = _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).call(this));
-
-          _this43._alert = null;
-          _this43._form = null;
-          _this43._sessionTimeoutHandle = null;
-          return _this43;
-        }
-
-        _createClass(Login, [{
-          key: 'login',
-          value: function login(resp) {
-            this.isLoggedIn = true;
-            var evt = new CustomEvent('login', { bubbles: true });
-            evt.credentials = this.credentials;
-            evt.response = resp;
-            this.dispatchEvent(evt);
-            this._sessionTimeoutHandle = this.countDown();
-          }
-        }, {
-          key: 'logout',
-          value: function logout() {
-            this.isLoggedIn = null;
-            this.selectInternalElement('[name="pass"]').value = '';
-            __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].sessionStorage.setItem('ui-credentials', '');
-            this.dispatchEvent(new CustomEvent('logout', { bubbles: true }));
-            return this;
-          }
-        }, {
-          key: 'userLogout',
-          value: function userLogout() {
-            var name = this.credentials.name;
-
-            this.logout();
-            this._alert.alert('User ' + name + ' is now logged out. Please close this tab.');
-            this._alert.selectInternalElement('#closer');
-          }
-        }, {
-          key: 'countDown',
-          value: function countDown(h) {
-            var _this44 = this;
-
-            __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].clearTimeout(h);
-            return __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-              _this44.logout();
-              _this44._alert.alert('Session timed out. Please login again or close the tab.');
-              _this44._alert.selectInternalElement('#closer');
-            }, this.sessionTimeout || 30 * 60 * 1000);
-          }
-        }, {
-          key: 'init',
-          value: function init() {
-            var _this45 = this;
-
-            _get(Login.prototype.__proto__ || Object.getPrototypeOf(Login.prototype), 'init', this).call(this);
-            this._beforeReady(function (_) {
-              _this45._form = _this45.selectInternalElement('ui-form');
-              _this45._alert = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].querySelector('ui-alert');
-              if (!_this45._alert) {
-                _this45._alert = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-alert');
-                __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].body.appendChild(_this45._alert);
-              }
-
-              // Reset the session timeout on interaction.
-              ['click', 'keydown'].forEach(function (evt) {
-                __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].addEventListener(evt, function (e) {
-                  if (_this45.isLoggedIn) _this45._sessionTimeoutHandle = _this45.countDown(_this45._sessionTimeoutHandle);
-                });
-              });
-
-              var handler = function handler(_) {
-                if (!_this45.isLoggedIn) {
-                  if (!_this45.dataUrl) {
-                    throw new Error('No url for login, whatcha want me to do?');
-                  }
-
-                  if (!_this45._form.isValid) {
-                    _this45._alert.alert('Please supply a Username and Password.');
-                    return;
-                  }
-
-                  var _credentials = _this45.credentials,
-                      user = _credentials.user,
-                      pass = _credentials.pass;
-
-                  var headers = {
-                    'Authorization': 'Basic ' + btoa(user + ':' + pass),
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                  };
-
-                  fetch(_this45.dataUrl, { method: 'POST', headers: headers }).then(function (resp) {
-                    return resp.json();
-                  }).then(function (valid) {
-                    if (valid) {
-                      sessionStorage.setItem('ui-credentials', JSON.stringify(_this45.credentials));
-                      _this45.login(valid);
-                    } else {
-                      _this45._alert.alert(INVALID);
-                    }
-                  }).catch(function (err) {
-                    console.error(err);
-                    _this45._alert.alert(FAILURE);
-                  });
-                }
-              };
-
-              _this45.selectInternalElement('ui-fab').on('click enter-key', handler);
-              _this45.selectInternalElement('[name="pass"]').on('enter-key', handler);
-            });
-
-            this.onReady(function (_) {
-              var bttn = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].querySelector('[logout-button]');
-              // If added later event handling needs to be done manually.
-              if (bttn) {
-                bttn.on('click keydown', function (e) {
-                  if (!e.keyCode || e.keyCode === 13) {
-                    _this45.userLogout();
-                  }
-                });
-              }
-
-              // Wait a bit to allow handlers to be set if anything wants to listen for the login
-              // event.
-              __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-                var cached = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].sessionStorage.getItem('ui-credentials');
-                if (cached) {
-                  try {
-                    var credentials = JSON.parse(cached);
-                    if (credentials.user && credentials.pass) {
-                      console.log('Logging in with session data...');
-                      _this45.login();
-                      _this45._form.data = credentials;
-                    }
-                  } catch (e) {
-                    // no-op
-                  }
-                }
-              }, 500);
-            });
-          }
-        }, {
-          key: 'credentials',
-          get: function get() {
-            return this.selectInternalElement('ui-form').serialize();
-          }
-        }]);
-
-        return Login;
-      }(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["a" /* UIBase */])
-    });
-
-    /***/
-  },
-  /* 24 */
+  /* 26 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -3519,12 +3671,12 @@ var __run = function __run() {
         function DataBinder() {
           _classCallCheck(this, DataBinder);
 
-          var _this46 = _possibleConstructorReturn(this, (DataBinder.__proto__ || Object.getPrototypeOf(DataBinder)).call(this));
+          var _this50 = _possibleConstructorReturn(this, (DataBinder.__proto__ || Object.getPrototypeOf(DataBinder)).call(this));
 
-          _this46._oneWayBoundAttrs = {};
-          _this46._twoWayBoundAttrs = {};
-          _this46._internalMutationFlag = false;
-          return _this46;
+          _this50._oneWayBoundAttrs = {};
+          _this50._twoWayBoundAttrs = {};
+          _this50._internalMutationFlag = false;
+          return _this50;
         }
 
         // Set up data-binding. Any element attributes with a value matching the binding syntax
@@ -3542,7 +3694,7 @@ var __run = function __run() {
         _createClass(DataBinder, [{
           key: 'bindAttribute',
           value: function bindAttribute(attribute) {
-            var _this47 = this;
+            var _this51 = this;
 
             var parentAttribute = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : attribute;
             var twoWay = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
@@ -3568,25 +3720,25 @@ var __run = function __run() {
               }
 
               // Initial set
-              _this47.attr(attribute, parent.attr(parentAttribute));
+              _this51.attr(attribute, parent.attr(parentAttribute));
 
               // Watch changes.
-              _this47.watchAttribute(parent, parentAttribute, function (now, name, was) {
-                if (_this47.attr(attribute) !== now) {
-                  _this47._internalMutationFlag = true;
-                  _this47.attr(attribute, now);
+              _this51.watchAttribute(parent, parentAttribute, function (now, name, was) {
+                if (_this51.attr(attribute) !== now) {
+                  _this51._internalMutationFlag = true;
+                  _this51.attr(attribute, now);
                 }
               });
 
               if (twoWay) {
-                _this47.watchAttribute(_this47, attribute, function (now, name, was) {
+                _this51.watchAttribute(_this51, attribute, function (now, name, was) {
                   if (parent.attr(parentAttribute) !== now) {
                     parent.attr(parentAttribute, now);
                   }
                 });
-                _this47._twoWayBoundAttrs[attribute] = parentAttribute;
+                _this51._twoWayBoundAttrs[attribute] = parentAttribute;
               } else {
-                _this47._oneWayBoundAttrs[attribute] = parentAttribute;
+                _this51._oneWayBoundAttrs[attribute] = parentAttribute;
               }
             };
 
@@ -3600,7 +3752,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 25 */
+  /* 27 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -3630,12 +3782,12 @@ var __run = function __run() {
         function DOMutils() {
           _classCallCheck(this, DOMutils);
 
-          var _this48 = _possibleConstructorReturn(this, (DOMutils.__proto__ || Object.getPrototypeOf(DOMutils)).call(this));
+          var _this52 = _possibleConstructorReturn(this, (DOMutils.__proto__ || Object.getPrototypeOf(DOMutils)).call(this));
 
-          _this48._mutationObservers = [];
-          _this48._prevDisplay = '';
-          _this48._isHidden = false;
-          return _this48;
+          _this52._mutationObservers = [];
+          _this52._prevDisplay = '';
+          _this52._isHidden = false;
+          return _this52;
         }
 
         _createClass(DOMutils, [{
@@ -3644,30 +3796,30 @@ var __run = function __run() {
 
           // Observes changes to the given attribute on the given node.
           value: function watchAttribute(n, a, callb) {
-            var _this49 = this;
+            var _this53 = this;
 
-            var _ref28 = function () {
+            var _ref29 = function () {
               if (isHTMLElement(n)) return [n, a, callb];
-              return [_this49, n, a];
+              return [_this53, n, a];
             }(),
-                _ref29 = _slicedToArray(_ref28, 3),
-                node = _ref29[0],
-                attr = _ref29[1],
-                cb = _ref29[2];
+                _ref30 = _slicedToArray(_ref29, 3),
+                node = _ref30[0],
+                attr = _ref30[1],
+                cb = _ref30[2];
 
             if ((node.constructor.observedAttributes || []).includes(attr)) {
-              node.on('attribute-change', function (_ref30) {
-                var _ref30$changed = _ref30.changed,
-                    now = _ref30$changed.now,
-                    name = _ref30$changed.name,
-                    was = _ref30$changed.was;
+              node.on('attribute-change', function (_ref31) {
+                var _ref31$changed = _ref31.changed,
+                    now = _ref31$changed.now,
+                    name = _ref31$changed.name,
+                    was = _ref31$changed.was;
 
                 if (name === attr) cb(now, name, was);
               });
             } else {
-              var observer = new MutationObserver(function (_ref31) {
-                var _ref32 = _slicedToArray(_ref31, 1),
-                    mutation = _ref32[0];
+              var observer = new MutationObserver(function (_ref32) {
+                var _ref33 = _slicedToArray(_ref32, 1),
+                    mutation = _ref33[0];
 
                 if (mutation.attributeName === attr) {
                   cb(node.attr(mutation.attributeName), mutation.attributeName, mutation.oldValue);
@@ -3723,19 +3875,19 @@ var __run = function __run() {
            * DOM.
            */
           value: function on(evts, fn) {
-            var _this50 = this;
+            var _this54 = this;
 
             evts.split(/\s+/g).forEach(function (evt) {
-              var isDupe = _this50._listeners.some(function (_ref33) {
-                var _ref34 = _slicedToArray(_ref33, 2),
-                    e = _ref34[0],
-                    f = _ref34[1];
+              var isDupe = _this54._listeners.some(function (_ref34) {
+                var _ref35 = _slicedToArray(_ref34, 2),
+                    e = _ref35[0],
+                    f = _ref35[1];
 
                 return e === evt && fn === f;
               });
               if (!isDupe) {
-                _this50.addEventListener(evt, fn);
-                _this50._listeners.push([evt, fn]);
+                _this54.addEventListener(evt, fn);
+                _this54._listeners.push([evt, fn]);
               }
             });
             return this;
@@ -3757,22 +3909,22 @@ var __run = function __run() {
         }, {
           key: 'remove',
           value: function remove() {
-            var _this51 = this;
+            var _this55 = this;
 
             for (var _len6 = arguments.length, args = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
               args[_key6] = arguments[_key6];
             }
 
-            var _ref35 = function (arr) {
+            var _ref36 = function (arr) {
               switch (arr.length) {
                 case 0:
-                  _this51.parentElement && _this51.parentElement.removeChild(_this51);
+                  _this55.parentElement && _this55.parentElement.removeChild(_this55);
                   return [];
 
                 case 1:
-                  return function (_ref37) {
-                    var _ref38 = _slicedToArray(_ref37, 1),
-                        item = _ref38[0];
+                  return function (_ref38) {
+                    var _ref39 = _slicedToArray(_ref38, 1),
+                        item = _ref39[0];
 
                     var type = Object(__WEBPACK_IMPORTED_MODULE_2__node_modules_extracttype_extracttype_js__["a" /* default */])(item);
                     // leaving this as a switch in case I think of more options later
@@ -3797,19 +3949,19 @@ var __run = function __run() {
                   }(arr);
               }
             }(args),
-                _ref36 = _slicedToArray(_ref35, 3),
-                evt = _ref36[0],
-                fn = _ref36[1],
-                children = _ref36[2];
+                _ref37 = _slicedToArray(_ref36, 3),
+                evt = _ref37[0],
+                fn = _ref37[1],
+                children = _ref37[2];
 
             if (fn && Object(__WEBPACK_IMPORTED_MODULE_2__node_modules_extracttype_extracttype_js__["a" /* default */])(fn) === 'Function') {
-              this._listeners = this._listeners.filter(function (_ref39) {
-                var _ref40 = _slicedToArray(_ref39, 2),
-                    e = _ref40[0],
-                    f = _ref40[1];
+              this._listeners = this._listeners.filter(function (_ref40) {
+                var _ref41 = _slicedToArray(_ref40, 2),
+                    e = _ref41[0],
+                    f = _ref41[1];
 
                 if (f === fn && (evt === null || evt === e)) {
-                  _this51.removeEventListener(e, f);
+                  _this55.removeEventListener(e, f);
                   return false;
                 }
                 return true;
@@ -3818,7 +3970,7 @@ var __run = function __run() {
 
             if (children) {
               children.forEach(function (child) {
-                return _this51.removeChild(child);
+                return _this55.removeChild(child);
               });
             }
 
@@ -3900,7 +4052,7 @@ var __run = function __run() {
 
     /***/
   },
-  /* 26 */
+  /* 28 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
@@ -3919,11 +4071,11 @@ var __run = function __run() {
      */
 
     /* harmony default export */
-    __webpack_exports__["a"] = function (_ref41) {
-      var eventName = _ref41.eventName,
-          element = _ref41.element,
-          callback = _ref41.callback,
-          timeout = _ref41.timeout;
+    __webpack_exports__["a"] = function (_ref42) {
+      var eventName = _ref42.eventName,
+          element = _ref42.element,
+          callback = _ref42.callback,
+          timeout = _ref42.timeout;
 
       if (!eventName || !element) {
         throw new TypeError('Missing required arguments to function.');
@@ -3950,456 +4102,62 @@ var __run = function __run() {
 
     /***/
   },
-  /* 27 */
-  /***/function (module, __webpack_exports__, __webpack_require__) {
-
-    "use strict";
-    /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(6);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__dialog_js__ = __webpack_require__(28);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__ = __webpack_require__(2);
-    /*
-     * alert.js
-     * @author jasmith79
-     * @copyright Jared Smith
-     * @license MIT
-     * You should have received a copy of the license with this work but it may also be found at
-     * https://opensource.org/licenses/MIT
-     *
-     * alert component for ui-components-lite.
-     */
-
-    var template = __WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    :host {\n      top: 30%;\n    }\n\n    #content {\n      width: 90%;\n      margin-left: auto;\n      margin-right: auto;\n      height: 65%;\n    }\n\n    #closer {\n      background-color: var(--ui-theme-warning-color, #e83673);\n      color: var(--ui-theme-light-text-color, #fff);\n      position: relative;\n      width: 105px;\n      height: 50px;\n      top: 12px;\n      left: calc(100% - 105px);\n    }\n  </style>\n  <div id="content"></div>\n  <ui-button id="closer" dialog-dismiss>Close</ui-button>\n';
-
-    var Alert = Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__["b" /* defineUIComponent */])({
-      name: 'ui-alert',
-      template: template,
-      definition: function (_WEBPACK_IMPORTED_MO6) {
-        _inherits(Alert, _WEBPACK_IMPORTED_MO6);
-
-        function Alert() {
-          _classCallCheck(this, Alert);
-
-          return _possibleConstructorReturn(this, (Alert.__proto__ || Object.getPrototypeOf(Alert)).apply(this, arguments));
-        }
-
-        _createClass(Alert, [{
-          key: 'init',
-          value: function init() {
-            var _this53 = this;
-
-            _get(Alert.prototype.__proto__ || Object.getPrototypeOf(Alert.prototype), 'init', this).call(this);
-            this.attr('role', 'alert');
-            this.scrollableDialog = false;
-            this.smallDialog = true;
-            this.attr('is-modal', true);
-            this.watchAttribute(this, 'is-open', function (open) {
-              open ? _this53._backdrop.show() : _this53._backdrop.hide();
-            });
-
-            var closer = this.selectInternalElement('#closer');
-            this.on('dialog-opened', function (e) {
-              closer.focus();
-            });
-          }
-        }, {
-          key: 'alert',
-          value: function alert(txt) {
-            this.textContent = txt;
-            return this.open();
-          }
-        }, {
-          key: 'textContent',
-          get: function get() {
-            return this.selectInternalElement('#content').textContent;
-          },
-          set: function set(txt) {
-            this.selectInternalElement('#content').textContent = txt;
-            return this;
-          }
-        }]);
-
-        return Alert;
-      }(__WEBPACK_IMPORTED_MODULE_1__dialog_js__["a" /* default */])
-    });
-
-    /* unused harmony default export */var _unused_webpack_default_export = Alert;
-
-    /***/
-  },
-  /* 28 */
-  /***/function (module, __webpack_exports__, __webpack_require__) {
-
-    "use strict";
-    /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__card_js__ = __webpack_require__(13);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__backdrop_js__ = __webpack_require__(17);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__button_js__ = __webpack_require__(6);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_float_js__ = __webpack_require__(4);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__ = __webpack_require__(2);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
-    /*
-     * dialog.js
-     * @author jasmith79
-     * @copyright Jared Smith
-     * @license MIT
-     * You should have received a copy of the license with this work but it may also be found at
-     * https://opensource.org/licenses/MIT
-     *
-     * dialog component for ui-components-lite.
-     */
-
-    var template = __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      position: absolute;\n      padding: 20px;\n      z-index: 10001;\n      background-color: #fff;\n      overflow: hidden;\n    }\n\n    :host(.large-dialog) {\n      width: 80%;\n      height: 80%;\n      top: 8%;\n      left: 9%;\n    }\n\n    :host(.small-dialog) {\n      width: 250px;\n      height: 185px;\n      top: calc(50vh - 130px);\n      left: calc(50vw - 155px);\n    }\n\n    :host(.medium-dialog) {\n      width: 50%;\n      height: 50%;\n      top: 20%;\n      left: 25%;\n    }\n\n    :host(.scrollable-dialog) {\n      overflow: scroll;\n    }\n  </style>\n';
-
-    var reflectedAttributes = ['is-open', 'is-modal', 'small-dialog', 'medium-dialog', 'large-dialog', 'scrollable-dialog'];
-
-    var manipulators = new WeakMap();
-    var incorporateButtonChild = function incorporateButtonChild(el, child) {
-      var manip = manipulators.get(el);
-      if (!manip) {
-        manip = [function (e) {
-          el.close();
-          el.dispatchEvent(new CustomEvent('dialog-dismiss'));
-        }, function (e) {
-          el.close();
-          el.dispatchEvent(new CustomEvent('dialog-confirm'));
-        }];
-        manipulators.set(el, manip);
-      }
-
-      var _manip = manip,
-          _manip2 = _slicedToArray(_manip, 2),
-          dismisser = _manip2[0],
-          confirmer = _manip2[1];
-
-      if (child.attr('dialog-dismiss')) child.on('click enter-key', dismisser);
-      if (child.attr('dialog-confirm')) child.on('click enter-key', confirmer);
-      child.watchAttribute(child, 'dialog-dismiss', function (now) {
-        now ? child.on('click enter-key', dismisser) : child.remove(dismisser);
-      });
-
-      child.watchAttribute(child, 'dialog-confirm', function (now) {
-        now ? child.on('click enter-key', confirmer) : child.remove(confirmer);
-      });
-
-      return el;
-    };
-
-    var Dialog = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["b" /* defineUIComponent */])({
-      name: 'ui-dialog',
-      template: template,
-      reflectedAttributes: reflectedAttributes,
-      definition: function (_WEBPACK_IMPORTED_MO7) {
-        _inherits(Dialog, _WEBPACK_IMPORTED_MO7);
-
-        function Dialog() {
-          _classCallCheck(this, Dialog);
-
-          var _this54 = _possibleConstructorReturn(this, (Dialog.__proto__ || Object.getPrototypeOf(Dialog)).call(this));
-
-          _this54._backdrop = null;
-          __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["d" /* global */].addEventListener('logout', function (e) {
-            _this54.close();
-          });
-          return _this54;
-        }
-
-        // Intercepts calls to appendChild so buttons can be appropriately used.
-
-
-        _createClass(Dialog, [{
-          key: 'appendChild',
-          value: function appendChild(node) {
-            var _this55 = this;
-
-            if (node && node.onReady) {
-              node.onReady(function (el) {
-                if (el && el.matches && el.matches('.ui-button')) {
-                  incorporateButtonChild(_this55, el);
-                  _this55.shadowRoot.appendChild(el);
-                } else {
-                  _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'appendChild', _this55).call(_this55, node);
-                }
-              });
-            }
-
-            return node;
-          }
-        }, {
-          key: 'open',
-          value: function open(txt) {
-            this.isOpen = true;
-            return this;
-          }
-        }, {
-          key: 'close',
-          value: function close() {
-            this.isOpen = false;
-            return this;
-          }
-        }, {
-          key: 'init',
-          value: function init() {
-            var _this56 = this;
-
-            _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'init', this).call(this);
-            this.hide();
-            this.attr('role', 'dialog');
-            this._backdrop = __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["c" /* document */].createElement('ui-backdrop');
-            this._backdrop.for = this;
-            __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["c" /* document */].body.appendChild(this._backdrop);
-
-            this._beforeReady(function (_) {
-              [].concat(_toConsumableArray(_this56.selectInternalAll('.ui-button')), _toConsumableArray(_this56.selectAll('.ui-button'))).forEach(function (el) {
-                return incorporateButtonChild(_this56, el);
-              });
-            });
-
-            var closer = function closer(e) {
-              _this56.close();
-            };
-
-            this.on('attribute-change', function (_ref42) {
-              var _ref42$changed = _ref42.changed,
-                  now = _ref42$changed.now,
-                  name = _ref42$changed.name;
-
-              switch (name) {
-                case 'small-dialog':
-                  return now ? (_this56.classList.add('small-dialog'), _this56.classList.remove('medium-dialog', 'large-dialog')) : _this56.classList.remove('small-dialog');
-
-                case 'medium-dialog':
-                  return now ? (_this56.classList.add('medium-dialog'), _this56.classList.remove('small-dialog', 'large-dialog')) : _this56.classList.remove('medium-dialog');
-
-                case 'large-dialog':
-                  return now ? (_this56.classList.add('large-dialog'), _this56.classList.remove('small-dialog', 'medium-dialog')) : _this56.classList.remove('large-dialog');
-
-                case 'scrollable-dialog':
-                  return now ? _this56.classList.add('scrollable-dialog') : _this56.classList.remove('scrollable-dialog');
-
-                case 'is-modal':
-                  return now ? _this56._backdrop.on('click', closer) : _this56._backdrop.remove(closer);
-
-                case 'is-open':
-                  if (now) {
-                    if (_this56.isModal) _this56._backdrop.show();
-                    _this56.show();
-                    _this56.dispatchEvent(new CustomEvent('dialog-opened'));
-                  } else {
-                    _this56._backdrop.hide();
-                    _this56.hide();
-                    _this56.dispatchEvent(new CustomEvent('dialog-closed'));
-                  }
-              }
-            });
-          }
-        }]);
-
-        return Dialog;
-      }(__WEBPACK_IMPORTED_MODULE_0__card_js__["a" /* default */])
-    });
-
-    /* harmony default export */__webpack_exports__["a"] = Dialog;
-
-    /***/
-  },
   /* 29 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(8);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__list_js__ = __webpack_require__(21);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__ = __webpack_require__(5);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+    var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(6);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__ = __webpack_require__(2);
     /*
-     * drop-down.js
+     * hamburger.js
      * @author jasmith79
      * @copyright Jared Smith
      * @license MIT
      * You should have received a copy of the license with this work but it may also be found at
      * https://opensource.org/licenses/MIT
      *
-     * drop-down component for ui-components-lite.
-     *
-     * NOTE: it is not currently (and may never) be possible to extend built-in elements like select.
-     * If it does become possible this can be refactored to support extending HTMLSelectElement.
+     * menu-button component for ui-components-lite.
      */
 
-    var reflectedAttributes = ['selected-index', 'is-open', 'multiple', 'label'];
-    var template = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    ui-list {\n      transition: transform 500ms cubic-bezier(0.165, 0.84, 0.44, 1);\n      background: #fff;\n      position: relative;\n      left: -5px;\n      z-index: 1000;\n      width: 100%;\n      max-height: 225px;\n      overflow-y: scroll;\n    }\n\n    .arrow {\n      border: solid #999;\n      border-width: 0 2px 2px 0;\n      display: inline-block;\n      padding: 3px;\n      float: right;\n      position: relative;\n      top: 6px;\n      right: 2px;\n      transform: rotate(45deg);\n    }\n\n    .not-overflowing {\n      overflow: hidden !important;\n    }\n\n    #dummy-item {\n      text-align: center;\n      padding-bottom: 3px;\n    }\n\n    #dummy-item.default {\n      letter-spacing: 3px;\n    }\n\n    #list-holder {\n      height: 1px;\n      overflow: visible;\n      position: relative;\n      top: -10px;\n      border-top: 1px solid #999;\n    }\n\n    ui-list ::slotted(.ui-item) {\n      border: none;\n    }\n\n    :host {\n      display: block;\n      max-width: 200px;\n    }\n\n    :host([multiple="true"]) #dummy-item #dummy-item-content {\n      position: relative;\n      left: 10px;\n    }\n\n    :host([is-open="true"]) .arrow {\n      transform: rotate(-135deg);\n    }\n\n    :host([is-open="true"]) ui-list {\n      box-shadow: 3px 5px 10px -4px #999;\n      padding-bottom: 1px;\n      transform: scale(1) translateY(0px);\n    }\n\n    :host([is-open="false"]) ui-list {\n      transform: scale(0) translateY(-200px);\n    }\n\n    :host([is-open="true"]) #list-holder {\n      border-color: var(--ui-theme-primary-dark-color, blue);\n    }\n\n    :host([is-open="false"]) ui-list ::slotted(.ui-item) {\n      display: none;\n    }\n\n    ui-text {\n      /* janky, I know. TODO: find a way to make this work with transform: translate */\n      transition-property: top, left, font-size;\n      transition-timing-function: ease;\n      transition-duration: 1s;\n      position: relative;\n      top: 5px;\n      left: 0px;\n      font-size: 14px;\n    }\n\n    .text-moved {\n      top: 25px;\n      left: 10px;\n      font-size: 16px;\n    }\n  </style>\n  <label><ui-text view-text="{{label}}"></ui-text></label>\n  <ui-item id="dummy-item" class="default">\n    <span id="dummy-item-content"></span>\n    <div class="arrow down"></div>\n  </ui-item>\n  <div id="list-holder" class="not-overflowing">\n    <ui-list multiple="{{multiple}}">\n      <slot></slot>\n    </ui-list>\n  </div>\n';
+    var reflectedAttributes = ['line-color'];
+    var template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    .line {\n      height: 5px;\n      width: 100%;\n      background-color: var(--ui-theme-dark-text-color, #000);\n      position: relative;\n      padding: 0;\n    }\n\n    .top-line {\n      top: 0px;\n    }\n\n    .middle-line {\n      top: 7px;\n    }\n\n    .bottom-line {\n      top: 15px;\n    }\n\n    .content-wrapper {\n      height: 30px;\n      left: 10%;\n    }\n\n    :host {\n      background: transparent;\n      width: 48px;\n      height: 48px;\n    }\n  </style>\n';
 
-    /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
-      name: 'ui-drop-down',
-      reflectedAttributes: reflectedAttributes,
+    var lineDivTemplate = __WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["c" /* document */].createElement('template');
+    lineDivTemplate.innerHTML = '\n  <div>\n    <div class="line top-line"></div>\n    <div class="line middle-line"></div>\n    <div class="line bottom-line"></div>\n  </div>\n';
+
+    /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["b" /* defineUIComponent */])({
+      name: 'ui-hamburger',
       template: template,
-      definition: function (_Object$with9) {
-        _inherits(DropDown, _Object$with9);
+      reflectedAttributes: reflectedAttributes,
+      definition: function (_WEBPACK_IMPORTED_MO7) {
+        _inherits(Hamburger, _WEBPACK_IMPORTED_MO7);
 
-        function DropDown() {
-          _classCallCheck(this, DropDown);
+        function Hamburger() {
+          _classCallCheck(this, Hamburger);
 
-          var _this57 = _possibleConstructorReturn(this, (DropDown.__proto__ || Object.getPrototypeOf(DropDown)).call(this));
-
-          _this57._list = null;
-          _this57._listHolder = null;
-          _this57._dummyItem = null;
-          _this57._textContent = '';
-          return _this57;
+          return _possibleConstructorReturn(this, (Hamburger.__proto__ || Object.getPrototypeOf(Hamburger)).apply(this, arguments));
         }
 
-        _createClass(DropDown, [{
-          key: 'appendChild',
-          value: function appendChild(node) {
-            var _this58 = this;
-
-            if (node) {
-              _get(DropDown.prototype.__proto__ || Object.getPrototypeOf(DropDown.prototype), 'appendChild', this).call(this, node);
-              node.on('click', function (e) {
-                if (!_this58.multiple) {
-                  // wait for the animations to finish
-                  __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-                    _this58.close();
-                  }, 300);
-                }
-              });
-            }
-
-            return node;
-          }
-        }, {
-          key: 'toggle',
-          value: function toggle() {
-            this.isOpen = !this.isOpen;
-            return this;
-          }
-        }, {
-          key: 'open',
-          value: function open() {
-            this.isOpen = true;
-            return this;
-          }
-        }, {
-          key: 'close',
-          value: function close() {
-            this.isOpen = false;
-            return this;
-          }
-        }, {
+        _createClass(Hamburger, [{
           key: 'init',
           value: function init() {
-            var _this59 = this;
+            var _this57 = this;
 
-            var mouseon = false;
-            _get(DropDown.prototype.__proto__ || Object.getPrototypeOf(DropDown.prototype), 'init', this).call(this);
-            var index = this.attr('tabindex');
-            if (index === null || index < 0) this.attr('tabindex', '0');
+            _get(Hamburger.prototype.__proto__ || Object.getPrototypeOf(Hamburger.prototype), 'init', this).call(this);
+            this.selectInternalElement('.content-wrapper').appendChild(__WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["c" /* document */].importNode(lineDivTemplate.content, true));
 
-            this.on('enter-key', function (e) {
-              _this59.open();
-            });
-
-            if (this.attr('name')) {
-              if (!this.attr('label')) this.attr('label', this.attr('name'));
-              this.selectInternalElement('label').setAttribute('for', this.attr('name'));
-            }
-
-            if (this.attr('label')) this.selectInternalElement('ui-text').classList.add('text-moved');
-            this.on('focus', function (e) {
-              return _this59.selectInternalElement('ui-text').classList.remove('text-moved');
-            });
-            this.on('blur', function (e) {
-              __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-                if (_this59.label && !_this59.value) {
-                  _this59.selectInternalElement('ui-text').classList.add('text-moved');
-                }
-              }, 600); // ripple animation is 500 on the ui-item
-            });
-
-            this._beforeReady(function (_) {
-              _this59._list = _this59.selectInternalElement('ui-list');
-              _this59._listHolder = _this59.selectInternalElement('#list-holder');
-              _this59._dummyItem = _this59.selectInternalElement('#dummy-item');
-              _this59._dummyItem.selectInternalElement('ui-checkbox').style.display = 'none';
-
-              _this59._items.forEach(function (item) {
-                if (item.isSelected) _this59.selected = item;
-                item.on('click', function (e) {
-                  if (!_this59.multiple) {
-                    __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-                      _this59.close();
-                    }, 300);
-                  }
-                });
-              });
-
-              if (_this59.name && !_this59.selected) _this59.textContent = null;
-              _this59._listHolder.classList.remove('not-overflowing');
-
-              _this59._dummyItem.on('click', function (e) {
-                if (_this59.attr('tabindex') === null) _this59.attr('tabindex', '0');
-                _this59.toggle();
-                mouseon = _this59.isOpen;
+            this.watchAttribute(this, 'line-color', function (now) {
+              [].concat(_toConsumableArray(_this57.selectInternalAll('.line'))).forEach(function (el) {
+                el.style.backgroundColor = now;
               });
             });
-
-            if (!this.multiple) this.multiple = false;
-            if (!this.isOpen) this.isOpen = false;
-
-            this.on('mouseenter', function (e) {
-              return mouseon = true;
-            });
-            this.on('mouseleave', function (e) {
-              mouseon = false;
-              __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-                if (!mouseon) _this59.isOpen = false;
-              }, 1000);
-            });
-
-            this.on('attribute-change', function (_ref43) {
-              var _ref43$changed = _ref43.changed,
-                  now = _ref43$changed.now,
-                  name = _ref43$changed.name;
-
-              switch (name) {
-                case 'selected-index':
-                  if (_this59.selected && !_this59.multiple) {
-                    _this59.textContent = _this59.selected.textContent;
-                  } else {
-                    _this59.textContent = ''; // default
-                  }
-                  break;
-              }
-            });
-          }
-        }, {
-          key: 'textContent',
-          get: function get() {
-            return this._dummyItem && this._dummyItem.textContent || this._textContent;
-          },
-          set: function set(val) {
-            var txt = val || '';
-
-            this._textContent = txt;
-            if (!this._dummyItem) this._dummyItem = this.selectInternalElement('#dummy-item');
-            this._dummyItem.querySelector('#dummy-item-content').textContent = txt;
-            if (txt === '...') {
-              this._dummyItem.classList.add('default');
-            } else {
-              this._dummyItem.classList.remove('default');
-            }
-
-            return this;
           }
         }]);
 
-        return DropDown;
-      }(Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_1__list_js__["b" /* ListBehavior */], __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__["a" /* default */]))
+        return Hamburger;
+      }(__WEBPACK_IMPORTED_MODULE_0__button_js__["a" /* default */])
     });
 
     /***/
@@ -4409,77 +4167,189 @@ var __run = function __run() {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__form_js__ = __webpack_require__(9);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_animations_rippler_js__ = __webpack_require__(12);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__ = __webpack_require__(5);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+    var __WEBPACK_IMPORTED_MODULE_0__card_js__ = __webpack_require__(13);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__fab_js__ = __webpack_require__(24);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__alert_js__ = __webpack_require__(17);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__form_js__ = __webpack_require__(5);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__input_js__ = __webpack_require__(23);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__ = __webpack_require__(0);
     /*
-     * checkbox.js
+     * login.js
      * @author jasmith79
      * @copyright Jared Smith
      * @license MIT
      * You should have received a copy of the license with this work but it may also be found at
      * https://opensource.org/licenses/MIT
      *
-     * checkbox component for ui-components-lite.
-    
-     * NOTE: it is not currently possible to extend specific HTMLElements, leading
-     * to this element being rather convoluted. Once it's possible to extend input
-     * directly this should be refactored.
+     * login component for ui-components-lite.
      */
 
-    var template = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    :host {\n      display: inline-block;\n      height: 25px;\n      width: 25px;\n      background-color: #DDD;\n      position: relative;\n      border-radius: 5%;\n    }\n\n    :host(:hover) {\n      box-shadow: inset 0 0 0 99999px rgba(150,150,150,0.2);\n    }\n\n    :host:before {\n      content:"";\n      position: absolute;\n      display: none;\n      left: 9px;\n      top: 5px;\n      width: 5px;\n      height: 10px;\n      border: solid #fff;\n      border-width: 0 3px 3px 0;\n      transform: rotate(45deg);\n    }\n\n    :host(.checked) {\n      background-color: var(--ui-theme-primary-dark-color, blue);\n    }\n\n    :host(.checked):before {\n      display: block;\n    }\n  </style>\n';
+    var INVALID = 'Invalid login credentials. Please double-check your username and password.';
+    var FAILURE = 'Could not connect to the server to verify your identity. Please check the console for details.';
 
-    var reflectedAttributes = ['checked'];
+    var reflectedAttributes = ['is-logged-in', 'data-url', 'session-timeout'];
+    var template = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    ui-card {\n      width: 300px;\n      height: 315px;\n    }\n\n    ui-input {\n      margin-bottom: 30px;\n    }\n\n    ui-fab {\n      float: right;\n      position: relative;\n      left: 15px;\n    }\n\n    h2 {\n      color: #AAA;\n      font-style: italic;\n      margin-bottom: 40px;\n    }\n\n    #heading {\n      width: 70%;\n      margin-left: 10%;\n      border-bottom: var(--ui-theme-dark-text-color, #999);\n    }\n\n    .arrow {\n      border: solid #fff;\n      border-width: 0 4px 5px 0;\n      display: inline-block;\n      padding: 3px;\n      position: relative;\n      transform: rotate(45deg);\n      height: 25px;\n      width: 12px;\n      top: -2px;\n      left: 2px;\n    }\n\n    :host {\n      position: relative;\n      left: 50px;\n      top: 50px;\n    }\n  </style>\n  <ui-card>\n    <h2 id="heading">Login</h2>\n    <ui-form>\n      <ui-input name="user" label="User" tabindex="1" required></ui-input>\n      <ui-input name="pass" label="Password" type="password" tabindex="1" required></ui-input>\n      <ui-fab tabindex="1"><div class="arrow"></div></ui-fab>\n    </ui-form>\n  </ui-card>\n';
 
-    var Checkbox = Object(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
-      name: 'ui-checkbox',
-      template: template,
+    /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+      name: 'ui-login',
       reflectedAttributes: reflectedAttributes,
-      definition: function (_Object$with10) {
-        _inherits(Checkbox, _Object$with10);
+      template: template,
+      definition: function (_WEBPACK_IMPORTED_MO8) {
+        _inherits(Login, _WEBPACK_IMPORTED_MO8);
 
-        function Checkbox() {
-          _classCallCheck(this, Checkbox);
+        function Login() {
+          _classCallCheck(this, Login);
 
-          var _this60 = _possibleConstructorReturn(this, (Checkbox.__proto__ || Object.getPrototypeOf(Checkbox)).call(this));
+          var _this58 = _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).call(this));
 
-          _this60._formElement = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('input');
-          _this60._formElement.style.opacity = 0;
-          _this60._formElement.type = 'checkbox';
-          return _this60;
+          _this58._alert = null;
+          _this58._form = null;
+          _this58._sessionTimeoutHandle = null;
+          return _this58;
         }
 
-        _createClass(Checkbox, [{
+        _createClass(Login, [{
+          key: 'login',
+          value: function login(resp) {
+            this.isLoggedIn = true;
+            var evt = new CustomEvent('login', { bubbles: true });
+            evt.credentials = this.credentials;
+            evt.response = resp;
+            this.dispatchEvent(evt);
+            this._sessionTimeoutHandle = this.countDown();
+          }
+        }, {
+          key: 'logout',
+          value: function logout() {
+            this.isLoggedIn = null;
+            this.selectInternalElement('[name="pass"]').value = '';
+            __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].sessionStorage.setItem('ui-credentials', '');
+            this.dispatchEvent(new CustomEvent('logout', { bubbles: true }));
+            return this;
+          }
+        }, {
+          key: 'userLogout',
+          value: function userLogout() {
+            var name = this.credentials.name;
+
+            this.logout();
+            this._alert.alert('User ' + name + ' is now logged out. Please close this tab.');
+            this._alert.selectInternalElement('#closer');
+          }
+        }, {
+          key: 'countDown',
+          value: function countDown(h) {
+            var _this59 = this;
+
+            __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].clearTimeout(h);
+            return __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
+              _this59.logout();
+              _this59._alert.alert('Session timed out. Please login again or close the tab.');
+              _this59._alert.selectInternalElement('#closer');
+            }, this.sessionTimeout || 30 * 60 * 1000);
+          }
+        }, {
           key: 'init',
           value: function init() {
-            var _this61 = this;
+            var _this60 = this;
 
-            _get(Checkbox.prototype.__proto__ || Object.getPrototypeOf(Checkbox.prototype), 'init', this).call(this);
-            this.attr('role', 'checkbox');
-            this.watchAttribute(this, 'checked', function (now) {
-              now ? _this61.classList.add('checked') : _this61.classList.remove('checked');
+            _get(Login.prototype.__proto__ || Object.getPrototypeOf(Login.prototype), 'init', this).call(this);
+            this._beforeReady(function (_) {
+              _this60._form = _this60.selectInternalElement('ui-form');
+              _this60._alert = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].querySelector('ui-alert');
+              if (!_this60._alert) {
+                _this60._alert = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-alert');
+                __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].body.appendChild(_this60._alert);
+              }
+
+              // Reset the session timeout on interaction.
+              ['click', 'keydown'].forEach(function (evt) {
+                __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].addEventListener(evt, function (e) {
+                  if (_this60.isLoggedIn) _this60._sessionTimeoutHandle = _this60.countDown(_this60._sessionTimeoutHandle);
+                });
+              });
+
+              var handler = function handler(_) {
+                if (!_this60.isLoggedIn) {
+                  if (!_this60.dataUrl) {
+                    throw new Error('No url for login, whatcha want me to do?');
+                  }
+
+                  if (!_this60._form.isValid) {
+                    _this60._alert.alert('Please supply a Username and Password.');
+                    return;
+                  }
+
+                  var _credentials = _this60.credentials,
+                      user = _credentials.user,
+                      pass = _credentials.pass;
+
+                  var headers = {
+                    'Authorization': 'Basic ' + btoa(user + ':' + pass),
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                  };
+
+                  fetch(_this60.dataUrl, { method: 'POST', headers: headers }).then(function (resp) {
+                    return resp.json();
+                  }).then(function (valid) {
+                    if (valid) {
+                      sessionStorage.setItem('ui-credentials', JSON.stringify(_this60.credentials));
+                      _this60.login(valid);
+                    } else {
+                      _this60._alert.alert(INVALID);
+                    }
+                  }).catch(function (err) {
+                    console.error(err);
+                    _this60._alert.alert(FAILURE);
+                  });
+                }
+              };
+
+              _this60.selectInternalElement('ui-fab').on('click enter-key', handler);
+              _this60.selectInternalElement('[name="pass"]').on('enter-key', handler);
             });
 
-            this.on('click', function (e) {
-              _this61.checked = !_this61.checked;
-              _this61.attr('aria-checked', _this61.checked);
+            this.onReady(function (_) {
+              var bttn = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].querySelector('[logout-button]');
+              // If added later event handling needs to be done manually.
+              if (bttn) {
+                bttn.on('click keydown', function (e) {
+                  if (!e.keyCode || e.keyCode === 13) {
+                    _this60.userLogout();
+                  }
+                });
+              }
+
+              // Wait a bit to allow handlers to be set if anything wants to listen for the login
+              // event.
+              __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
+                var cached = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].sessionStorage.getItem('ui-credentials');
+                if (cached) {
+                  try {
+                    var credentials = JSON.parse(cached);
+                    if (credentials.user && credentials.pass) {
+                      console.log('Logging in with session data...');
+                      _this60.login();
+                      _this60._form.data = credentials;
+                    }
+                  } catch (e) {
+                    // no-op
+                  }
+                }
+              }, 500);
             });
           }
         }, {
-          key: 'value',
+          key: 'credentials',
           get: function get() {
-            return this.checked != null;
+            return this.selectInternalElement('ui-form').serialize();
           }
         }]);
 
-        return Checkbox;
-      }(Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_1__temp_animations_rippler_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_0__form_js__["a" /* FormControlBehavior */]))
+        return Login;
+      }(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["a" /* UIBase */])
     });
-
-    /* unused harmony default export */var _unused_webpack_default_export = Checkbox;
 
     /***/
   },
@@ -4488,8 +4358,147 @@ var __run = function __run() {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__backdrop_js__ = __webpack_require__(17);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_animations_easer_js__ = __webpack_require__(32);
+    var __WEBPACK_IMPORTED_MODULE_0__list_js__ = __webpack_require__(16);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+    /*
+     * tabs.js
+     * @author jasmith79
+     * @copyright Jared Smith
+     * @license MIT
+     * You should have received a copy of the license with this work but it may also be found at
+     * https://opensource.org/licenses/MIT
+     *
+     * ltabscomponent for ui-components-lite.
+     */
+
+    var Tab = function () {
+      var template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+      template.innerHTML = '\n    <style>\n      #content {\n        position: relative;\n        top: 16px;\n      }\n\n      :host {\n        display: inline-block;\n        background-color: inherit;\n        height: 49px;\n        width: 120px;\n        white-space: nowrap;\n        text-overflow: ellipsis;\n        text-transform: capitalize;\n        border-radius: 5%;\n        margin: 5px;\n        padding: 0;\n        text-align: center;\n      }\n\n      :host(:hover) {\n        color: var(--ui-theme-light-text-color, #fff);\n      }\n\n      :host([is-selected="true"]) {\n        box-shadow: 0px 0px 10px -1px var(--ui-theme-light-text-color, #fff);\n      }\n\n      :host-context(.tabs-centered) {\n        left: -30px;\n      }\n    </style>\n  ';
+
+      return Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+        name: 'ui-tab',
+        template: template,
+        definition: function (_WEBPACK_IMPORTED_MO9) {
+          _inherits(Tab, _WEBPACK_IMPORTED_MO9);
+
+          function Tab() {
+            _classCallCheck(this, Tab);
+
+            return _possibleConstructorReturn(this, (Tab.__proto__ || Object.getPrototypeOf(Tab)).apply(this, arguments));
+          }
+
+          _createClass(Tab, [{
+            key: 'init',
+            value: function init() {
+              _get(Tab.prototype.__proto__ || Object.getPrototypeOf(Tab.prototype), 'init', this).call(this);
+              this.attr('role', 'tab');
+              var index = this.attr('tabindex');
+              if (index === null || index < 0) this.attr('tabindex', '0');
+            }
+          }]);
+
+          return Tab;
+        }(__WEBPACK_IMPORTED_MODULE_0__list_js__["a" /* Item */])
+      });
+    }();
+    /* unused harmony export Tab */
+
+    var Tabs = function () {
+      var reflectedAttributes = ['for'];
+
+      var template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+      template.innerHTML = '\n    <style>\n      :host {\n        display: block;\n        height: 55px;\n        background-color: var(--ui-theme-primary-dark-color, blue);\n        width: 100%;\n      }\n\n      :host ::slotted(.ui-tab:hover) {\n        text-shadow: 1px 1px 6px #fff;\n      }\n    </style>\n    <slot></slot>\n  ';
+
+      return Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+        name: 'ui-tabs',
+        template: template,
+        reflectedAttributes: reflectedAttributes,
+        definition: function (_Object$with10) {
+          _inherits(Tabs, _Object$with10);
+
+          function Tabs() {
+            _classCallCheck(this, Tabs);
+
+            var _this62 = _possibleConstructorReturn(this, (Tabs.__proto__ || Object.getPrototypeOf(Tabs)).call(this));
+
+            _this62._for = null;
+            return _this62;
+          }
+
+          _createClass(Tabs, [{
+            key: 'appendChild',
+            value: function appendChild(node) {
+              if (node.matches && node.matches('.ui-tab')) {
+                _get(Tabs.prototype.__proto__ || Object.getPrototypeOf(Tabs.prototype), 'appendChild', this).call(this, node);
+              }
+            }
+          }, {
+            key: 'init',
+            value: function init() {
+              var _this63 = this;
+
+              _get(Tabs.prototype.__proto__ || Object.getPrototypeOf(Tabs.prototype), 'init', this).call(this);
+              this.attr('role', 'tabpanel');
+              this.on('attribute-change', function (_ref43) {
+                var _ref43$changed = _ref43.changed,
+                    now = _ref43$changed.now,
+                    name = _ref43$changed.name;
+
+                switch (name) {
+                  case 'for':
+                    if (now) {
+                      _this63._for = now;
+                      var _elem = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].querySelector(_this63._for);
+                      if (_elem) {
+                        var method = _elem.on ? 'on' : 'addEventListener';
+                        _elem[method]('change', function (_ref44) {
+                          var value = _ref44.value;
+
+                          var matched = _this63._items.reduce(function (acc, item) {
+                            if (acc) return acc;
+                            if (item.value === value) return item;
+                            return acc;
+                          }, null);
+
+                          if (matched && matched !== _this63.selected) {
+                            _this63.selected = value;
+                          } else {
+                            _this63.selected = null;
+                          }
+                        });
+                      }
+                    } else {
+                      _this63._for = null;
+                    }
+                    break;
+
+                  case 'selected-index':
+                    if (now > -1 && _this63._for) {
+                      __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].querySelector(_this63._for).route(_this63.selected.value);
+                    }
+                    break;
+                }
+              });
+            }
+          }]);
+
+          return Tabs;
+        }(Object(__WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_0__list_js__["b" /* ListBehavior */]))
+      });
+    }();
+    /* unused harmony export Tabs */
+
+    /***/
+  },
+  /* 32 */
+  /***/function (module, __webpack_exports__, __webpack_require__) {
+
+    "use strict";
+    /* harmony import */
+    var __WEBPACK_IMPORTED_MODULE_0__backdrop_js__ = __webpack_require__(14);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_animations_easer_js__ = __webpack_require__(33);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_float_js__ = __webpack_require__(4);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
@@ -4519,35 +4528,35 @@ var __run = function __run() {
         function Drawer() {
           _classCallCheck(this, Drawer);
 
-          var _this62 = _possibleConstructorReturn(this, (Drawer.__proto__ || Object.getPrototypeOf(Drawer)).call(this));
+          var _this64 = _possibleConstructorReturn(this, (Drawer.__proto__ || Object.getPrototypeOf(Drawer)).call(this));
 
-          _this62._backdrop = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-backdrop');
-          _this62._backdrop.for = _this62;
-          _this62._backdrop.style.zIndex = '9000';
-          _this62._toggleElem = null;
-          _this62._isOpen = false;
-          _this62._rightAnimator = null;
-          _this62._leftAnimator = null;
-          return _this62;
+          _this64._backdrop = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-backdrop');
+          _this64._backdrop.for = _this64;
+          _this64._backdrop.style.zIndex = '9000';
+          _this64._toggleElem = null;
+          _this64._isOpen = false;
+          _this64._rightAnimator = null;
+          _this64._leftAnimator = null;
+          return _this64;
         }
 
         _createClass(Drawer, [{
           key: 'toggledBy',
           value: function toggledBy(elem) {
-            var _this63 = this;
+            var _this65 = this;
 
             if (elem) {
               this._toggleElem = elem;
               if (this._toggleElem.on) {
                 this._toggleElem.on('click enter-key', function (e) {
-                  _this63.toggleState();
+                  _this65.toggleState();
                 });
               } else {
                 this._toggleElem.addEventListener('enter-key', function (e) {
-                  _this63.toggleState();
+                  _this65.toggleState();
                 });
                 this._toggleElem.addEventListener('click', function (e) {
-                  _this63.toggleState();
+                  _this65.toggleState();
                 });
               }
             }
@@ -4574,7 +4583,7 @@ var __run = function __run() {
         }, {
           key: 'init',
           value: function init() {
-            var _this64 = this;
+            var _this66 = this;
 
             _get(Drawer.prototype.__proto__ || Object.getPrototypeOf(Drawer.prototype), 'init', this).call(this);
             if (!this.rightOriented) this.leftOriented = true;
@@ -4582,7 +4591,7 @@ var __run = function __run() {
 
             __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].body.appendChild(this._backdrop);
             this._backdrop.on('click', function (e) {
-              return _this64.close();
+              return _this66.close();
             });
 
             // Check for the drawer toggle in the DOM. If not, you'll need to use the toggledBy method
@@ -4592,24 +4601,24 @@ var __run = function __run() {
             this._leftAnimator = this.defineSlideAnimation({ direction: 'right', distance: '350px' });
             this._rightAnimator = this.defineSlideAnimation({ direction: 'left', distance: '350px' });
 
-            this.on('attribute-change', function (_ref44) {
-              var _ref44$changed = _ref44.changed,
-                  now = _ref44$changed.now,
-                  name = _ref44$changed.name;
+            this.on('attribute-change', function (_ref45) {
+              var _ref45$changed = _ref45.changed,
+                  now = _ref45$changed.now,
+                  name = _ref45$changed.name;
 
-              var orient = _this64.rightOriented ? 'right' : 'left';
-              var animator = _this64['_' + orient + 'Animator'];
+              var orient = _this66.rightOriented ? 'right' : 'left';
+              var animator = _this66['_' + orient + 'Animator'];
               switch (name) {
                 case 'is-open':
                   if (now) {
-                    if (_this64.isModal) _this64._backdrop.show();
+                    if (_this66.isModal) _this66._backdrop.show();
                     animator.easeIn().then(function (_) {
-                      _this64.dispatchEvent(new CustomEvent('drawer-opened'));
+                      _this66.dispatchEvent(new CustomEvent('drawer-opened'));
                     });
                   } else {
                     animator.easeOut().then(function (_) {
-                      _this64._backdrop.hide();
-                      _this64.dispatchEvent(new CustomEvent('drawer-closed'));
+                      _this66._backdrop.hide();
+                      _this66.dispatchEvent(new CustomEvent('drawer-closed'));
                     });
                   }
                   break;
@@ -4624,13 +4633,13 @@ var __run = function __run() {
 
     /***/
   },
-  /* 32 */
+  /* 33 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__temp_utils_dom_js__ = __webpack_require__(2);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_styler_js__ = __webpack_require__(14);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_styler_js__ = __webpack_require__(18);
     /*
      * easer.js
      * @author jasmith79
@@ -4659,22 +4668,22 @@ var __run = function __run() {
           function Easer() {
             _classCallCheck(this, Easer);
 
-            var _this65 = _possibleConstructorReturn(this, (Easer.__proto__ || Object.getPrototypeOf(Easer)).call(this));
+            var _this67 = _possibleConstructorReturn(this, (Easer.__proto__ || Object.getPrototypeOf(Easer)).call(this));
 
-            _this65._animations = [];
-            return _this65;
+            _this67._animations = [];
+            return _this67;
           }
 
           _createClass(Easer, [{
             key: 'defineSlideAnimation',
-            value: function defineSlideAnimation(_ref45) {
-              var direction = _ref45.direction,
-                  _ref45$timing = _ref45.timing,
-                  timing = _ref45$timing === undefined ? 500 : _ref45$timing,
-                  _ref45$fn = _ref45.fn,
-                  fn = _ref45$fn === undefined ? 'ease' : _ref45$fn,
-                  _ref45$distance = _ref45.distance,
-                  distance = _ref45$distance === undefined ? '100%' : _ref45$distance;
+            value: function defineSlideAnimation(_ref46) {
+              var direction = _ref46.direction,
+                  _ref46$timing = _ref46.timing,
+                  timing = _ref46$timing === undefined ? 500 : _ref46$timing,
+                  _ref46$fn = _ref46.fn,
+                  fn = _ref46$fn === undefined ? 'ease' : _ref46$fn,
+                  _ref46$distance = _ref46.distance,
+                  distance = _ref46$distance === undefined ? '100%' : _ref46$distance;
 
               if (!this._animations.sliding) this._animations.sliding = {};
 
@@ -4750,73 +4759,106 @@ var __run = function __run() {
 
     /***/
   },
-  /* 33 */
+  /* 34 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__button_js__ = __webpack_require__(6);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__ = __webpack_require__(2);
+    var __WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__ = __webpack_require__(4);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_attribute_analyzer_js__ = __webpack_require__(11);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_centerer_js__ = __webpack_require__(19);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
     /*
-     * hamburger.js
+     * toolbar.js
      * @author jasmith79
      * @copyright Jared Smith
      * @license MIT
      * You should have received a copy of the license with this work but it may also be found at
      * https://opensource.org/licenses/MIT
      *
-     * menu-button component for ui-components-lite.
+     * toolbar component for ui-components-lite.
      */
 
-    var reflectedAttributes = ['line-color'];
-    var template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    .line {\n      height: 5px;\n      width: 100%;\n      background-color: var(--ui-theme-dark-text-color, #000);\n      position: relative;\n      padding: 0;\n    }\n\n    .top-line {\n      top: 0px;\n    }\n\n    .middle-line {\n      top: 7px;\n    }\n\n    .bottom-line {\n      top: 15px;\n    }\n\n    .content-wrapper {\n      height: 30px;\n      left: 10%;\n    }\n\n    :host {\n      background: transparent;\n      width: 48px;\n      height: 48px;\n    }\n  </style>\n';
+    var reflectedAttributes = ['is-tall'];
 
-    var lineDivTemplate = __WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["c" /* document */].createElement('template');
-    lineDivTemplate.innerHTML = '\n  <div>\n    <div class="line top-line"></div>\n    <div class="line middle-line"></div>\n    <div class="line bottom-line"></div>\n  </div>\n';
+    var template = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    ' + __WEBPACK_IMPORTED_MODULE_3__temp_utils_centerer_js__["a" /* centeredStyles */] + '\n\n    :host {\n      width: 100%;\n      background-color: var(--ui-theme-primary-dark-color, blue);\n      color: var(--ui-theme-light-text-color, #fff);\n      height: 70px;\n      display: block;\n    }\n\n    :host([is-tall]) {\n      height: 192px;\n    }\n\n    :host(:not([is-tall]).has-secondary) {\n      margin-bottom: 56px;\n    }\n\n    header {\n      height: 100%;\n      width: 100%;\n    }\n\n    #title-holder {\n      position: relative;\n      margin-left: auto;\n      margin-right: auto;\n      max-width: 80%;\n      text-align: center;\n      text-transform: capitalize;\n      overflow: hidden;\n      text-overflow: ellipsis;\n      white-space: nowrap;\n      font-size: 22px;\n    }\n\n    :host([is-tall]) #title-holder {\n      font-size: 40px;\n    }\n\n    header ::slotted([slot="left-button-slot"]) {\n      position: relative;\n      top: -18px;\n      left: 10px;\n      float: left;\n    }\n\n    :host([is-tall]) header ::slotted([slot="left-button-slot"]) {\n      top: -35px;\n    }\n\n    header ::slotted([slot="right-button-slot"]) {\n      position: relative;\n      top: -18px;\n      right: 30px;\n      float: right;\n    }\n\n\n    :host([is-tall]) header ::slotted([slot="right-button-slot"]) {\n      top: -35px;\n    }\n\n    header ::slotted([slot="secondary-toolbar-slot"]) {\n      position: relative;\n      width: 100vw;\n      top: 44px;\n    }\n\n    :host([is-tall]) header ::slotted([slot="secondary-toolbar-slot"]) {\n      top: 92px;\n    }\n\n    :host(:not([is-tall])) header ::slotted([slot="secondary-toolbar-slot"]) {\n      text-align: center;\n    }\n  </style>\n  <header>\n    <div id="title-holder" class="content-wrapper">\n      <slot></slot>\n    </div>\n    <slot name="left-button-slot"></slot>\n    <slot name="right-button-slot"></slot>\n    <slot name="secondary-toolbar-slot"></slot>\n  </header>\n';
 
-    /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["b" /* defineUIComponent */])({
-      name: 'ui-hamburger',
+    /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+      name: 'ui-toolbar',
       template: template,
       reflectedAttributes: reflectedAttributes,
-      definition: function (_WEBPACK_IMPORTED_MO8) {
-        _inherits(Hamburger, _WEBPACK_IMPORTED_MO8);
+      definition: function (_Object$with12) {
+        _inherits(Toolbar, _Object$with12);
 
-        function Hamburger() {
-          _classCallCheck(this, Hamburger);
+        function Toolbar() {
+          _classCallCheck(this, Toolbar);
 
-          return _possibleConstructorReturn(this, (Hamburger.__proto__ || Object.getPrototypeOf(Hamburger)).apply(this, arguments));
+          var _this68 = _possibleConstructorReturn(this, (Toolbar.__proto__ || Object.getPrototypeOf(Toolbar)).call(this));
+
+          _this68._secondaryToolbar = null;
+          return _this68;
         }
 
-        _createClass(Hamburger, [{
+        _createClass(Toolbar, [{
           key: 'init',
           value: function init() {
-            var _this67 = this;
+            var _this69 = this;
 
-            _get(Hamburger.prototype.__proto__ || Object.getPrototypeOf(Hamburger.prototype), 'init', this).call(this);
-            this.selectInternalElement('.content-wrapper').appendChild(__WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["c" /* document */].importNode(lineDivTemplate.content, true));
-
-            this.watchAttribute(this, 'line-color', function (now) {
-              [].concat(_toConsumableArray(_this67.selectInternalAll('.line'))).forEach(function (el) {
-                el.style.backgroundColor = now;
+            _get(Toolbar.prototype.__proto__ || Object.getPrototypeOf(Toolbar.prototype), 'init', this).call(this);
+            this.attr('role', 'toolbar');
+            var secondarySlot = this.selectInternalElement('[name="secondary-toolbar-slot"]');
+            var slotted = secondarySlot.assignedNodes();
+            if (slotted.length) {
+              this._secondaryToolbar = slotted[0];
+              this.classList.add('has-secondary');
+              this._secondaryToolbar.attr('role', 'menubar');
+              this._secondaryToolbar.selectAll('.ui-item').forEach(function (item) {
+                item.attr('role', 'menuitem');
               });
+            }
+
+            secondarySlot.addEventListener('slotchange', function (e) {
+              _this69._secondaryToolbar = _this69.querySelector('[slot="secondary-toolbar-slot"]');
+              if (_this69._secondaryToolbar) _this69.classList.add('has-secondary');
+            });
+
+            this.on('attribute-change', function (_ref47) {
+              var _ref47$changed = _ref47.changed,
+                  name = _ref47$changed.name,
+                  now = _ref47$changed.now;
+
+              if (name === 'is-tall') {
+                if (now == null) {
+                  if (_this69._secondaryToolbar) {
+                    _this69._secondaryToolbar.classList.add('tabs-centered');
+                  }
+                } else if (!now || now === "false") {
+                  _this69.isTall = null;
+                } else {
+                  if (_this69._secondaryToolbar) {
+                    _this69._secondaryToolbar.classList.remove('tabs-centered');
+                  }
+                }
+              }
             });
           }
         }]);
 
-        return Hamburger;
-      }(__WEBPACK_IMPORTED_MODULE_0__button_js__["a" /* default */])
+        return Toolbar;
+      }(Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__["a" /* default */]))
     });
 
     /***/
   },
-  /* 34 */
+  /* 35 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__ = __webpack_require__(19);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__ = __webpack_require__(22);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
     /*
@@ -4853,21 +4895,21 @@ var __run = function __run() {
         name: 'ui-router',
         template: template,
         reflectedAttributes: reflectedAttributes,
-        definition: function (_WEBPACK_IMPORTED_MO9) {
-          _inherits(Router, _WEBPACK_IMPORTED_MO9);
+        definition: function (_WEBPACK_IMPORTED_MO10) {
+          _inherits(Router, _WEBPACK_IMPORTED_MO10);
 
           function Router() {
             _classCallCheck(this, Router);
 
-            var _this68 = _possibleConstructorReturn(this, (Router.__proto__ || Object.getPrototypeOf(Router)).call(this));
+            var _this70 = _possibleConstructorReturn(this, (Router.__proto__ || Object.getPrototypeOf(Router)).call(this));
 
-            _this68._contentSlot = null;
-            _this68._routes = {};
-            _this68._currentRoute = null;
-            _this68._managingHistory = false;
-            _this68._login = null;
-            _this68._popstateListener = function (_ref46) {
-              var data = _ref46.state;
+            _this70._contentSlot = null;
+            _this70._routes = {};
+            _this70._currentRoute = null;
+            _this70._managingHistory = false;
+            _this70._login = null;
+            _this70._popstateListener = function (_ref48) {
+              var data = _ref48.state;
 
               // here we ignore querystring data, it may be stale
               var _Object = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["a" /* parseURL */])(window.location.href),
@@ -4880,13 +4922,13 @@ var __run = function __run() {
                 historyStack.pop();
               }
 
-              _this68._updateRoute(route);
+              _this70._updateRoute(route);
               if (!historyStack.length || historyStack.length === 1 && historyStack[0] === '/') {
-                __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["d" /* global */].removeEventListener('popstate', _this68._popstateListener);
-                _this68._managingHistory = false;
+                __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["d" /* global */].removeEventListener('popstate', _this70._popstateListener);
+                _this70._managingHistory = false;
               }
             };
-            return _this68;
+            return _this70;
           }
 
           _createClass(Router, [{
@@ -5002,12 +5044,12 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this69 = this;
+              var _this71 = this;
 
               _get(Router.prototype.__proto__ || Object.getPrototypeOf(Router.prototype), 'init', this).call(this);
 
               this._beforeReady(function (_) {
-                _this69._contentSlot = _this69.selectInternalElement('slot');
+                _this71._contentSlot = _this71.selectInternalElement('slot');
                 var selected = null;
 
                 var _Object3 = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["a" /* parseURL */])(window.location.href),
@@ -5017,67 +5059,67 @@ var __run = function __run() {
                 if (route) selected = route;
 
                 var flag = false;
-                _this69.selectAll('[route-path]').forEach(function (el, i) {
+                _this71.selectAll('[route-path]').forEach(function (el, i) {
                   var path = el.getAttribute('route-path');
-                  _this69._routes[path] = el;
+                  _this71._routes[path] = el;
                   if (!i && !selected) selected = path;
                   if (el.matches && el.matches('[selected]')) selected = path;
                   if (path === '/login') {
                     flag = true;
                     el.onReady(function (_) {
                       var login = el.querySelector('.ui-login');
-                      _this69._login = login;
+                      _this71._login = login;
                       login.on('login', function (e) {
                         var _Object4 = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["a" /* parseURL */])(window.location.href),
                             route = _Object4.route;
 
-                        _this69._updateRoute(route);
+                        _this71._updateRoute(route);
                       });
 
                       login.on('logout', function (e) {
-                        _this69.route('/login');
+                        _this71.route('/login');
                       });
-                      _this69.route(selected);
+                      _this71.route(selected);
                     });
                   }
                 });
 
                 if (!flag) {
-                  _this69.onReady(function (_) {
-                    _this69.route(selected);
+                  _this71.onReady(function (_) {
+                    _this71.route(selected);
                   });
                 }
               });
 
-              this.on('attribute-change', function (_ref47) {
-                var _ref47$changed = _ref47.changed,
-                    now = _ref47$changed.now,
-                    name = _ref47$changed.name,
-                    was = _ref47$changed.was;
+              this.on('attribute-change', function (_ref49) {
+                var _ref49$changed = _ref49.changed,
+                    now = _ref49$changed.now,
+                    name = _ref49$changed.name,
+                    was = _ref49$changed.was;
 
                 switch (name) {
                   case 'renders-current':
-                    if (_this69.selected) {
+                    if (_this71.selected) {
                       if (now) {
-                        _this69.selected.setAttribute('slot', 'router-content');
+                        _this71.selected.setAttribute('slot', 'router-content');
                       } else {
-                        _this69.selected.removeAttribute('slot');
+                        _this71.selected.removeAttribute('slot');
                       }
                     }
                     break;
 
                   case 'updates-history':
-                    if (now && historyManager !== _this69) {
+                    if (now && historyManager !== _this71) {
                       if (historyManager) {
                         throw new Error('Only one router per page can manage the navigation history\n                     at a time. Please listen for that router\'s route-changed\n                     event to update other elements.');
                       }
-                      historyManager = _this69;
-                      _this69._managingHistory = true;
-                      window.addEventListener('popstate', _this69._popstateListener);
+                      historyManager = _this71;
+                      _this71._managingHistory = true;
+                      window.addEventListener('popstate', _this71._popstateListener);
                     } else {
                       historyManager = null;
-                      _this69._managingHistory = false;
-                      window.removeEventListener('popstate', _this69._popstateListener);
+                      _this71._managingHistory = false;
+                      window.removeEventListener('popstate', _this71._popstateListener);
                     }
                 }
               });
@@ -5121,21 +5163,21 @@ var __run = function __run() {
       return Object(__WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
         name: 'ui-route',
         reflectedAttributes: reflectedAttributes,
-        definition: function (_WEBPACK_IMPORTED_MO10) {
-          _inherits(Route, _WEBPACK_IMPORTED_MO10);
+        definition: function (_WEBPACK_IMPORTED_MO11) {
+          _inherits(Route, _WEBPACK_IMPORTED_MO11);
 
           function Route() {
             _classCallCheck(this, Route);
 
-            var _this70 = _possibleConstructorReturn(this, (Route.__proto__ || Object.getPrototypeOf(Route)).call(this));
+            var _this72 = _possibleConstructorReturn(this, (Route.__proto__ || Object.getPrototypeOf(Route)).call(this));
 
-            _this70._data = null;
-            _this70._dataElements = [];
-            _this70._fromChangeHandler = false;
-            _this70._unloadListener = function (e) {
-              if (_this70.data) localStorage.setItem(_this70.routePath, JSON.stringify(elem.data));
+            _this72._data = null;
+            _this72._dataElements = [];
+            _this72._fromChangeHandler = false;
+            _this72._unloadListener = function (e) {
+              if (_this72.data) localStorage.setItem(_this72.routePath, JSON.stringify(elem.data));
             };
-            return _this70;
+            return _this72;
           }
 
           _createClass(Route, [{
@@ -5173,22 +5215,22 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this71 = this;
+              var _this73 = this;
 
               _get(Route.prototype.__proto__ || Object.getPrototypeOf(Route.prototype), 'init', this).call(this);
 
               this.onReady(function (_) {
-                _this71._dataElements = _this71.shadowRoot ? [].concat(_toConsumableArray(_this71.selectInternalAll('[is-data-element]')), _toConsumableArray(_this71.selectAll('[is-data-element]'))) : _this71.selectAll('[is-data-element]');
+                _this73._dataElements = _this73.shadowRoot ? [].concat(_toConsumableArray(_this73.selectInternalAll('[is-data-element]')), _toConsumableArray(_this73.selectAll('[is-data-element]'))) : _this73.selectAll('[is-data-element]');
 
-                _this71._dataElements.forEach(function (el) {
+                _this73._dataElements.forEach(function (el) {
                   el.on('change', function (_) {
-                    _this71._fromChangeHandler = true;
-                    _this71.update(_this71._dataElements.reduce(function (acc, el) {
+                    _this73._fromChangeHandler = true;
+                    _this73.update(_this73._dataElements.reduce(function (acc, el) {
                       var data = el.serialize();
-                      Object.entries(data).forEach(function (_ref48) {
-                        var _ref49 = _slicedToArray(_ref48, 2),
-                            k = _ref49[0],
-                            v = _ref49[1];
+                      Object.entries(data).forEach(function (_ref50) {
+                        var _ref51 = _slicedToArray(_ref50, 2),
+                            k = _ref51[0],
+                            v = _ref51[1];
 
                         if (k in acc) {
                           console.warn('Overwriting duplicate data-element property ' + k + '.');
@@ -5201,20 +5243,20 @@ var __run = function __run() {
                 });
               });
 
-              this.on('attribute-change', function (_ref50) {
-                var _ref50$changed = _ref50.changed,
-                    now = _ref50$changed.now,
-                    name = _ref50$changed.name;
+              this.on('attribute-change', function (_ref52) {
+                var _ref52$changed = _ref52.changed,
+                    now = _ref52$changed.now,
+                    name = _ref52$changed.name;
 
                 switch (name) {
                   case 'is-selected':
                     if (now) {
                       // Check to see if it was written from query string first.
-                      var data = localStorage.getItem(_this71.routePath);
-                      if (!_this71.data && data != null) _this71.update(JSON.parse(data));
-                      _this71.dispatchEvent(new CustomEvent('component-selected'));
+                      var data = localStorage.getItem(_this73.routePath);
+                      if (!_this73.data && data != null) _this73.update(JSON.parse(data));
+                      _this73.dispatchEvent(new CustomEvent('component-selected'));
                     } else if (!now) {
-                      _this71.dispatchEvent(new CustomEvent('component-deselected'));
+                      _this73.dispatchEvent(new CustomEvent('component-deselected'));
                     }
                     break;
                 }
@@ -5235,234 +5277,251 @@ var __run = function __run() {
 
     /***/
   },
-  /* 35 */
-  /***/function (module, __webpack_exports__, __webpack_require__) {
-
-    "use strict";
-    /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__list_js__ = __webpack_require__(21);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
-    /*
-     * tabs.js
-     * @author jasmith79
-     * @copyright Jared Smith
-     * @license MIT
-     * You should have received a copy of the license with this work but it may also be found at
-     * https://opensource.org/licenses/MIT
-     *
-     * ltabscomponent for ui-components-lite.
-     */
-
-    var Tab = function () {
-      var template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-      template.innerHTML = '\n    <style>\n      #content {\n        position: relative;\n        top: 16px;\n      }\n\n      :host {\n        display: inline-block;\n        background-color: inherit;\n        height: 49px;\n        width: 120px;\n        white-space: nowrap;\n        text-overflow: ellipsis;\n        text-transform: capitalize;\n        border-radius: 5%;\n        margin: 5px;\n        padding: 0;\n        text-align: center;\n      }\n\n      :host(:hover) {\n        color: var(--ui-theme-light-text-color, #fff);\n      }\n\n      :host([is-selected="true"]) {\n        box-shadow: 0px 0px 10px -1px var(--ui-theme-light-text-color, #fff);\n      }\n\n      :host-context(.tabs-centered) {\n        left: -30px;\n      }\n    </style>\n  ';
-
-      return Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
-        name: 'ui-tab',
-        template: template,
-        definition: function (_WEBPACK_IMPORTED_MO11) {
-          _inherits(Tab, _WEBPACK_IMPORTED_MO11);
-
-          function Tab() {
-            _classCallCheck(this, Tab);
-
-            return _possibleConstructorReturn(this, (Tab.__proto__ || Object.getPrototypeOf(Tab)).apply(this, arguments));
-          }
-
-          _createClass(Tab, [{
-            key: 'init',
-            value: function init() {
-              _get(Tab.prototype.__proto__ || Object.getPrototypeOf(Tab.prototype), 'init', this).call(this);
-              this.attr('role', 'tab');
-              var index = this.attr('tabindex');
-              if (index === null || index < 0) this.attr('tabindex', '0');
-            }
-          }]);
-
-          return Tab;
-        }(__WEBPACK_IMPORTED_MODULE_0__list_js__["a" /* Item */])
-      });
-    }();
-    /* unused harmony export Tab */
-
-    var Tabs = function () {
-      var reflectedAttributes = ['for'];
-
-      var template = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-      template.innerHTML = '\n    <style>\n      :host {\n        display: block;\n        height: 55px;\n        background-color: var(--ui-theme-primary-dark-color, blue);\n        width: 100%;\n      }\n\n      :host ::slotted(.ui-tab:hover) {\n        text-shadow: 1px 1px 6px #fff;\n      }\n    </style>\n    <slot></slot>\n  ';
-
-      return Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
-        name: 'ui-tabs',
-        template: template,
-        reflectedAttributes: reflectedAttributes,
-        definition: function (_Object$with12) {
-          _inherits(Tabs, _Object$with12);
-
-          function Tabs() {
-            _classCallCheck(this, Tabs);
-
-            var _this73 = _possibleConstructorReturn(this, (Tabs.__proto__ || Object.getPrototypeOf(Tabs)).call(this));
-
-            _this73._for = null;
-            return _this73;
-          }
-
-          _createClass(Tabs, [{
-            key: 'appendChild',
-            value: function appendChild(node) {
-              if (node.matches && node.matches('.ui-tab')) {
-                _get(Tabs.prototype.__proto__ || Object.getPrototypeOf(Tabs.prototype), 'appendChild', this).call(this, node);
-              }
-            }
-          }, {
-            key: 'init',
-            value: function init() {
-              var _this74 = this;
-
-              _get(Tabs.prototype.__proto__ || Object.getPrototypeOf(Tabs.prototype), 'init', this).call(this);
-              this.attr('role', 'tabpanel');
-              this.on('attribute-change', function (_ref51) {
-                var _ref51$changed = _ref51.changed,
-                    now = _ref51$changed.now,
-                    name = _ref51$changed.name;
-
-                switch (name) {
-                  case 'for':
-                    if (now) {
-                      _this74._for = now;
-                      var _elem = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].querySelector(_this74._for);
-                      if (_elem) {
-                        var method = _elem.on ? 'on' : 'addEventListener';
-                        _elem[method]('change', function (_ref52) {
-                          var value = _ref52.value;
-
-                          var matched = _this74._items.reduce(function (acc, item) {
-                            if (acc) return acc;
-                            if (item.value === value) return item;
-                            return acc;
-                          }, null);
-
-                          if (matched && matched !== _this74.selected) {
-                            _this74.selected = value;
-                          } else {
-                            _this74.selected = null;
-                          }
-                        });
-                      }
-                    } else {
-                      _this74._for = null;
-                    }
-                    break;
-
-                  case 'selected-index':
-                    if (now > -1 && _this74._for) {
-                      __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].querySelector(_this74._for).route(_this74.selected.value);
-                    }
-                    break;
-                }
-              });
-            }
-          }]);
-
-          return Tabs;
-        }(Object(__WEBPACK_IMPORTED_MODULE_3__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_0__list_js__["b" /* ListBehavior */]))
-      });
-    }();
-    /* unused harmony export Tabs */
-
-    /***/
-  },
   /* 36 */
   /***/function (module, __webpack_exports__, __webpack_require__) {
 
     "use strict";
     /* harmony import */
-    var __WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__ = __webpack_require__(4);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__temp_utils_attribute_analyzer_js__ = __webpack_require__(11);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__ = __webpack_require__(0);
-    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_centerer_js__ = __webpack_require__(16);
+    var __WEBPACK_IMPORTED_MODULE_0__checkbox_js__ = __webpack_require__(15);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__form_js__ = __webpack_require__(5);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_float_js__ = __webpack_require__(4);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+
     /*
-     * toolbar.js
+     * toggle.js
      * @author jasmith79
      * @copyright Jared Smith
      * @license MIT
      * You should have received a copy of the license with this work but it may also be found at
      * https://opensource.org/licenses/MIT
      *
-     * toolbar component for ui-components-lite.
+     * toggle slider component for ui-components-lite.
      */
 
-    var reflectedAttributes = ['is-tall'];
+    var reflectedAttributes = ['is-on', 'is-square'];
+    var template = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    :host {\n      display: inline-block;\n      width: 60px;\n      height: 34px;\n      position: relative;\n    }\n\n    :host(:hover) .slider {\n      box-shadow: inset 0 0 0 99999px rgba(80,80,80,0.2);\n    }\n\n    input {\n      display: none;\n    }\n\n    #container {\n      display: inherit;\n      width: inherit;\n      height: inherit;\n      position: inherit;\n    }\n                  \n    .slider {\n      width: inherit;\n      height: 10px;\n      position: absolute;\n      cursor: pointer;\n      top: 0;\n      left: 0;\n      right: 0;\n      bottom: 0;\n      background-color: #CCC;\n      transition: transform;\n      transition-duration: 400ms;\n      border-radius: 34px;\n    }\n\n    .slider:before {\n      position: absolute;\n      content: "";\n      height: 26px;\n      width: 26px;\n      left: 4px;\n      bottom: -9px;\n      background-color: var(--ui-theme-light-text-color);\n      transition: transform;\n      transition-duration: 400ms;\n      border-radius: 50%;\n      border: 1px solid #CCC;\n    }\n\n    input:checked + .slider {\n      background-color: var(--ui-theme-primary-dark-color);\n    }\n\n    input:checked + .slider:before {\n      transform: translateX(26px);\n    }\n    \n    :host([is-square]) .slider {\n      border-radius: 0;\n    }\n\n    :host([is-square]) .slider:before {\n      border-radius: 0;\n    }\n  </style>\n  <label id="container">\n    <input type="checkbox" />\n    <div class="slider"></div>\n  </label>\n';
 
-    var template = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
-    template.innerHTML = '\n  <style>\n    ' + __WEBPACK_IMPORTED_MODULE_3__temp_utils_centerer_js__["a" /* centeredStyles */] + '\n\n    :host {\n      width: 100%;\n      background-color: var(--ui-theme-primary-dark-color, blue);\n      color: var(--ui-theme-light-text-color, #fff);\n      height: 70px;\n      display: block;\n    }\n\n    :host([is-tall]) {\n      height: 192px;\n    }\n\n    :host(:not([is-tall]).has-secondary) {\n      margin-bottom: 56px;\n    }\n\n    header {\n      height: 100%;\n      width: 100%;\n    }\n\n    #title-holder {\n      position: relative;\n      margin-left: auto;\n      margin-right: auto;\n      max-width: 80%;\n      text-align: center;\n      text-transform: capitalize;\n      overflow: hidden;\n      text-overflow: ellipsis;\n      white-space: nowrap;\n      font-size: 22px;\n    }\n\n    :host([is-tall]) #title-holder {\n      font-size: 40px;\n    }\n\n    header ::slotted([slot="left-button-slot"]) {\n      position: relative;\n      top: -18px;\n      left: 10px;\n      float: left;\n    }\n\n    :host([is-tall]) header ::slotted([slot="left-button-slot"]) {\n      top: -35px;\n    }\n\n    header ::slotted([slot="right-button-slot"]) {\n      position: relative;\n      top: -18px;\n      right: 30px;\n      float: right;\n    }\n\n\n    :host([is-tall]) header ::slotted([slot="right-button-slot"]) {\n      top: -35px;\n    }\n\n    header ::slotted([slot="secondary-toolbar-slot"]) {\n      position: relative;\n      width: 100vw;\n      top: 44px;\n    }\n\n    :host([is-tall]) header ::slotted([slot="secondary-toolbar-slot"]) {\n      top: 92px;\n    }\n\n    :host(:not([is-tall])) header ::slotted([slot="secondary-toolbar-slot"]) {\n      text-align: center;\n    }\n  </style>\n  <header>\n    <div id="title-holder" class="content-wrapper">\n      <slot></slot>\n    </div>\n    <slot name="left-button-slot"></slot>\n    <slot name="right-button-slot"></slot>\n    <slot name="secondary-toolbar-slot"></slot>\n  </header>\n';
-
-    /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
-      name: 'ui-toolbar',
-      template: template,
+    /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+      name: 'ui-toggle',
       reflectedAttributes: reflectedAttributes,
+      template: template,
       definition: function (_Object$with13) {
-        _inherits(Toolbar, _Object$with13);
+        _inherits(Toggle, _Object$with13);
 
-        function Toolbar() {
-          _classCallCheck(this, Toolbar);
+        function Toggle() {
+          _classCallCheck(this, Toggle);
 
-          var _this75 = _possibleConstructorReturn(this, (Toolbar.__proto__ || Object.getPrototypeOf(Toolbar)).call(this));
+          var _this74 = _possibleConstructorReturn(this, (Toggle.__proto__ || Object.getPrototypeOf(Toggle)).call(this));
 
-          _this75._secondaryToolbar = null;
+          _this74.selectInternalElement('input').addEventListener('change', function (e) {
+            _this74.value = e.target.checked;
+          });
+          return _this74;
+        }
+
+        return Toggle;
+      }(Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_1__form_js__["a" /* FormControlBehavior */], __WEBPACK_IMPORTED_MODULE_2__temp_utils_float_js__["a" /* default */]))
+    });
+
+    /***/
+  },
+  /* 37 */
+  /***/function (module, __webpack_exports__, __webpack_require__) {
+
+    "use strict";
+    /* harmony import */
+    var __WEBPACK_IMPORTED_MODULE_0__text_js__ = __webpack_require__(9);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__list_js__ = __webpack_require__(16);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__ = __webpack_require__(7);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__ = __webpack_require__(0);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__ = __webpack_require__(1);
+    /* harmony import */var __WEBPACK_IMPORTED_MODULE_5__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+    /*
+     * drop-down.js
+     * @author jasmith79
+     * @copyright Jared Smith
+     * @license MIT
+     * You should have received a copy of the license with this work but it may also be found at
+     * https://opensource.org/licenses/MIT
+     *
+     * drop-down component for ui-components-lite.
+     *
+     * NOTE: it is not currently (and may never) be possible to extend built-in elements like select.
+     * If it does become possible this can be refactored to support extending HTMLSelectElement.
+     */
+
+    var reflectedAttributes = ['selected-index', 'is-open', 'multiple', 'label'];
+    var template = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
+    template.innerHTML = '\n  <style>\n    ui-list {\n      transition: transform 500ms cubic-bezier(0.165, 0.84, 0.44, 1);\n      background: #fff;\n      position: relative;\n      left: -5px;\n      z-index: 1000;\n      width: 100%;\n      max-height: 225px;\n      overflow-y: scroll;\n    }\n\n    .arrow {\n      border: solid #999;\n      border-width: 0 2px 2px 0;\n      display: inline-block;\n      padding: 3px;\n      float: right;\n      position: relative;\n      top: 6px;\n      right: 2px;\n      transform: rotate(45deg);\n    }\n\n    .not-overflowing {\n      overflow: hidden !important;\n    }\n\n    #dummy-item {\n      text-align: center;\n      padding-bottom: 3px;\n    }\n\n    #dummy-item.default {\n      letter-spacing: 3px;\n    }\n\n    #list-holder {\n      height: 1px;\n      overflow: visible;\n      position: relative;\n      top: -10px;\n      border-top: 1px solid #999;\n    }\n\n    ui-list ::slotted(.ui-item) {\n      border: none;\n    }\n\n    :host {\n      display: block;\n      max-width: 200px;\n    }\n\n    :host([multiple="true"]) #dummy-item #dummy-item-content {\n      position: relative;\n      left: 10px;\n    }\n\n    :host([is-open="true"]) .arrow {\n      transform: rotate(-135deg);\n    }\n\n    :host([is-open="true"]) ui-list {\n      box-shadow: 3px 5px 10px -4px #999;\n      padding-bottom: 1px;\n      transform: scale(1) translateY(0px);\n    }\n\n    :host([is-open="false"]) ui-list {\n      transform: scale(0) translateY(-200px);\n    }\n\n    :host([is-open="true"]) #list-holder {\n      border-color: var(--ui-theme-primary-dark-color, blue);\n    }\n\n    :host([is-open="false"]) ui-list ::slotted(.ui-item) {\n      display: none;\n    }\n\n    ui-text {\n      /* janky, I know. TODO: find a way to make this work with transform: translate */\n      transition-property: top, left, font-size;\n      transition-timing-function: ease;\n      transition-duration: 1s;\n      position: relative;\n      top: 5px;\n      left: 0px;\n      font-size: 14px;\n    }\n\n    .text-moved {\n      top: 25px;\n      left: 10px;\n      font-size: 16px;\n    }\n  </style>\n  <label><ui-text view-text="{{label}}"></ui-text></label>\n  <ui-item id="dummy-item" class="default">\n    <span id="dummy-item-content"></span>\n    <div class="arrow down"></div>\n  </ui-item>\n  <div id="list-holder" class="not-overflowing">\n    <ui-list multiple="{{multiple}}">\n      <slot></slot>\n    </ui-list>\n  </div>\n';
+
+    /* unused harmony default export */var _unused_webpack_default_export = Object(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["b" /* defineUIComponent */])({
+      name: 'ui-drop-down',
+      reflectedAttributes: reflectedAttributes,
+      template: template,
+      definition: function (_Object$with14) {
+        _inherits(DropDown, _Object$with14);
+
+        function DropDown() {
+          _classCallCheck(this, DropDown);
+
+          var _this75 = _possibleConstructorReturn(this, (DropDown.__proto__ || Object.getPrototypeOf(DropDown)).call(this));
+
+          _this75._list = null;
+          _this75._listHolder = null;
+          _this75._dummyItem = null;
+          _this75._textContent = '';
           return _this75;
         }
 
-        _createClass(Toolbar, [{
-          key: 'init',
-          value: function init() {
+        _createClass(DropDown, [{
+          key: 'appendChild',
+          value: function appendChild(node) {
             var _this76 = this;
 
-            _get(Toolbar.prototype.__proto__ || Object.getPrototypeOf(Toolbar.prototype), 'init', this).call(this);
-            this.attr('role', 'toolbar');
-            var secondarySlot = this.selectInternalElement('[name="secondary-toolbar-slot"]');
-            var slotted = secondarySlot.assignedNodes();
-            if (slotted.length) {
-              this._secondaryToolbar = slotted[0];
-              this.classList.add('has-secondary');
-              this._secondaryToolbar.attr('role', 'menubar');
-              this._secondaryToolbar.selectAll('.ui-item').forEach(function (item) {
-                item.attr('role', 'menuitem');
+            if (node) {
+              _get(DropDown.prototype.__proto__ || Object.getPrototypeOf(DropDown.prototype), 'appendChild', this).call(this, node);
+              node.on('click', function (e) {
+                if (!_this76.multiple) {
+                  // wait for the animations to finish
+                  __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
+                    _this76.close();
+                  }, 300);
+                }
               });
             }
 
-            secondarySlot.addEventListener('slotchange', function (e) {
-              _this76._secondaryToolbar = _this76.querySelector('[slot="secondary-toolbar-slot"]');
-              if (_this76._secondaryToolbar) _this76.classList.add('has-secondary');
+            return node;
+          }
+        }, {
+          key: 'toggle',
+          value: function toggle() {
+            this.isOpen = !this.isOpen;
+            return this;
+          }
+        }, {
+          key: 'open',
+          value: function open() {
+            this.isOpen = true;
+            return this;
+          }
+        }, {
+          key: 'close',
+          value: function close() {
+            this.isOpen = false;
+            return this;
+          }
+        }, {
+          key: 'init',
+          value: function init() {
+            var _this77 = this;
+
+            var mouseon = false;
+            _get(DropDown.prototype.__proto__ || Object.getPrototypeOf(DropDown.prototype), 'init', this).call(this);
+            var index = this.attr('tabindex');
+            if (index === null || index < 0) this.attr('tabindex', '0');
+
+            this.on('enter-key', function (e) {
+              _this77.open();
+            });
+
+            if (this.attr('name')) {
+              if (!this.attr('label')) this.attr('label', this.attr('name'));
+              this.selectInternalElement('label').setAttribute('for', this.attr('name'));
+            }
+
+            if (this.attr('label')) this.selectInternalElement('ui-text').classList.add('text-moved');
+            this.on('focus', function (e) {
+              return _this77.selectInternalElement('ui-text').classList.remove('text-moved');
+            });
+            this.on('blur', function (e) {
+              __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
+                if (_this77.label && !_this77.value) {
+                  _this77.selectInternalElement('ui-text').classList.add('text-moved');
+                }
+              }, 600); // ripple animation is 500 on the ui-item
+            });
+
+            this._beforeReady(function (_) {
+              _this77._list = _this77.selectInternalElement('ui-list');
+              _this77._listHolder = _this77.selectInternalElement('#list-holder');
+              _this77._dummyItem = _this77.selectInternalElement('#dummy-item');
+              _this77._dummyItem.selectInternalElement('ui-checkbox').style.display = 'none';
+
+              _this77._items.forEach(function (item) {
+                if (item.isSelected) _this77.selected = item;
+                item.on('click', function (e) {
+                  if (!_this77.multiple) {
+                    __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
+                      _this77.close();
+                    }, 300);
+                  }
+                });
+              });
+
+              if (_this77.name && !_this77.selected) _this77.textContent = null;
+              _this77._listHolder.classList.remove('not-overflowing');
+
+              _this77._dummyItem.on('click', function (e) {
+                if (_this77.attr('tabindex') === null) _this77.attr('tabindex', '0');
+                _this77.toggle();
+                mouseon = _this77.isOpen;
+              });
+            });
+
+            if (!this.multiple) this.multiple = false;
+            if (!this.isOpen) this.isOpen = false;
+
+            this.on('mouseenter', function (e) {
+              return mouseon = true;
+            });
+            this.on('mouseleave', function (e) {
+              mouseon = false;
+              __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
+                if (!mouseon) _this77.isOpen = false;
+              }, 1000);
             });
 
             this.on('attribute-change', function (_ref53) {
               var _ref53$changed = _ref53.changed,
-                  name = _ref53$changed.name,
-                  now = _ref53$changed.now;
+                  now = _ref53$changed.now,
+                  name = _ref53$changed.name;
 
-              if (name === 'is-tall') {
-                if (now == null) {
-                  if (_this76._secondaryToolbar) {
-                    _this76._secondaryToolbar.classList.add('tabs-centered');
+              switch (name) {
+                case 'selected-index':
+                  if (_this77.selected && !_this77.multiple) {
+                    _this77.textContent = _this77.selected.textContent;
+                  } else {
+                    _this77.textContent = ''; // default
                   }
-                } else if (!now || now === "false") {
-                  _this76.isTall = null;
-                } else {
-                  if (_this76._secondaryToolbar) {
-                    _this76._secondaryToolbar.classList.remove('tabs-centered');
-                  }
-                }
+                  break;
               }
             });
           }
+        }, {
+          key: 'textContent',
+          get: function get() {
+            return this._dummyItem && this._dummyItem.textContent || this._textContent;
+          },
+          set: function set(val) {
+            var txt = val || '';
+
+            this._textContent = txt;
+            if (!this._dummyItem) this._dummyItem = this.selectInternalElement('#dummy-item');
+            this._dummyItem.querySelector('#dummy-item-content').textContent = txt;
+            if (txt === '...') {
+              this._dummyItem.classList.add('default');
+            } else {
+              this._dummyItem.classList.remove('default');
+            }
+
+            return this;
+          }
         }]);
 
-        return Toolbar;
-      }(Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_0__temp_utils_float_js__["a" /* default */]))
+        return DropDown;
+      }(Object(__WEBPACK_IMPORTED_MODULE_4__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["a" /* UIBase */]).with(__WEBPACK_IMPORTED_MODULE_1__list_js__["b" /* ListBehavior */], __WEBPACK_IMPORTED_MODULE_2__temp_utils_focusable_js__["a" /* default */]))
     });
 
     /***/

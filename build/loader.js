@@ -32,17 +32,17 @@
     var prefix = match ? match[1] : './';
 
     var transpiled = prefix + 'build/es5.js';
-    var corejs = prefix + '../../babel-polyfill/dist/polyfill.min.js';
-    var formdata = prefix + '../../formdata-polyfill/formdata.min.js';
+    var corejs = prefix + '../babel-polyfill/dist/polyfill.min.js';
+    var formdata = prefix + '../formdata-polyfill/formdata.min.js';
 
     var webcomplite = prefix +
-      '../../@webcomponents/webcomponentsjs/webcomponents-lite.js';
+      '../@webcomponents/webcomponentsjs/webcomponents-lite.js';
 
     var es5shim = prefix +
-      '../../@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js';
+      '../@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js';
 
     var webcompmin = prefix +
-      '../../@webcomponents/webcomponentsjs/webcomponents-sd-ce.js';
+      '../@webcomponents/webcomponentsjs/webcomponents-sd-ce.js';
 
     var needsTranspiled = false;
     var needsCoreJs = false;

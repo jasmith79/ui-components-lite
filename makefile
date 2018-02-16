@@ -27,20 +27,9 @@ clean:
 
 build/tempindex.js: $(SRC_ELS) $(SRC_UTILS) $(SRC_ANIMS)
 	@mkdir -p $(@D)
-	echo "\
-	import './temp_elements/login.js';\
-	import './temp_elements/fab.js';\
-	import './temp_elements/drop-down.js';\
-	import './temp_elements/drawer.js';\
-	import './temp_elements/hamburger.js';\
-	import './temp_elements/input.js';\
-	import './temp_elements/router.js';\
-	import './temp_elements/tabs.js';\
-	import './temp_elements/text.js';\
-	import './temp_elements/toolbar.js';\
-	import './temp_elements/tooltip.js';" > $@
+	echo $(foreach a, $(BLD_ELS), "import '../"$(a)"';") > $@
 
-build/concat.js: build/tempindex.js
+build/concat.js: build/tempindex.js $(BLD_ELS)
 	@mkdir -p $(@D)
 	webpack
 	echo $(CONCAT_PREFIX) > build/temp1.js
@@ -68,7 +57,7 @@ build/es5.min.js: build/es5.js
 
 build/loader.js: src/utils/loader.js
 	@mkdir -p $(@D)
-	cat $< | sed "s#node_modules/#../../#" > $@
+	cat $< | sed "s#node_modules/#../#" > $@
 
 build/loader.min.js: build/loader.js
 	@mkdir -p $(@D)
@@ -106,17 +95,6 @@ build/temp_animations/%.js: src/animations/%.js
 
 build/index.js:
 	@mkdir -p $(@D)
-	echo "\
-	import './elements/login.min.js';\
-	import './elements/fab.min.js';\
-	import './elements/drop-down.min.js';\
-	import './elements/drawer.min.js';\
-	import './elements/hamburger.min.js';\
-	import './elements/input.min.js';\
-	import './elements/router.min.js';\
-	import './elements/tabs.min.js';\
-	import './elements/text.min.js';\
-	import './elements/toolbar.min.js';\
-	import './elements/tooltip.min.js';" > $@
+	echo $(foreach a, $(PROD_ELS), "import '../"$(a)"';") > $@
 
 .PHONY: all clean serve
