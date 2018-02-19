@@ -60,6 +60,11 @@ export const Form = (() => {
             ) return 'select';
 
             if (
+              el.matches('textarea[name]') ||
+              el.matches(`textarea[form="${this.id}"]`)
+            ) return 'textarea';
+
+            if (
               el.matches('.ui-form-behavior') ||
               el.matches(`.ui-form-behavior[form="${this.id}"]`)
             ) return 'formElement';
@@ -72,11 +77,11 @@ export const Form = (() => {
         return this.id ?
           [
             ...new Set([
-              ...this.selectAll('input[name], select[name], .ui-form-behavior[name]'),
+              ...this.selectAll('input[name], select[name], textarea[name], .ui-form-behavior[name]'),
               ...document.querySelectorAll(`[form="${this.id}"]`)
             ])
           ] :
-          this.selectAll('input[name], select[name], .ui-form-behavior');
+          this.selectAll('input[name], select[name], textarea[name], .ui-form-behavior');
       }
 
       get isValid () {
