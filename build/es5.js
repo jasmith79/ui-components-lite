@@ -910,6 +910,8 @@ var __run = function __run() {
 
                 if (el.matches('select[name]') || el.matches('select[form="' + _this12.id + '"]')) return 'select';
 
+                if (el.matches('textarea[name]') || el.matches('textarea[form="' + _this12.id + '"]')) return 'textarea';
+
                 if (el.matches('.ui-form-behavior') || el.matches('.ui-form-behavior[form="' + _this12.id + '"]')) return 'formElement';
 
                 return false;
@@ -1025,7 +1027,7 @@ var __run = function __run() {
           }, {
             key: 'elements',
             get: function get() {
-              return this.id ? [].concat(_toConsumableArray(new Set([].concat(_toConsumableArray(this.selectAll('input[name], select[name], .ui-form-behavior[name]')), _toConsumableArray(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].querySelectorAll('[form="' + this.id + '"]')))))) : this.selectAll('input[name], select[name], .ui-form-behavior');
+              return this.id ? [].concat(_toConsumableArray(new Set([].concat(_toConsumableArray(this.selectAll('input[name], select[name], textarea[name], .ui-form-behavior[name]')), _toConsumableArray(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].querySelectorAll('[form="' + this.id + '"]')))))) : this.selectAll('input[name], select[name], textarea[name], .ui-form-behavior');
             }
           }, {
             key: 'isValid',
@@ -1340,6 +1342,7 @@ var __run = function __run() {
      * tooltip component for ui-components-lite.
      */
 
+    var parentElements = new WeakMap();
     var reflectedAttributes = ['for', 'position', 'view-text'];
     var template = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
     template.innerHTML = '\n  <style>\n    :host {\n      display: block;\n      position: absolute;\n      z-index: 0;\n      background-color: #555;\n      color: #fff;\n      opacity: 0;\n      transition: opacity;\n      transition-duration: 300ms;\n      max-width: 200px;\n      max-height: 100px;\n    }\n\n    #tooltip {\n      font-size: 10px;\n      background-color: inherit;\n      color: inherit;\n      padding: 5px;\n      border-radius: 2%;\n      width: inherit;\n      height: inherit;\n    }\n\n    :host(.faded-in) {\n      opacity: 0.9;\n      z-index: 2000;\n    }\n  </style>\n  <div id="tooltip">\n    <ui-text view-text="{{view-text}}"></ui-text>\n  </div>\n';
@@ -1357,7 +1360,6 @@ var __run = function __run() {
           var _this21 = _possibleConstructorReturn(this, (Tooltip.__proto__ || Object.getPrototypeOf(Tooltip)).call(this));
 
           _this21._forHandlers = [];
-          _this21._forElement = null;
           return _this21;
         }
 
@@ -1370,11 +1372,11 @@ var __run = function __run() {
         }, {
           key: '_updatePosition',
           value: function _updatePosition() {
-            var _forElement$getBoundi = this._forElement.getBoundingClientRect(),
-                top = _forElement$getBoundi.top,
-                left = _forElement$getBoundi.left,
-                elHeight = _forElement$getBoundi.height,
-                elWidth = _forElement$getBoundi.width;
+            var _isFor$getBoundingCli = this.isFor.getBoundingClientRect(),
+                top = _isFor$getBoundingCli.top,
+                left = _isFor$getBoundingCli.left,
+                elHeight = _isFor$getBoundingCli.height,
+                elWidth = _isFor$getBoundingCli.width;
 
             top += __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].scrollY || __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].pageYOffset;
             left += __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].scrollX || __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].pageXOffset;
@@ -1415,8 +1417,8 @@ var __run = function __run() {
                 outHandler = _forHandlers[0],
                 inHandler = _forHandlers[1];
 
-            this._forElement.addEventListener('mouseenter', inHandler);
-            this._forElement.addEventListener('mouseleave', outHandler);
+            this.isFor.addEventListener('mouseenter', inHandler);
+            this.isFor.addEventListener('mouseleave', outHandler);
             return this;
           }
         }, {
@@ -1426,8 +1428,8 @@ var __run = function __run() {
                 outHandler = _forHandlers2[0],
                 inHandler = _forHandlers2[1];
 
-            this._forElement.removeEventListener('mouseenter', inHandler);
-            this._forElement.removeEventListener('mouseleave', outHandler);
+            this.isFor.removeEventListener('mouseenter', inHandler);
+            this.isFor.removeEventListener('mouseleave', outHandler);
             return this;
           }
         }, {
@@ -1467,12 +1469,12 @@ var __run = function __run() {
               }
             }(this);
 
-            if (this.for) this._forElement = shadowParent.querySelector('#' + this.for);
-            if (!this._forElement) {
-              this._forElement = this.parentNode.host || this.parentNode;
+            if (this.for) this.isFor = shadowParent.querySelector('#' + this.for);
+            if (!this.isFor) {
+              this.isFor = this.parentNode.host || this.parentNode;
             }
 
-            if (!this._forElement) throw new Error('ui-tooltip must have a "for" attribute/property or a parent');
+            if (!this.isFor) throw new Error('ui-tooltip must have a "for" attribute/property or a parent');
             this._attachForElementHandlers();
 
             if (this.textContent && !this.attr('view-text')) this.attr('view-text', this.textContent);
@@ -1485,8 +1487,11 @@ var __run = function __run() {
           }
         }, {
           key: 'isFor',
+          get: function get() {
+            return parentElements.get(this);
+          },
           set: function set(el) {
-            this._forElement = el;
+            parentElements.set(this, el);
             return this._attachForElementHandlers();
           }
         }]);
@@ -1531,6 +1536,18 @@ var __run = function __run() {
                 if (!now && inDOM) __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.removeChild(_this24._tooltipElement);
                 _this24._tooltipElement.viewText = now;
               });
+            }
+          }, {
+            key: 'disconnectedCallback',
+            value: function disconnectedCallback() {
+              _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'disconnectedCallback', this).call(this);
+              __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.removeChild(this._tooltipElement);
+            }
+          }, {
+            key: 'connectedCallback',
+            value: function connectedCallback() {
+              _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'connectedCallback', this).call(this);
+              if (this._tooltipElement) __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.insertBefore(this._tooltipElement, __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.firstElementChild);
             }
           }]);
 

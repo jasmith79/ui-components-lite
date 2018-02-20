@@ -17,6 +17,7 @@ import { UIBase, defineUIComponent, document, global } from '../utils/ui-compone
 
 import { mix } from '../../../mixwith/src/mixwith.js';
 
+const parentElements = new WeakMap();
 const reflectedAttributes = ['for', 'position', 'view-text'];
 const template = document.createElement('template');
 template.innerHTML = `
@@ -62,7 +63,6 @@ export const Tooltip = defineUIComponent({
     constructor () {
       super();
       this._forHandlers = [];
-      this._forElement = null;
     }
 
     init () {
@@ -71,7 +71,7 @@ export const Tooltip = defineUIComponent({
     }
 
     _updatePosition () {
-      let { top, left, height: elHeight, width: elWidth } = this._forElement.getBoundingClientRect();
+      let { top, left, height: elHeight, width: elWidth } = this.isFor.getBoundingClientRect();
       top += (global.scrollY || global.pageYOffset);
       left += (global.scrollX || global.pageXOffset);
 
@@ -103,15 +103,15 @@ export const Tooltip = defineUIComponent({
 
     _attachForElementHandlers () {
       const [outHandler, inHandler] = this._forHandlers;
-      this._forElement.addEventListener('mouseenter', inHandler);
-      this._forElement.addEventListener('mouseleave', outHandler);
+      this.isFor.addEventListener('mouseenter', inHandler);
+      this.isFor.addEventListener('mouseleave', outHandler);
       return this;
     }
 
     _removeForElementHandlers () {
       const [outHandler, inHandler] = this._forHandlers;
-      this._forElement.removeEventListener('mouseenter', inHandler);
-      this._forElement.removeEventListener('mouseleave', outHandler);
+      this.isFor.removeEventListener('mouseenter', inHandler);
+      this.isFor.removeEventListener('mouseleave', outHandler);
       return this;
     }
 
@@ -129,8 +129,12 @@ export const Tooltip = defineUIComponent({
       return this;
     }
 
+    get isFor () {
+      return parentElements.get(this);
+    }
+
     set isFor (el) {
-      this._forElement = el;
+      parentElements.set(this, el);
       return this._attachForElementHandlers();
     }
 
@@ -150,12 +154,12 @@ export const Tooltip = defineUIComponent({
         }
       })(this);
 
-      if (this.for) this._forElement = shadowParent.querySelector(`#${this.for}`);
-      if (!this._forElement) {
-        this._forElement = this.parentNode.host || this.parentNode;
+      if (this.for) this.isFor = shadowParent.querySelector(`#${this.for}`);
+      if (!this.isFor) {
+        this.isFor = this.parentNode.host || this.parentNode;
       }
 
-      if (!this._forElement) throw new Error('ui-tooltip must have a "for" attribute/property or a parent');
+      if (!this.isFor) throw new Error('ui-tooltip must have a "for" attribute/property or a parent');
       this._attachForElementHandlers();
 
       if (this.textContent && !this.attr('view-text')) this.attr('view-text', this.textContent);
@@ -192,6 +196,16 @@ export const TooltipMixin = superclass => defineUIComponent({
         if (!now && inDOM) document.body.removeChild(this._tooltipElement);
         this._tooltipElement.viewText = now;
       });
+    }
+
+    disconnectedCallback () {
+      super.disconnectedCallback();
+      document.body.removeChild(this._tooltipElement);
+    }
+
+    connectedCallback () {
+      super.connectedCallback();
+      if (this._tooltipElement) document.body.insertBefore(this._tooltipElement, document.body.firstElementChild);
     }
   },
 });

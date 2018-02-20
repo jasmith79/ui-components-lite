@@ -792,6 +792,11 @@ const Form = (() => {
             ) return 'select';
 
             if (
+              el.matches('textarea[name]') ||
+              el.matches(`textarea[form="${this.id}"]`)
+            ) return 'textarea';
+
+            if (
               el.matches('.ui-form-behavior') ||
               el.matches(`.ui-form-behavior[form="${this.id}"]`)
             ) return 'formElement';
@@ -804,11 +809,11 @@ const Form = (() => {
         return this.id ?
           [
             ...new Set([
-              ...this.selectAll('input[name], select[name], .ui-form-behavior[name]'),
+              ...this.selectAll('input[name], select[name], textarea[name], .ui-form-behavior[name]'),
               ...__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].querySelectorAll(`[form="${this.id}"]`)
             ])
           ] :
-          this.selectAll('input[name], select[name], .ui-form-behavior');
+          this.selectAll('input[name], select[name], textarea[name], .ui-form-behavior');
       }
 
       get isValid () {
@@ -1188,6 +1193,7 @@ const Button = Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_
 
 
 
+const parentElements = new WeakMap();
 const reflectedAttributes = ['for', 'position', 'view-text'];
 const template = __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
 template.innerHTML = `
@@ -1233,7 +1239,6 @@ const Tooltip = Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base
     constructor () {
       super();
       this._forHandlers = [];
-      this._forElement = null;
     }
 
     init () {
@@ -1242,7 +1247,7 @@ const Tooltip = Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base
     }
 
     _updatePosition () {
-      let { top, left, height: elHeight, width: elWidth } = this._forElement.getBoundingClientRect();
+      let { top, left, height: elHeight, width: elWidth } = this.isFor.getBoundingClientRect();
       top += (__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].scrollY || __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].pageYOffset);
       left += (__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].scrollX || __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["d" /* global */].pageXOffset);
 
@@ -1274,15 +1279,15 @@ const Tooltip = Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base
 
     _attachForElementHandlers () {
       const [outHandler, inHandler] = this._forHandlers;
-      this._forElement.addEventListener('mouseenter', inHandler);
-      this._forElement.addEventListener('mouseleave', outHandler);
+      this.isFor.addEventListener('mouseenter', inHandler);
+      this.isFor.addEventListener('mouseleave', outHandler);
       return this;
     }
 
     _removeForElementHandlers () {
       const [outHandler, inHandler] = this._forHandlers;
-      this._forElement.removeEventListener('mouseenter', inHandler);
-      this._forElement.removeEventListener('mouseleave', outHandler);
+      this.isFor.removeEventListener('mouseenter', inHandler);
+      this.isFor.removeEventListener('mouseleave', outHandler);
       return this;
     }
 
@@ -1300,8 +1305,12 @@ const Tooltip = Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base
       return this;
     }
 
+    get isFor () {
+      return parentElements.get(this);
+    }
+
     set isFor (el) {
-      this._forElement = el;
+      parentElements.set(this, el);
       return this._attachForElementHandlers();
     }
 
@@ -1321,12 +1330,12 @@ const Tooltip = Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base
         }
       })(this);
 
-      if (this.for) this._forElement = shadowParent.querySelector(`#${this.for}`);
-      if (!this._forElement) {
-        this._forElement = this.parentNode.host || this.parentNode;
+      if (this.for) this.isFor = shadowParent.querySelector(`#${this.for}`);
+      if (!this.isFor) {
+        this.isFor = this.parentNode.host || this.parentNode;
       }
 
-      if (!this._forElement) throw new Error('ui-tooltip must have a "for" attribute/property or a parent');
+      if (!this.isFor) throw new Error('ui-tooltip must have a "for" attribute/property or a parent');
       this._attachForElementHandlers();
 
       if (this.textContent && !this.attr('view-text')) this.attr('view-text', this.textContent);
@@ -1365,6 +1374,16 @@ const TooltipMixin = superclass => Object(__WEBPACK_IMPORTED_MODULE_2__temp_util
         if (!now && inDOM) __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.removeChild(this._tooltipElement);
         this._tooltipElement.viewText = now;
       });
+    }
+
+    disconnectedCallback () {
+      super.disconnectedCallback();
+      __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.removeChild(this._tooltipElement);
+    }
+
+    connectedCallback () {
+      super.connectedCallback();
+      if (this._tooltipElement) __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.insertBefore(this._tooltipElement, __WEBPACK_IMPORTED_MODULE_2__temp_utils_ui_component_base_js__["c" /* document */].body.firstElementChild);
     }
   },
 });
