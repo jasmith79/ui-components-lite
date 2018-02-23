@@ -45,7 +45,7 @@ build/concat.js: build/tempindex.js $(BLD_ELS)
 
 build/concat.min.js: build/concat.js
 	@mkdir -p $(@D)
-	minify $< > $@
+	cat $< | minify > $@
 
 build/es5.js: build/concat.js
 	@mkdir -p $(@D)
@@ -53,7 +53,7 @@ build/es5.js: build/concat.js
 
 build/es5.min.js: build/es5.js
 	@mkdir -p $(@D)
-	minify $< > $@
+	cat $< | minify > $@
 
 build/loader.js: src/utils/loader.js
 	@mkdir -p $(@D)
@@ -61,7 +61,7 @@ build/loader.js: src/utils/loader.js
 
 build/loader.min.js: build/loader.js
 	@mkdir -p $(@D)
-	minify $^ > $@
+	cat $< | minify > $@
 
 build/elements/%.min.js: src/elements/%.js
 	@mkdir -p $(@D)

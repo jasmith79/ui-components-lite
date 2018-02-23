@@ -2440,6 +2440,7 @@ const List = (() => {
 
 
 
+const reflectedAttributes = ['confirmable'];
 const template = __WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__["c" /* document */].createElement('template');
 template.innerHTML = `
   <style>
@@ -2454,33 +2455,64 @@ template.innerHTML = `
       height: 65%;
     }
 
-    #closer {
-      background-color: var(--ui-theme-warning-color, #e83673);
-      color: var(--ui-theme-light-text-color, #fff);
+    #bttn-holder ui-button {
       position: relative;
+      top: 12px;
       width: 105px;
       height: 50px;
-      top: 12px;
-      left: calc(100% - 105px);
+      display: inline-block;
+      float: right;
+      color: var(--ui-theme-light-text-color, #fff);
+    }
+
+    #closer {
+      background-color: var(--ui-theme-warning-color, #e83673);
+    }
+
+    [dialog-confirm] {
+      background-color: var(--ui-theme-primary-color);
     }
   </style>
   <div id="content"></div>
-  <ui-button id="closer" dialog-dismiss>Close</ui-button>
+  <div id="bttn-holder">
+    <ui-button id="closer" dialog-dismiss>Close</ui-button>
+  </div>
 `;
 
 const Alert = Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__["b" /* defineUIComponent */])({
   name: 'ui-alert',
   template,
+  reflectedAttributes,
   definition: class Alert extends __WEBPACK_IMPORTED_MODULE_1__dialog_js__["a" /* default */] {
+    constructor () {
+      super();
+      this._confirmer = __WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__["c" /* document */].createElement('ui-button');
+      this._confirmer.id = 'confirmer';
+      this._confirmer.textContent = 'Confirm';
+      this._confirmer.attr('dialog-confirm', true);
+      this.on('attribute-change', ({ changed: { now, name, was } }) => {
+        switch (name) {
+          case 'is-open': return now ? this._backdrop.show() : this._backdrop.hide();
+          case 'confirmable':
+            if (now && !this.selectInternalElement('[dialog-confirm]')) {
+              this.selectInternalElement('#bttn-holder').appendChild(this._confirmer);
+            }
+
+            if (!now && this.selectInternalElement('[dialog-confirm]')) {
+              this.selectInternalElemen('#bttn-holder').this.removeChild(this._confirmer);
+            }
+
+            break;
+        }
+      });
+    }
+
     init () {
       super.init();
       this.attr('role', 'alert');
       this.scrollableDialog = false;
       this.smallDialog = true;
       this.attr('is-modal', true);
-      this.watchAttribute(this, 'is-open', open => {
-        open ? this._backdrop.show() : this._backdrop.hide();
-      });
 
       const closer = this.selectInternalElement('#closer');
       this.on('dialog-opened', e => {
@@ -2497,8 +2529,16 @@ const Alert = Object(__WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__["b" /* def
       return this;
     }
 
+    get innerHTML () {
+      return this.selectInternalElement('#content').innerHTML;
+    }
+
+    set innerHTML (html) {
+      this.selectInternalElement('#content').innerHTML = html;
+    }
+
     alert (txt) {
-      this.textContent = txt;
+      this.innerHTML = txt;
       return this.open();
     }
   }
