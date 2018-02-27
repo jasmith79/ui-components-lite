@@ -5571,9 +5571,11 @@ var __run = function __run() {
             this._textContent = txt;
             if (!this._dummyItem) this._dummyItem = this.selectInternalElement('#dummy-item');
             this._dummyItem.querySelector('#dummy-item-content').textContent = txt;
-            if (txt === '...') {
+            if (txt === '...' || !txt) {
+              this.selectInternalElement('ui-text').classList.add('text-moved');
               this._dummyItem.classList.add('default');
             } else {
+              this.selectInternalElement('ui-text').classList.remove('text-moved');
               this._dummyItem.classList.remove('default');
             }
 
