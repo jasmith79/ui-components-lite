@@ -3586,6 +3586,8 @@ var __run = function __run() {
                   console.warn('The specified value "' + val + '" does not conform to the required format.  The format is "HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS" where HH is 00-23, mm is 00-59, ss is 00-59, and SSS is 000-999.');
                 }
 
+                break;
+
               default:
                 value = val;
             }
