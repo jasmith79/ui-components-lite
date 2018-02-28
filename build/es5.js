@@ -2321,9 +2321,15 @@ var __run = function __run() {
           }, {
             key: '_deSelect',
             value: function _deSelect(item) {
+              var _this36 = this;
+
               if (this.multiple === true) {
                 this._selected = this._selected.filter(function (x) {
                   return x !== item;
+                });
+                this._items.forEach(function (item) {
+                  item.isSelected = _this36._selected.includes(item);
+                  item.attr('aria-selected', _this36._selected.includes(item));
                 });
                 this.dispatchEvent(new Event('change'));
               }
@@ -2332,14 +2338,14 @@ var __run = function __run() {
           }, {
             key: 'appendChild',
             value: function appendChild(node) {
-              var _this36 = this;
+              var _this37 = this;
 
               var p = node.onReady(function (el) {
                 if (el.matches && el.matches('.ui-item')) {
-                  el.on('click', _this36._itemHandlerFactory(el));
-                  _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'appendChild', _this36).call(_this36, el);
-                  _this36._items.push(el);
-                  if (el.isSelected) _this36.selected = el;
+                  el.on('click', _this37._itemHandlerFactory(el));
+                  _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'appendChild', _this37).call(_this37, el);
+                  _this37._items.push(el);
+                  if (el.isSelected) _this37.selected = el;
                 }
               });
               if (this._pendingDOM) this._pendingDOM.push(p);
@@ -2348,17 +2354,17 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this37 = this;
+              var _this38 = this;
 
               _get(definition.prototype.__proto__ || Object.getPrototypeOf(definition.prototype), 'init', this).call(this);
               this.on('keydown', function (e) {
                 var el = function () {
                   switch (e.keyCode) {
                     case 40:
-                      return _this37._items[(_this37._items.indexOf(_this37.shadowRoot.activeElement) + 1) % _this37._items.length];
+                      return _this38._items[(_this38._items.indexOf(_this38.shadowRoot.activeElement) + 1) % _this38._items.length];
 
                     case 38:
-                      return _this37._items[+(_this37._items.indexOf(_this37.shadowRoot.activeElement) - 1)];
+                      return _this38._items[+(_this38._items.indexOf(_this38.shadowRoot.activeElement) - 1)];
 
                     default:
                       return null;
@@ -2376,33 +2382,34 @@ var __run = function __run() {
                 switch (name) {
                   case 'multiple':
                     if (now === true) {
-                      _this37.selectedIndex = -1;
-                      _this37._selected = _this37._selected ? [_this37._selected] : [];
-                      _this37.attr('aria-multiselectable', true);
+                      _this38.selectedIndex = -1;
+                      _this38._selected = !_this38._selected || Array.isArray(_this38._selected) && !_this38._selected.length ? [_this38._selected] : [];
+
+                      _this38.attr('aria-multiselectable', true);
                     } else {
-                      _this37.attr('aria-multiselectable', false);
-                      _this37.selected = _this37.selected == null ? null : _this37.selected[0];
+                      _this38.attr('aria-multiselectable', false);
+                      _this38.selected = _this38.selected == null ? null : _this38.selected[0];
                     }
                     break;
 
                   case 'selected-index':
-                    if (now === -1 || _this37.multiple) return;
-                    if (!_this37._items[now]) {
+                    if (now === -1 || _this38.multiple) return;
+                    if (!_this38._items[now]) {
                       console.warn('Attempted to set invalid index ' + now + ' for element.');
-                      _this37.attr('selected-index', was);
+                      _this38.attr('selected-index', was);
                       return;
                     }
 
-                    if (_this37._items[now] !== _this37.selected) _this37.selected = now;
+                    if (_this38._items[now] !== _this38.selected) _this38.selected = now;
                     break;
                 }
               });
 
               this._beforeReady(function (_) {
-                _this37.selectAll('.ui-item').map(function (item) {
-                  _this37._items.push(item);
-                  if (item.attr('is-selected')) _this37.selected = item;
-                  item.on('click enter-key', _this37._itemHandlerFactory(item));
+                _this38.selectAll('.ui-item').map(function (item) {
+                  _this38._items.push(item);
+                  if (item.attr('is-selected')) _this38.selected = item;
+                  item.on('click enter-key', _this38._itemHandlerFactory(item));
                 });
               });
             }
@@ -2414,9 +2421,17 @@ var __run = function __run() {
           }, {
             key: 'value',
             get: function get() {
-              return this.selected && this.selected.map ? this.selected.map(function (x) {
-                return x ? x.value : '';
-              }).join(',') : this.selected && this.selected.value || null;
+              var _this39 = this;
+
+              if (this.selected && this.selected.map) {
+                return this.selected.sort(function (a, b) {
+                  return _this39._items.indexOf(a) - _this39._items.indexOf(b);
+                }).map(function (x) {
+                  return x ? x.value : '';
+                }).join(',');
+              } else {
+                return this.selected && this.selected.value != null ? this.selected.value : null;
+              }
             },
             set: function set(value) {
               this.selected = value;
@@ -2427,6 +2442,8 @@ var __run = function __run() {
               return this._selected;
             },
             set: function set(value) {
+              var _this40 = this;
+
               if (value === null) {
                 this._selected = null;
                 return;
@@ -2445,16 +2462,46 @@ var __run = function __run() {
                     return x.textContent === value;
                   })[0];
                   break;
+
+                case 'Array':
+                  if (!this.multiple) {
+                    throw new Error('Tried to set multiple values on non-multi selectable ' + this.identity);
+                  }
+                  selection = value.map(function (x) {
+                    switch (Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__["a" /* default */])(x)) {
+                      case 'Number':
+                        return _this40._items[x];
+
+                      case 'String':
+                        return _this40.querySelector('[value="' + x + '"]');
+                    }
+                  }).filter(function (x) {
+                    return x != null;
+                  });
+
+                  break;
               }
 
               if (type.match(/HTML\w*Element/) && this._items.includes(value)) selection = value;
               if (selection) {
-                selection.attr('aria-selected', true);
-                selection.isSelected = true;
                 if (this.multiple === true) {
-                  this._selected.push(selection);
-                  this.dispatchEvent(new Event('change'));
+                  var l = this._selected.length;
+                  if (Array.isArray(selection)) {
+                    this._selected = selection;
+                    this._items.forEach(function (item) {
+                      item.isSelected = _this40._selected.includes(item);
+                      item.attr('aria-selected', _this40._selected.includes(item));
+                    });
+                  } else {
+                    if (!this._selected.includes(selection)) this._selected.push(selection);
+                    if (l !== this._selected.length) this.dispatchEvent(new Event('change'));
+                  }
+
+                  this._items.forEach(function (item) {
+                    item.attr('aria-selected', _this40._selected.includes(item));
+                  });
                 } else {
+                  selection.isSelected = true;
                   this._selected = selection;
                   this.selectedIndex = this._items.indexOf(selection);
                   this._items.forEach(function (item) {
@@ -2489,25 +2536,25 @@ var __run = function __run() {
           function Item() {
             _classCallCheck(this, Item);
 
-            var _this38 = _possibleConstructorReturn(this, (Item.__proto__ || Object.getPrototypeOf(Item)).call(this));
+            var _this41 = _possibleConstructorReturn(this, (Item.__proto__ || Object.getPrototypeOf(Item)).call(this));
 
-            _this38._checkbox = null;
-            _this38._content = null;
-            return _this38;
+            _this41._checkbox = null;
+            _this41._content = null;
+            return _this41;
           }
 
           _createClass(Item, [{
             key: 'init',
             value: function init() {
-              var _this39 = this;
+              var _this42 = this;
 
               _get(Item.prototype.__proto__ || Object.getPrototypeOf(Item.prototype), 'init', this).call(this);
               this.attr('role', 'listoption');
               this._beforeReady(function (_) {
-                _this39._checkbox = _this39.selectInternalElement('ui-checkbox');
-                _this39._content = _this39.selectInternalElement('#content');
-                if (!_this39.value || _this39.value.toString() === 'true') _this39.value = _this39.textContent;
-                if (!_this39.isSelected) _this39.isSelected = false;
+                _this42._checkbox = _this42.selectInternalElement('ui-checkbox');
+                _this42._content = _this42.selectInternalElement('#content');
+                if (!_this42.value || _this42.value.toString() === 'true') _this42.value = _this42.textContent;
+                if (!_this42.isSelected) _this42.isSelected = false;
               });
 
               this.on('attribute-change', function (_ref22) {
@@ -2517,15 +2564,15 @@ var __run = function __run() {
 
                 switch (name) {
                   case 'is-selected':
-                    _this39.onReady(function (_) {
+                    _this42.onReady(function (_) {
                       if (now) {
-                        _this39.classList.add('selected');
-                        _this39._checkbox.checked = true;
-                        _this39.dispatchEvent(new CustomEvent('component-selected'));
+                        _this42.classList.add('selected');
+                        _this42._checkbox.checked = true;
+                        _this42.dispatchEvent(new CustomEvent('component-selected'));
                       } else {
-                        _this39.classList.remove('selected');
-                        _this39._checkbox.checked = false;
-                        _this39.dispatchEvent(new CustomEvent('component-deselected'));
+                        _this42.classList.remove('selected');
+                        _this42._checkbox.checked = false;
+                        _this42.dispatchEvent(new CustomEvent('component-deselected'));
                       }
                     });
                     break;
@@ -2605,13 +2652,13 @@ var __run = function __run() {
         function Alert() {
           _classCallCheck(this, Alert);
 
-          var _this41 = _possibleConstructorReturn(this, (Alert.__proto__ || Object.getPrototypeOf(Alert)).call(this));
+          var _this44 = _possibleConstructorReturn(this, (Alert.__proto__ || Object.getPrototypeOf(Alert)).call(this));
 
-          _this41._confirmer = __WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__["c" /* document */].createElement('ui-button');
-          _this41._confirmer.id = 'confirmer';
-          _this41._confirmer.textContent = 'Confirm';
-          _this41._confirmer.attr('dialog-confirm', true);
-          _this41.on('attribute-change', function (_ref23) {
+          _this44._confirmer = __WEBPACK_IMPORTED_MODULE_2__temp_utils_dom_js__["c" /* document */].createElement('ui-button');
+          _this44._confirmer.id = 'confirmer';
+          _this44._confirmer.textContent = 'Confirm';
+          _this44._confirmer.attr('dialog-confirm', true);
+          _this44.on('attribute-change', function (_ref23) {
             var _ref23$changed = _ref23.changed,
                 now = _ref23$changed.now,
                 name = _ref23$changed.name,
@@ -2619,20 +2666,20 @@ var __run = function __run() {
 
             switch (name) {
               case 'is-open':
-                return now ? _this41._backdrop.show() : _this41._backdrop.hide();
+                return now ? _this44._backdrop.show() : _this44._backdrop.hide();
               case 'confirmable':
-                if (now && !_this41.selectInternalElement('[dialog-confirm]')) {
-                  _this41.selectInternalElement('#bttn-holder').appendChild(_this41._confirmer);
+                if (now && !_this44.selectInternalElement('[dialog-confirm]')) {
+                  _this44.selectInternalElement('#bttn-holder').appendChild(_this44._confirmer);
                 }
 
-                if (!now && _this41.selectInternalElement('[dialog-confirm]')) {
-                  _this41.selectInternalElemen('#bttn-holder').this.removeChild(_this41._confirmer);
+                if (!now && _this44.selectInternalElement('[dialog-confirm]')) {
+                  _this44.selectInternalElemen('#bttn-holder').this.removeChild(_this44._confirmer);
                 }
 
                 break;
             }
           });
-          return _this41;
+          return _this44;
         }
 
         _createClass(Alert, [{
@@ -2886,13 +2933,13 @@ var __run = function __run() {
         function Dialog() {
           _classCallCheck(this, Dialog);
 
-          var _this43 = _possibleConstructorReturn(this, (Dialog.__proto__ || Object.getPrototypeOf(Dialog)).call(this));
+          var _this46 = _possibleConstructorReturn(this, (Dialog.__proto__ || Object.getPrototypeOf(Dialog)).call(this));
 
-          _this43._backdrop = null;
+          _this46._backdrop = null;
           __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["d" /* global */].addEventListener('logout', function (e) {
-            _this43.close();
+            _this46.close();
           });
-          return _this43;
+          return _this46;
         }
 
         // Intercepts calls to appendChild so buttons can be appropriately used.
@@ -2901,15 +2948,15 @@ var __run = function __run() {
         _createClass(Dialog, [{
           key: 'appendChild',
           value: function appendChild(node) {
-            var _this44 = this;
+            var _this47 = this;
 
             if (node && node.onReady) {
               node.onReady(function (el) {
                 if (el && el.matches && el.matches('.ui-button')) {
-                  incorporateButtonChild(_this44, el);
-                  _this44.shadowRoot.appendChild(el);
+                  incorporateButtonChild(_this47, el);
+                  _this47.shadowRoot.appendChild(el);
                 } else {
-                  _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'appendChild', _this44).call(_this44, node);
+                  _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'appendChild', _this47).call(_this47, node);
                 }
               });
             }
@@ -2931,7 +2978,7 @@ var __run = function __run() {
         }, {
           key: 'init',
           value: function init() {
-            var _this45 = this;
+            var _this48 = this;
 
             _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'init', this).call(this);
             this.hide();
@@ -2941,13 +2988,13 @@ var __run = function __run() {
             __WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["c" /* document */].body.appendChild(this._backdrop);
 
             this._beforeReady(function (_) {
-              [].concat(_toConsumableArray(_this45.selectInternalAll('.ui-button')), _toConsumableArray(_this45.selectAll('.ui-button'))).forEach(function (el) {
-                return incorporateButtonChild(_this45, el);
+              [].concat(_toConsumableArray(_this48.selectInternalAll('.ui-button')), _toConsumableArray(_this48.selectAll('.ui-button'))).forEach(function (el) {
+                return incorporateButtonChild(_this48, el);
               });
             });
 
             var closer = function closer(e) {
-              _this45.close();
+              _this48.close();
             };
 
             this.on('attribute-change', function (_ref26) {
@@ -2957,29 +3004,29 @@ var __run = function __run() {
 
               switch (name) {
                 case 'small-dialog':
-                  return now ? (_this45.classList.add('small-dialog'), _this45.classList.remove('medium-dialog', 'large-dialog')) : _this45.classList.remove('small-dialog');
+                  return now ? (_this48.classList.add('small-dialog'), _this48.classList.remove('medium-dialog', 'large-dialog')) : _this48.classList.remove('small-dialog');
 
                 case 'medium-dialog':
-                  return now ? (_this45.classList.add('medium-dialog'), _this45.classList.remove('small-dialog', 'large-dialog')) : _this45.classList.remove('medium-dialog');
+                  return now ? (_this48.classList.add('medium-dialog'), _this48.classList.remove('small-dialog', 'large-dialog')) : _this48.classList.remove('medium-dialog');
 
                 case 'large-dialog':
-                  return now ? (_this45.classList.add('large-dialog'), _this45.classList.remove('small-dialog', 'medium-dialog')) : _this45.classList.remove('large-dialog');
+                  return now ? (_this48.classList.add('large-dialog'), _this48.classList.remove('small-dialog', 'medium-dialog')) : _this48.classList.remove('large-dialog');
 
                 case 'scrollable-dialog':
-                  return now ? _this45.classList.add('scrollable-dialog') : _this45.classList.remove('scrollable-dialog');
+                  return now ? _this48.classList.add('scrollable-dialog') : _this48.classList.remove('scrollable-dialog');
 
                 case 'is-modal':
-                  return now ? _this45._backdrop.on('click', closer) : _this45._backdrop.remove(closer);
+                  return now ? _this48._backdrop.on('click', closer) : _this48._backdrop.remove(closer);
 
                 case 'is-open':
                   if (now) {
-                    if (_this45.isModal) _this45._backdrop.show();
-                    _this45.show();
-                    _this45.dispatchEvent(new CustomEvent('dialog-opened'));
+                    if (_this48.isModal) _this48._backdrop.show();
+                    _this48.show();
+                    _this48.dispatchEvent(new CustomEvent('dialog-opened'));
                   } else {
-                    _this45._backdrop.hide();
-                    _this45.hide();
-                    _this45.dispatchEvent(new CustomEvent('dialog-closed'));
+                    _this48._backdrop.hide();
+                    _this48.hide();
+                    _this48.dispatchEvent(new CustomEvent('dialog-closed'));
                   }
               }
             });
@@ -3351,10 +3398,10 @@ var __run = function __run() {
         function Input() {
           _classCallCheck(this, Input);
 
-          var _this46 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this));
+          var _this49 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this));
 
-          _this46._input = null;
-          return _this46;
+          _this49._input = null;
+          return _this49;
         }
 
         _createClass(Input, [{
@@ -3411,7 +3458,7 @@ var __run = function __run() {
         }, {
           key: 'init',
           value: function init() {
-            var _this47 = this;
+            var _this50 = this;
 
             _get(Input.prototype.__proto__ || Object.getPrototypeOf(Input.prototype), 'init', this).call(this);
             this._input = this.selectInternalElement('#input');
@@ -3430,13 +3477,13 @@ var __run = function __run() {
             }
 
             this.on('focus', function (e) {
-              _this47.selectInternalElement('ui-text').classList.remove('text-moved');
+              _this50.selectInternalElement('ui-text').classList.remove('text-moved');
             });
 
             this.on('blur', function (e) {
               __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-                if (_this47.label && !_this47.placeholder && !_this47.value) {
-                  _this47.selectInternalElement('ui-text').classList.add('text-moved');
+                if (_this50.label && !_this50.placeholder && !_this50.value) {
+                  _this50.selectInternalElement('ui-text').classList.add('text-moved');
                 }
               }, 1);
             });
@@ -3447,22 +3494,22 @@ var __run = function __run() {
             this._typeSetup(this.attr('type').toLowerCase());
 
             this._input.addEventListener('focus', function (e) {
-              _this47.classList.add('focused');
+              _this50.classList.add('focused');
             });
 
             this._input.addEventListener('blur', function (e) {
-              _this47.classList.remove('focused');
+              _this50.classList.remove('focused');
             });
 
             Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_normalizer_js__["a" /* inputNormalizer */])(this._input);
 
             this.on('focus', function (_) {
-              _this47._input.focus();
+              _this50._input.focus();
             });
 
             this._input.addEventListener('change', function (e) {
-              if (_this47.value !== _this47._input.value) {
-                _this47.value = _this47._input.value;
+              if (_this50.value !== _this50._input.value) {
+                _this50.value = _this50._input.value;
               }
             });
 
@@ -3475,51 +3522,51 @@ var __run = function __run() {
               var txt = void 0;
               switch (name) {
                 case 'name':
-                  _this47._input.name = now;
-                  _this47.name = now;
-                  _this47.selectInternalElement('label').setAttribute('for', _this47.name);
+                  _this50._input.name = now;
+                  _this50.name = now;
+                  _this50.selectInternalElement('label').setAttribute('for', _this50.name);
                   break;
 
                 case 'value':
                   var val = now === true ? '' : now;
-                  if (_this47._input.value !== val) {
-                    _this47._input.value = !val && _this47.defaultValue ? _this47.defaultValue : val;
+                  if (_this50._input.value !== val) {
+                    _this50._input.value = !val && _this50.defaultValue ? _this50.defaultValue : val;
                   }
                   break;
 
                 case 'default-value':
-                  if (!_this47.value) _this47.value = now;
+                  if (!_this50.value) _this50.value = now;
                   break;
 
                 case 'label':
-                  txt = _this47.selectInternalElement('ui-text');
-                  if (now && !_this47.value && !_this47.placeholder) {
+                  txt = _this50.selectInternalElement('ui-text');
+                  if (now && !_this50.value && !_this50.placeholder) {
                     txt.classList.add('text-moved');
                   }
                   break;
 
                 case 'placeholder':
-                  txt = _this47.selectInternalElement('ui-text');
+                  txt = _this50.selectInternalElement('ui-text');
                   if (now && txt.classList.contains('text-moved')) {
                     txt.classList.remove('text-moved');
                   }
 
                   if (now == null) {
-                    _this47._input.removeAttribute(name);
+                    _this50._input.removeAttribute(name);
                   } else {
-                    _this47._input.setAttribute(name, now || true);
+                    _this50._input.setAttribute(name, now || true);
                   }
                   break;
 
                 case 'type':
-                  _this47._typeSetup(now);
+                  _this50._typeSetup(now);
                   break;
 
                 case 'required':
                   if (now == null) {
-                    _this47._input.removeAttribute(name);
+                    _this50._input.removeAttribute(name);
                   } else {
-                    _this47._input.setAttribute(name, now || true);
+                    _this50._input.setAttribute(name, now || true);
                   }
                   break;
               }
@@ -3724,12 +3771,12 @@ var __run = function __run() {
         function DataBinder() {
           _classCallCheck(this, DataBinder);
 
-          var _this49 = _possibleConstructorReturn(this, (DataBinder.__proto__ || Object.getPrototypeOf(DataBinder)).call(this));
+          var _this52 = _possibleConstructorReturn(this, (DataBinder.__proto__ || Object.getPrototypeOf(DataBinder)).call(this));
 
-          _this49._oneWayBoundAttrs = {};
-          _this49._twoWayBoundAttrs = {};
-          _this49._internalMutationFlag = false;
-          return _this49;
+          _this52._oneWayBoundAttrs = {};
+          _this52._twoWayBoundAttrs = {};
+          _this52._internalMutationFlag = false;
+          return _this52;
         }
 
         // Set up data-binding. Any element attributes with a value matching the binding syntax
@@ -3747,7 +3794,7 @@ var __run = function __run() {
         _createClass(DataBinder, [{
           key: 'bindAttribute',
           value: function bindAttribute(attribute) {
-            var _this50 = this;
+            var _this53 = this;
 
             var parentAttribute = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : attribute;
             var twoWay = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
@@ -3773,25 +3820,25 @@ var __run = function __run() {
               }
 
               // Initial set
-              _this50.attr(attribute, parent.attr(parentAttribute));
+              _this53.attr(attribute, parent.attr(parentAttribute));
 
               // Watch changes.
-              _this50.watchAttribute(parent, parentAttribute, function (now, name, was) {
-                if (_this50.attr(attribute) !== now) {
-                  _this50._internalMutationFlag = true;
-                  _this50.attr(attribute, now);
+              _this53.watchAttribute(parent, parentAttribute, function (now, name, was) {
+                if (_this53.attr(attribute) !== now) {
+                  _this53._internalMutationFlag = true;
+                  _this53.attr(attribute, now);
                 }
               });
 
               if (twoWay) {
-                _this50.watchAttribute(_this50, attribute, function (now, name, was) {
+                _this53.watchAttribute(_this53, attribute, function (now, name, was) {
                   if (parent.attr(parentAttribute) !== now) {
                     parent.attr(parentAttribute, now);
                   }
                 });
-                _this50._twoWayBoundAttrs[attribute] = parentAttribute;
+                _this53._twoWayBoundAttrs[attribute] = parentAttribute;
               } else {
-                _this50._oneWayBoundAttrs[attribute] = parentAttribute;
+                _this53._oneWayBoundAttrs[attribute] = parentAttribute;
               }
             };
 
@@ -3835,12 +3882,12 @@ var __run = function __run() {
         function DOMutils() {
           _classCallCheck(this, DOMutils);
 
-          var _this51 = _possibleConstructorReturn(this, (DOMutils.__proto__ || Object.getPrototypeOf(DOMutils)).call(this));
+          var _this54 = _possibleConstructorReturn(this, (DOMutils.__proto__ || Object.getPrototypeOf(DOMutils)).call(this));
 
-          _this51._mutationObservers = [];
-          _this51._prevDisplay = '';
-          _this51._isHidden = false;
-          return _this51;
+          _this54._mutationObservers = [];
+          _this54._prevDisplay = '';
+          _this54._isHidden = false;
+          return _this54;
         }
 
         _createClass(DOMutils, [{
@@ -3849,11 +3896,11 @@ var __run = function __run() {
 
           // Observes changes to the given attribute on the given node.
           value: function watchAttribute(n, a, callb) {
-            var _this52 = this;
+            var _this55 = this;
 
             var _ref30 = function () {
               if (isHTMLElement(n)) return [n, a, callb];
-              return [_this52, n, a];
+              return [_this55, n, a];
             }(),
                 _ref31 = _slicedToArray(_ref30, 3),
                 node = _ref31[0],
@@ -3928,10 +3975,10 @@ var __run = function __run() {
            * DOM.
            */
           value: function on(evts, fn) {
-            var _this53 = this;
+            var _this56 = this;
 
             evts.split(/\s+/g).forEach(function (evt) {
-              var isDupe = _this53._listeners.some(function (_ref35) {
+              var isDupe = _this56._listeners.some(function (_ref35) {
                 var _ref36 = _slicedToArray(_ref35, 2),
                     e = _ref36[0],
                     f = _ref36[1];
@@ -3939,8 +3986,8 @@ var __run = function __run() {
                 return e === evt && fn === f;
               });
               if (!isDupe) {
-                _this53.addEventListener(evt, fn);
-                _this53._listeners.push([evt, fn]);
+                _this56.addEventListener(evt, fn);
+                _this56._listeners.push([evt, fn]);
               }
             });
             return this;
@@ -3962,7 +4009,7 @@ var __run = function __run() {
         }, {
           key: 'remove',
           value: function remove() {
-            var _this54 = this;
+            var _this57 = this;
 
             for (var _len6 = arguments.length, args = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
               args[_key6] = arguments[_key6];
@@ -3971,7 +4018,7 @@ var __run = function __run() {
             var _ref37 = function (arr) {
               switch (arr.length) {
                 case 0:
-                  _this54.parentElement && _this54.parentElement.removeChild(_this54);
+                  _this57.parentElement && _this57.parentElement.removeChild(_this57);
                   return [];
 
                 case 1:
@@ -4014,7 +4061,7 @@ var __run = function __run() {
                     f = _ref42[1];
 
                 if (f === fn && (evt === null || evt === e)) {
-                  _this54.removeEventListener(e, f);
+                  _this57.removeEventListener(e, f);
                   return false;
                 }
                 return true;
@@ -4023,7 +4070,7 @@ var __run = function __run() {
 
             if (children) {
               children.forEach(function (child) {
-                return _this54.removeChild(child);
+                return _this57.removeChild(child);
               });
             }
 
@@ -4196,13 +4243,13 @@ var __run = function __run() {
         _createClass(Hamburger, [{
           key: 'init',
           value: function init() {
-            var _this56 = this;
+            var _this59 = this;
 
             _get(Hamburger.prototype.__proto__ || Object.getPrototypeOf(Hamburger.prototype), 'init', this).call(this);
             this.selectInternalElement('.content-wrapper').appendChild(__WEBPACK_IMPORTED_MODULE_1__temp_utils_dom_js__["c" /* document */].importNode(lineDivTemplate.content, true));
 
             this.watchAttribute(this, 'line-color', function (now) {
-              [].concat(_toConsumableArray(_this56.selectInternalAll('.line'))).forEach(function (el) {
+              [].concat(_toConsumableArray(_this59.selectInternalAll('.line'))).forEach(function (el) {
                 el.style.backgroundColor = now;
               });
             });
@@ -4254,12 +4301,12 @@ var __run = function __run() {
         function Login() {
           _classCallCheck(this, Login);
 
-          var _this57 = _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).call(this));
+          var _this60 = _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).call(this));
 
-          _this57._alert = null;
-          _this57._form = null;
-          _this57._sessionTimeoutHandle = null;
-          return _this57;
+          _this60._alert = null;
+          _this60._form = null;
+          _this60._sessionTimeoutHandle = null;
+          return _this60;
         }
 
         _createClass(Login, [{
@@ -4293,48 +4340,48 @@ var __run = function __run() {
         }, {
           key: 'countDown',
           value: function countDown(h) {
-            var _this58 = this;
+            var _this61 = this;
 
             __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].clearTimeout(h);
             return __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-              _this58.logout();
-              _this58._alert.alert('Session timed out. Please login again or close the tab.');
-              _this58._alert.selectInternalElement('#closer');
+              _this61.logout();
+              _this61._alert.alert('Session timed out. Please login again or close the tab.');
+              _this61._alert.selectInternalElement('#closer');
             }, this.sessionTimeout || 30 * 60 * 1000);
           }
         }, {
           key: 'init',
           value: function init() {
-            var _this59 = this;
+            var _this62 = this;
 
             _get(Login.prototype.__proto__ || Object.getPrototypeOf(Login.prototype), 'init', this).call(this);
             this._beforeReady(function (_) {
-              _this59._form = _this59.selectInternalElement('ui-form');
-              _this59._alert = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].querySelector('ui-alert');
-              if (!_this59._alert) {
-                _this59._alert = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-alert');
-                __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].body.appendChild(_this59._alert);
+              _this62._form = _this62.selectInternalElement('ui-form');
+              _this62._alert = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].querySelector('ui-alert');
+              if (!_this62._alert) {
+                _this62._alert = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-alert');
+                __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].body.appendChild(_this62._alert);
               }
 
               // Reset the session timeout on interaction.
               ['click', 'keydown'].forEach(function (evt) {
                 __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].addEventListener(evt, function (e) {
-                  if (_this59.isLoggedIn) _this59._sessionTimeoutHandle = _this59.countDown(_this59._sessionTimeoutHandle);
+                  if (_this62.isLoggedIn) _this62._sessionTimeoutHandle = _this62.countDown(_this62._sessionTimeoutHandle);
                 });
               });
 
               var handler = function handler(_) {
-                if (!_this59.isLoggedIn) {
-                  if (!_this59.dataUrl) {
+                if (!_this62.isLoggedIn) {
+                  if (!_this62.dataUrl) {
                     throw new Error('No url for login, whatcha want me to do?');
                   }
 
-                  if (!_this59._form.isValid) {
-                    _this59._alert.alert('Please supply a Username and Password.');
+                  if (!_this62._form.isValid) {
+                    _this62._alert.alert('Please supply a Username and Password.');
                     return;
                   }
 
-                  var _credentials = _this59.credentials,
+                  var _credentials = _this62.credentials,
                       user = _credentials.user,
                       pass = _credentials.pass;
 
@@ -4343,24 +4390,24 @@ var __run = function __run() {
                     'Content-Type': 'application/x-www-form-urlencoded'
                   };
 
-                  fetch(_this59.dataUrl, { method: 'POST', headers: headers }).then(function (resp) {
+                  fetch(_this62.dataUrl, { method: 'POST', headers: headers }).then(function (resp) {
                     return resp.json();
                   }).then(function (valid) {
                     if (valid) {
-                      sessionStorage.setItem('ui-credentials', JSON.stringify(_this59.credentials));
-                      _this59.login(valid);
+                      sessionStorage.setItem('ui-credentials', JSON.stringify(_this62.credentials));
+                      _this62.login(valid);
                     } else {
-                      _this59._alert.alert(INVALID);
+                      _this62._alert.alert(INVALID);
                     }
                   }).catch(function (err) {
                     console.error(err);
-                    _this59._alert.alert(FAILURE);
+                    _this62._alert.alert(FAILURE);
                   });
                 }
               };
 
-              _this59.selectInternalElement('ui-fab').on('click enter-key', handler);
-              _this59.selectInternalElement('[name="pass"]').on('enter-key', handler);
+              _this62.selectInternalElement('ui-fab').on('click enter-key', handler);
+              _this62.selectInternalElement('[name="pass"]').on('enter-key', handler);
             });
 
             this.onReady(function (_) {
@@ -4369,7 +4416,7 @@ var __run = function __run() {
               if (bttn) {
                 bttn.on('click keydown', function (e) {
                   if (!e.keyCode || e.keyCode === 13) {
-                    _this59.userLogout();
+                    _this62.userLogout();
                   }
                 });
               }
@@ -4383,8 +4430,8 @@ var __run = function __run() {
                     var credentials = JSON.parse(cached);
                     if (credentials.user && credentials.pass) {
                       console.log('Logging in with session data...');
-                      _this59.login();
-                      _this59._form.data = credentials;
+                      _this62.login();
+                      _this62._form.data = credentials;
                     }
                   } catch (e) {
                     // no-op
@@ -4474,10 +4521,10 @@ var __run = function __run() {
           function Tabs() {
             _classCallCheck(this, Tabs);
 
-            var _this61 = _possibleConstructorReturn(this, (Tabs.__proto__ || Object.getPrototypeOf(Tabs)).call(this));
+            var _this64 = _possibleConstructorReturn(this, (Tabs.__proto__ || Object.getPrototypeOf(Tabs)).call(this));
 
-            _this61._for = null;
-            return _this61;
+            _this64._for = null;
+            return _this64;
           }
 
           _createClass(Tabs, [{
@@ -4490,7 +4537,7 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this62 = this;
+              var _this65 = this;
 
               _get(Tabs.prototype.__proto__ || Object.getPrototypeOf(Tabs.prototype), 'init', this).call(this);
               this.attr('role', 'tabpanel');
@@ -4502,34 +4549,34 @@ var __run = function __run() {
                 switch (name) {
                   case 'for':
                     if (now) {
-                      _this62._for = now;
-                      var _elem = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].querySelector(_this62._for);
+                      _this65._for = now;
+                      var _elem = __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].querySelector(_this65._for);
                       if (_elem) {
                         var method = _elem.on ? 'on' : 'addEventListener';
                         _elem[method]('change', function (_ref45) {
                           var value = _ref45.value;
 
-                          var matched = _this62._items.reduce(function (acc, item) {
+                          var matched = _this65._items.reduce(function (acc, item) {
                             if (acc) return acc;
                             if (item.value === value) return item;
                             return acc;
                           }, null);
 
-                          if (matched && matched !== _this62.selected) {
-                            _this62.selected = value;
+                          if (matched && matched !== _this65.selected) {
+                            _this65.selected = value;
                           } else {
-                            _this62.selected = null;
+                            _this65.selected = null;
                           }
                         });
                       }
                     } else {
-                      _this62._for = null;
+                      _this65._for = null;
                     }
                     break;
 
                   case 'selected-index':
-                    if (now > -1 && _this62._for) {
-                      __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].querySelector(_this62._for).route(_this62.selected.value);
+                    if (now > -1 && _this65._for) {
+                      __WEBPACK_IMPORTED_MODULE_1__temp_utils_ui_component_base_js__["c" /* document */].querySelector(_this65._for).route(_this65.selected.value);
                     }
                     break;
                 }
@@ -4581,35 +4628,35 @@ var __run = function __run() {
         function Drawer() {
           _classCallCheck(this, Drawer);
 
-          var _this63 = _possibleConstructorReturn(this, (Drawer.__proto__ || Object.getPrototypeOf(Drawer)).call(this));
+          var _this66 = _possibleConstructorReturn(this, (Drawer.__proto__ || Object.getPrototypeOf(Drawer)).call(this));
 
-          _this63._backdrop = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-backdrop');
-          _this63._backdrop.for = _this63;
-          _this63._backdrop.style.zIndex = '9000';
-          _this63._toggleElem = null;
-          _this63._isOpen = false;
-          _this63._rightAnimator = null;
-          _this63._leftAnimator = null;
-          return _this63;
+          _this66._backdrop = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].createElement('ui-backdrop');
+          _this66._backdrop.for = _this66;
+          _this66._backdrop.style.zIndex = '9000';
+          _this66._toggleElem = null;
+          _this66._isOpen = false;
+          _this66._rightAnimator = null;
+          _this66._leftAnimator = null;
+          return _this66;
         }
 
         _createClass(Drawer, [{
           key: 'toggledBy',
           value: function toggledBy(elem) {
-            var _this64 = this;
+            var _this67 = this;
 
             if (elem) {
               this._toggleElem = elem;
               if (this._toggleElem.on) {
                 this._toggleElem.on('click enter-key', function (e) {
-                  _this64.toggleState();
+                  _this67.toggleState();
                 });
               } else {
                 this._toggleElem.addEventListener('enter-key', function (e) {
-                  _this64.toggleState();
+                  _this67.toggleState();
                 });
                 this._toggleElem.addEventListener('click', function (e) {
-                  _this64.toggleState();
+                  _this67.toggleState();
                 });
               }
             }
@@ -4636,7 +4683,7 @@ var __run = function __run() {
         }, {
           key: 'init',
           value: function init() {
-            var _this65 = this;
+            var _this68 = this;
 
             _get(Drawer.prototype.__proto__ || Object.getPrototypeOf(Drawer.prototype), 'init', this).call(this);
             if (!this.rightOriented) this.leftOriented = true;
@@ -4644,7 +4691,7 @@ var __run = function __run() {
 
             __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].body.appendChild(this._backdrop);
             this._backdrop.on('click', function (e) {
-              return _this65.close();
+              return _this68.close();
             });
 
             // Check for the drawer toggle in the DOM. If not, you'll need to use the toggledBy method
@@ -4659,19 +4706,19 @@ var __run = function __run() {
                   now = _ref46$changed.now,
                   name = _ref46$changed.name;
 
-              var orient = _this65.rightOriented ? 'right' : 'left';
-              var animator = _this65['_' + orient + 'Animator'];
+              var orient = _this68.rightOriented ? 'right' : 'left';
+              var animator = _this68['_' + orient + 'Animator'];
               switch (name) {
                 case 'is-open':
                   if (now) {
-                    if (_this65.isModal) _this65._backdrop.show();
+                    if (_this68.isModal) _this68._backdrop.show();
                     animator.easeIn().then(function (_) {
-                      _this65.dispatchEvent(new CustomEvent('drawer-opened'));
+                      _this68.dispatchEvent(new CustomEvent('drawer-opened'));
                     });
                   } else {
                     animator.easeOut().then(function (_) {
-                      _this65._backdrop.hide();
-                      _this65.dispatchEvent(new CustomEvent('drawer-closed'));
+                      _this68._backdrop.hide();
+                      _this68.dispatchEvent(new CustomEvent('drawer-closed'));
                     });
                   }
                   break;
@@ -4721,10 +4768,10 @@ var __run = function __run() {
           function Easer() {
             _classCallCheck(this, Easer);
 
-            var _this66 = _possibleConstructorReturn(this, (Easer.__proto__ || Object.getPrototypeOf(Easer)).call(this));
+            var _this69 = _possibleConstructorReturn(this, (Easer.__proto__ || Object.getPrototypeOf(Easer)).call(this));
 
-            _this66._animations = [];
-            return _this66;
+            _this69._animations = [];
+            return _this69;
           }
 
           _createClass(Easer, [{
@@ -4848,16 +4895,16 @@ var __run = function __run() {
         function Toolbar() {
           _classCallCheck(this, Toolbar);
 
-          var _this67 = _possibleConstructorReturn(this, (Toolbar.__proto__ || Object.getPrototypeOf(Toolbar)).call(this));
+          var _this70 = _possibleConstructorReturn(this, (Toolbar.__proto__ || Object.getPrototypeOf(Toolbar)).call(this));
 
-          _this67._secondaryToolbar = null;
-          return _this67;
+          _this70._secondaryToolbar = null;
+          return _this70;
         }
 
         _createClass(Toolbar, [{
           key: 'init',
           value: function init() {
-            var _this68 = this;
+            var _this71 = this;
 
             _get(Toolbar.prototype.__proto__ || Object.getPrototypeOf(Toolbar.prototype), 'init', this).call(this);
             this.attr('role', 'toolbar');
@@ -4873,8 +4920,8 @@ var __run = function __run() {
             }
 
             secondarySlot.addEventListener('slotchange', function (e) {
-              _this68._secondaryToolbar = _this68.querySelector('[slot="secondary-toolbar-slot"]');
-              if (_this68._secondaryToolbar) _this68.classList.add('has-secondary');
+              _this71._secondaryToolbar = _this71.querySelector('[slot="secondary-toolbar-slot"]');
+              if (_this71._secondaryToolbar) _this71.classList.add('has-secondary');
             });
 
             this.on('attribute-change', function (_ref48) {
@@ -4884,14 +4931,14 @@ var __run = function __run() {
 
               if (name === 'is-tall') {
                 if (now == null) {
-                  if (_this68._secondaryToolbar) {
-                    _this68._secondaryToolbar.classList.add('tabs-centered');
+                  if (_this71._secondaryToolbar) {
+                    _this71._secondaryToolbar.classList.add('tabs-centered');
                   }
                 } else if (!now || now === "false") {
-                  _this68.isTall = null;
+                  _this71.isTall = null;
                 } else {
-                  if (_this68._secondaryToolbar) {
-                    _this68._secondaryToolbar.classList.remove('tabs-centered');
+                  if (_this71._secondaryToolbar) {
+                    _this71._secondaryToolbar.classList.remove('tabs-centered');
                   }
                 }
               }
@@ -4954,14 +5001,14 @@ var __run = function __run() {
           function Router() {
             _classCallCheck(this, Router);
 
-            var _this69 = _possibleConstructorReturn(this, (Router.__proto__ || Object.getPrototypeOf(Router)).call(this));
+            var _this72 = _possibleConstructorReturn(this, (Router.__proto__ || Object.getPrototypeOf(Router)).call(this));
 
-            _this69._contentSlot = null;
-            _this69._routes = {};
-            _this69._currentRoute = null;
-            _this69._managingHistory = false;
-            _this69._login = null;
-            _this69._popstateListener = function (_ref49) {
+            _this72._contentSlot = null;
+            _this72._routes = {};
+            _this72._currentRoute = null;
+            _this72._managingHistory = false;
+            _this72._login = null;
+            _this72._popstateListener = function (_ref49) {
               var data = _ref49.state;
 
               // here we ignore querystring data, it may be stale
@@ -4975,13 +5022,13 @@ var __run = function __run() {
                 historyStack.pop();
               }
 
-              _this69._updateRoute(route);
+              _this72._updateRoute(route);
               if (!historyStack.length || historyStack.length === 1 && historyStack[0] === '/') {
-                __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["d" /* global */].removeEventListener('popstate', _this69._popstateListener);
-                _this69._managingHistory = false;
+                __WEBPACK_IMPORTED_MODULE_0__temp_utils_ui_component_base_js__["d" /* global */].removeEventListener('popstate', _this72._popstateListener);
+                _this72._managingHistory = false;
               }
             };
-            return _this69;
+            return _this72;
           }
 
           _createClass(Router, [{
@@ -5097,12 +5144,12 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this70 = this;
+              var _this73 = this;
 
               _get(Router.prototype.__proto__ || Object.getPrototypeOf(Router.prototype), 'init', this).call(this);
 
               this._beforeReady(function (_) {
-                _this70._contentSlot = _this70.selectInternalElement('slot');
+                _this73._contentSlot = _this73.selectInternalElement('slot');
                 var selected = null;
 
                 var _Object3 = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["a" /* parseURL */])(window.location.href),
@@ -5112,34 +5159,34 @@ var __run = function __run() {
                 if (route) selected = route;
 
                 var flag = false;
-                _this70.selectAll('[route-path]').forEach(function (el, i) {
+                _this73.selectAll('[route-path]').forEach(function (el, i) {
                   var path = el.getAttribute('route-path');
-                  _this70._routes[path] = el;
+                  _this73._routes[path] = el;
                   if (!i && !selected) selected = path;
                   if (el.matches && el.matches('[selected]')) selected = path;
                   if (path === '/login') {
                     flag = true;
                     el.onReady(function (_) {
                       var login = el.querySelector('.ui-login');
-                      _this70._login = login;
+                      _this73._login = login;
                       login.on('login', function (e) {
                         var _Object4 = Object(__WEBPACK_IMPORTED_MODULE_1__temp_utils_url_js__["a" /* parseURL */])(window.location.href),
                             route = _Object4.route;
 
-                        _this70._updateRoute(route);
+                        _this73._updateRoute(route);
                       });
 
                       login.on('logout', function (e) {
-                        _this70.route('/login');
+                        _this73.route('/login');
                       });
-                      _this70.route(selected);
+                      _this73.route(selected);
                     });
                   }
                 });
 
                 if (!flag) {
-                  _this70.onReady(function (_) {
-                    _this70.route(selected);
+                  _this73.onReady(function (_) {
+                    _this73.route(selected);
                   });
                 }
               });
@@ -5152,27 +5199,27 @@ var __run = function __run() {
 
                 switch (name) {
                   case 'renders-current':
-                    if (_this70.selected) {
+                    if (_this73.selected) {
                       if (now) {
-                        _this70.selected.setAttribute('slot', 'router-content');
+                        _this73.selected.setAttribute('slot', 'router-content');
                       } else {
-                        _this70.selected.removeAttribute('slot');
+                        _this73.selected.removeAttribute('slot');
                       }
                     }
                     break;
 
                   case 'updates-history':
-                    if (now && historyManager !== _this70) {
+                    if (now && historyManager !== _this73) {
                       if (historyManager) {
                         throw new Error('Only one router per page can manage the navigation history\n                     at a time. Please listen for that router\'s route-changed\n                     event to update other elements.');
                       }
-                      historyManager = _this70;
-                      _this70._managingHistory = true;
-                      window.addEventListener('popstate', _this70._popstateListener);
+                      historyManager = _this73;
+                      _this73._managingHistory = true;
+                      window.addEventListener('popstate', _this73._popstateListener);
                     } else {
                       historyManager = null;
-                      _this70._managingHistory = false;
-                      window.removeEventListener('popstate', _this70._popstateListener);
+                      _this73._managingHistory = false;
+                      window.removeEventListener('popstate', _this73._popstateListener);
                     }
                 }
               });
@@ -5222,15 +5269,15 @@ var __run = function __run() {
           function Route() {
             _classCallCheck(this, Route);
 
-            var _this71 = _possibleConstructorReturn(this, (Route.__proto__ || Object.getPrototypeOf(Route)).call(this));
+            var _this74 = _possibleConstructorReturn(this, (Route.__proto__ || Object.getPrototypeOf(Route)).call(this));
 
-            _this71._data = null;
-            _this71._dataElements = [];
-            _this71._fromChangeHandler = false;
-            _this71._unloadListener = function (e) {
-              if (_this71.data) localStorage.setItem(_this71.routePath, JSON.stringify(elem.data));
+            _this74._data = null;
+            _this74._dataElements = [];
+            _this74._fromChangeHandler = false;
+            _this74._unloadListener = function (e) {
+              if (_this74.data) localStorage.setItem(_this74.routePath, JSON.stringify(elem.data));
             };
-            return _this71;
+            return _this74;
           }
 
           _createClass(Route, [{
@@ -5268,17 +5315,17 @@ var __run = function __run() {
           }, {
             key: 'init',
             value: function init() {
-              var _this72 = this;
+              var _this75 = this;
 
               _get(Route.prototype.__proto__ || Object.getPrototypeOf(Route.prototype), 'init', this).call(this);
 
               this.onReady(function (_) {
-                _this72._dataElements = _this72.shadowRoot ? [].concat(_toConsumableArray(_this72.selectInternalAll('[is-data-element]')), _toConsumableArray(_this72.selectAll('[is-data-element]'))) : _this72.selectAll('[is-data-element]');
+                _this75._dataElements = _this75.shadowRoot ? [].concat(_toConsumableArray(_this75.selectInternalAll('[is-data-element]')), _toConsumableArray(_this75.selectAll('[is-data-element]'))) : _this75.selectAll('[is-data-element]');
 
-                _this72._dataElements.forEach(function (el) {
+                _this75._dataElements.forEach(function (el) {
                   el.on('change', function (_) {
-                    _this72._fromChangeHandler = true;
-                    _this72.update(_this72._dataElements.reduce(function (acc, el) {
+                    _this75._fromChangeHandler = true;
+                    _this75.update(_this75._dataElements.reduce(function (acc, el) {
                       var data = el.serialize();
                       Object.entries(data).forEach(function (_ref51) {
                         var _ref52 = _slicedToArray(_ref51, 2),
@@ -5305,11 +5352,11 @@ var __run = function __run() {
                   case 'is-selected':
                     if (now) {
                       // Check to see if it was written from query string first.
-                      var data = localStorage.getItem(_this72.routePath);
-                      if (!_this72.data && data != null) _this72.update(JSON.parse(data));
-                      _this72.dispatchEvent(new CustomEvent('component-selected'));
+                      var data = localStorage.getItem(_this75.routePath);
+                      if (!_this75.data && data != null) _this75.update(JSON.parse(data));
+                      _this75.dispatchEvent(new CustomEvent('component-selected'));
                     } else if (!now) {
-                      _this72.dispatchEvent(new CustomEvent('component-deselected'));
+                      _this75.dispatchEvent(new CustomEvent('component-deselected'));
                     }
                     break;
                 }
@@ -5367,21 +5414,21 @@ var __run = function __run() {
         function Toggle() {
           _classCallCheck(this, Toggle);
 
-          var _this73 = _possibleConstructorReturn(this, (Toggle.__proto__ || Object.getPrototypeOf(Toggle)).call(this));
+          var _this76 = _possibleConstructorReturn(this, (Toggle.__proto__ || Object.getPrototypeOf(Toggle)).call(this));
 
-          var ip = _this73.selectInternalElement('input');
+          var ip = _this76.selectInternalElement('input');
           Object(__WEBPACK_IMPORTED_MODULE_3__temp_utils_normalizer_js__["a" /* inputNormalizer */])(ip);
-          _this73.on('click enter-key', function (e) {
+          _this76.on('click enter-key', function (e) {
             ip.checked = !ip.checked;
-            _this73.value = ip.checked;
+            _this76.value = ip.checked;
           });
 
-          _this73.on('change', function (_ref54) {
+          _this76.on('change', function (_ref54) {
             var value = _ref54.value;
 
-            ip.checked = Boolean(_this73.value);
+            ip.checked = Boolean(_this76.value);
           });
-          return _this73;
+          return _this76;
         }
 
         return Toggle;
@@ -5429,27 +5476,27 @@ var __run = function __run() {
         function DropDown() {
           _classCallCheck(this, DropDown);
 
-          var _this74 = _possibleConstructorReturn(this, (DropDown.__proto__ || Object.getPrototypeOf(DropDown)).call(this));
+          var _this77 = _possibleConstructorReturn(this, (DropDown.__proto__ || Object.getPrototypeOf(DropDown)).call(this));
 
-          _this74._list = null;
-          _this74._listHolder = null;
-          _this74._dummyItem = null;
-          _this74._textContent = '';
-          return _this74;
+          _this77._list = null;
+          _this77._listHolder = null;
+          _this77._dummyItem = null;
+          _this77._textContent = '';
+          return _this77;
         }
 
         _createClass(DropDown, [{
           key: 'appendChild',
           value: function appendChild(node) {
-            var _this75 = this;
+            var _this78 = this;
 
             if (node) {
               _get(DropDown.prototype.__proto__ || Object.getPrototypeOf(DropDown.prototype), 'appendChild', this).call(this, node);
               node.on('click', function (e) {
-                if (!_this75.multiple) {
+                if (!_this78.multiple) {
                   // wait for the animations to finish
                   __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-                    _this75.close();
+                    _this78.close();
                   }, 300);
                 }
               });
@@ -5478,7 +5525,7 @@ var __run = function __run() {
         }, {
           key: 'init',
           value: function init() {
-            var _this76 = this;
+            var _this79 = this;
 
             var mouseon = false;
             _get(DropDown.prototype.__proto__ || Object.getPrototypeOf(DropDown.prototype), 'init', this).call(this);
@@ -5486,7 +5533,7 @@ var __run = function __run() {
             if (index === null || index < 0) this.attr('tabindex', '0');
 
             this.on('enter-key', function (e) {
-              _this76.open();
+              _this79.open();
             });
 
             if (this.attr('name')) {
@@ -5496,40 +5543,40 @@ var __run = function __run() {
 
             if (this.attr('label')) this.selectInternalElement('ui-text').classList.add('text-moved');
             this.on('focus', function (e) {
-              return _this76.selectInternalElement('ui-text').classList.remove('text-moved');
+              return _this79.selectInternalElement('ui-text').classList.remove('text-moved');
             });
             this.on('blur', function (e) {
               __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-                if (_this76.label && !_this76.value) {
-                  _this76.selectInternalElement('ui-text').classList.add('text-moved');
+                if (_this79.label && !_this79.value) {
+                  _this79.selectInternalElement('ui-text').classList.add('text-moved');
                 }
               }, 600); // ripple animation is 500 on the ui-item
             });
 
             this._beforeReady(function (_) {
-              _this76._list = _this76.selectInternalElement('ui-list');
-              _this76._listHolder = _this76.selectInternalElement('#list-holder');
-              _this76._dummyItem = _this76.selectInternalElement('#dummy-item');
-              _this76._dummyItem.selectInternalElement('ui-checkbox').style.display = 'none';
+              _this79._list = _this79.selectInternalElement('ui-list');
+              _this79._listHolder = _this79.selectInternalElement('#list-holder');
+              _this79._dummyItem = _this79.selectInternalElement('#dummy-item');
+              _this79._dummyItem.selectInternalElement('ui-checkbox').style.display = 'none';
 
-              _this76._items.forEach(function (item) {
-                if (item.isSelected) _this76.selected = item;
+              _this79._items.forEach(function (item) {
+                if (item.isSelected) _this79.selected = item;
                 item.on('click', function (e) {
-                  if (!_this76.multiple) {
+                  if (!_this79.multiple) {
                     __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-                      _this76.close();
+                      _this79.close();
                     }, 300);
                   }
                 });
               });
 
-              if (_this76.name && !_this76.selected) _this76.textContent = null;
-              _this76._listHolder.classList.remove('not-overflowing');
+              if (_this79.name && !_this79.selected) _this79.textContent = null;
+              _this79._listHolder.classList.remove('not-overflowing');
 
-              _this76._dummyItem.on('click', function (e) {
-                if (_this76.attr('tabindex') === null) _this76.attr('tabindex', '0');
-                _this76.toggle();
-                mouseon = _this76.isOpen;
+              _this79._dummyItem.on('click', function (e) {
+                if (_this79.attr('tabindex') === null) _this79.attr('tabindex', '0');
+                _this79.toggle();
+                mouseon = _this79.isOpen;
               });
             });
 
@@ -5542,7 +5589,7 @@ var __run = function __run() {
             this.on('mouseleave', function (e) {
               mouseon = false;
               __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].setTimeout(function () {
-                if (!mouseon) _this76.isOpen = false;
+                if (!mouseon) _this79.isOpen = false;
               }, 1000);
             });
 
@@ -5553,10 +5600,10 @@ var __run = function __run() {
 
               switch (name) {
                 case 'selected-index':
-                  if (_this76.selected && !_this76.multiple) {
-                    _this76.textContent = _this76.selected.textContent;
+                  if (_this79.selected && !_this79.multiple) {
+                    _this79.textContent = _this79.selected.textContent;
                   } else {
-                    _this76.textContent = ''; // default
+                    _this79.textContent = ''; // default
                   }
                   break;
               }

@@ -2156,9 +2156,16 @@ const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_5__temp_util
     }
 
     get value () {
-      return this.selected && this.selected.map ?
-        this.selected.map(x => x ? x.value : '').join(',') :
-        (this.selected && this.selected.value) || null;
+      if (this.selected && this.selected.map) {
+        return this.selected
+          .sort((a, b) => this._items.indexOf(a) - this._items.indexOf(b))
+          .map(x => x ? x.value : '')
+          .join(',');
+      } else {
+        return (this.selected && this.selected.value != null) ?
+          this.selected.value :
+          null;
+      }
     }
 
     set value (value) {
@@ -2186,16 +2193,46 @@ const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_5__temp_util
           selection = this.querySelector(`[value="${value}"]`);
           if (!selection) selection = this._items.filter(x => x.textContent === value)[0];
           break;
+
+        case 'Array':
+          if (!this.multiple) {
+            throw new Error(`Tried to set multiple values on non-multi selectable ${this.identity}`);
+          }
+          selection = value
+            .map(x => {
+              switch (Object(__WEBPACK_IMPORTED_MODULE_6__node_modules_extracttype_extracttype_js__["a" /* default */])(x)) {
+                case 'Number':
+                  return this._items[x];
+
+                case 'String':
+                  return this.querySelector(`[value="${x}"]`);
+              }
+            })
+            .filter(x => x != null);
+          
+          break;
       }
 
       if (type.match(/HTML\w*Element/) && this._items.includes(value)) selection = value;
       if (selection) {
-        selection.attr('aria-selected', true);
-        selection.isSelected = true;
         if (this.multiple === true) {
-          this._selected.push(selection);
-          this.dispatchEvent(new Event('change'));
+          let l = this._selected.length;
+          if (Array.isArray(selection)) {
+            this._selected = selection;
+            this._items.forEach(item => {
+              item.isSelected = this._selected.includes(item)
+              item.attr('aria-selected', this._selected.includes(item));
+            });
+          } else {
+            if (!this._selected.includes(selection)) this._selected.push(selection);
+            if (l !== this._selected.length) this.dispatchEvent(new Event('change'));
+          }
+
+          this._items.forEach(item => {
+            item.attr('aria-selected', this._selected.includes(item));
+          });
         } else {
+          selection.isSelected = true;
           this._selected = selection;
           this.selectedIndex = this._items.indexOf(selection);
           this._items.forEach(item => {
@@ -2211,6 +2248,10 @@ const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_5__temp_util
     _deSelect (item) {
       if (this.multiple === true) {
         this._selected = this._selected.filter(x => x !== item);
+        this._items.forEach(item => { 
+          item.isSelected = this._selected.includes(item);
+          item.attr('aria-selected', this._selected.includes(item));
+        });
         this.dispatchEvent(new Event('change'));
       }
       return this;
@@ -2252,7 +2293,10 @@ const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_5__temp_util
           case 'multiple':
             if (now === true) {
               this.selectedIndex = -1;
-              this._selected = this._selected ? [this._selected] : [];
+              this._selected = (!this._selected || (Array.isArray(this._selected) && !this._selected.length)) ? 
+                [this._selected] :
+                [];
+
               this.attr('aria-multiselectable', true);
             } else {
               this.attr('aria-multiselectable', false);

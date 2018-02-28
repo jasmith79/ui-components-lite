@@ -139,4 +139,88 @@ export default () => {
 
     div.appendChild(dd);
   });
+
+
+  describe('ui-drop-down multiple', () => {
+    let div;
+    beforeEach(() => {
+      div = document.createElement('div');
+      div.classList.add('remove-me');
+      document.body.appendChild(div);
+    });
+
+    afterEach(() => {
+      [...document.querySelectorAll('.remove-me')].forEach(el => {
+        document.body.removeChild(el);
+      });
+    });
+
+    it('should allow serially selecting multiple items', done => {
+      div.innerHTML = `
+        <ui-drop-down multiple>
+          <ui-item value="1">Foo</ui-item>
+          <ui-item>Bar</ui-item>
+        </ui-drop-down>
+      `;
+
+      let dd = div.querySelector('ui-drop-down');
+      dd.onReady(_ => {
+        dd.value = '1';
+        expect(dd.value).toBe('1');
+        dd.value = 'Bar';
+        expect(dd.value).toBe('1,Bar');
+        done();
+      });
+    });
+
+    it('should allow serially selecting based on list position', done => {
+      div.innerHTML = `
+        <ui-drop-down multiple>
+          <ui-item value="1">Foo</ui-item>
+          <ui-item>Bar</ui-item>
+        </ui-drop-down>
+      `;
+      
+      let dd = div.querySelector('ui-drop-down');
+      dd.onReady(_ => {
+        dd.value = 1;
+        expect(dd.value).toBe('Bar');
+        dd.value = 0;
+        expect(dd.value).toBe('1,Bar');
+        done();
+      });
+    });
+    
+    it('should allow passing an array of values to select', done => {
+      div.innerHTML = `
+        <ui-drop-down multiple>
+          <ui-item value="1">Foo</ui-item>
+          <ui-item>Bar</ui-item>
+        </ui-drop-down>
+      `;
+    
+      let dd = div.querySelector('ui-drop-down');
+      dd.onReady(_ => {
+        dd.value = ['1', 'Bar'];
+        expect(dd.value).toBe('1,Bar');
+        done();
+      });
+    });
+    
+    it('should allow passing an array of positions to select', done => {
+      div.innerHTML = `
+        <ui-drop-down multiple>
+          <ui-item value="1">Foo</ui-item>
+          <ui-item>Bar</ui-item>
+        </ui-drop-down>
+      `;
+    
+      let dd = div.querySelector('ui-drop-down');
+      dd.onReady(_ => {
+        dd.value = [1, 0];
+        expect(dd.value).toBe('1,Bar');
+        done();
+      });
+    });
+  });
 };
