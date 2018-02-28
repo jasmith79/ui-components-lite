@@ -2487,7 +2487,11 @@ var __run = function __run() {
                 if (this.multiple === true) {
                   var l = this._selected.length;
                   if (Array.isArray(selection)) {
-                    this._selected = selection;
+                    this._selected = [];
+                    selection.forEach(function (x) {
+                      if (!_this40._selected.includes(x)) _this40._selected.push(x);
+                    });
+
                     this._items.forEach(function (item) {
                       item.isSelected = _this40._selected.includes(item);
                       item.attr('aria-selected', _this40._selected.includes(item));

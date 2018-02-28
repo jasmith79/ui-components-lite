@@ -2218,7 +2218,11 @@ const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_5__temp_util
         if (this.multiple === true) {
           let l = this._selected.length;
           if (Array.isArray(selection)) {
-            this._selected = selection;
+            this._selected = [];
+            selection.forEach(x => {
+              if (!this._selected.includes(x)) this._selected.push(x);
+            });
+
             this._items.forEach(item => {
               item.isSelected = this._selected.includes(item)
               item.attr('aria-selected', this._selected.includes(item));

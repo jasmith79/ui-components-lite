@@ -173,6 +173,37 @@ export default () => {
       });
     });
 
+    it('should not allow selecting the same item twice', done => {
+      div.innerHTML = `
+        <ui-drop-down multiple>
+          <ui-item value="1">Foo</ui-item>
+          <ui-item>Bar</ui-item>
+        </ui-drop-down>
+        <ui-drop-down multiple>
+          <ui-item is-selected>Foo</ui-item>
+          <ui-item>Bar</ui-item>
+        </ui-drop-down>
+      `;
+
+      let [dd1, dd2] = [...div.querySelectorAll('ui-drop-down')];
+      Promise.all([
+        dd1.onReady(_ => {
+          dd.value = "1";
+          expect(dd1.value).toBe("1");
+          dd.value = "1";
+          expect(dd1.value).toBe("1");
+        }),
+        dd2.onReady(_ => {
+          expect(dd2.value).toBe("Foo");
+          dd2.value = 0;
+          expect(dd2.value).toBe("Foo");
+          dd2.value = "Foo";
+          expect(dd2.value).toBe("Foo");
+        }),
+      ]).then(done).catch(done);
+    
+    });
+
     it('should allow serially selecting based on list position', done => {
       div.innerHTML = `
         <ui-drop-down multiple>
@@ -218,6 +249,22 @@ export default () => {
       let dd = div.querySelector('ui-drop-down');
       dd.onReady(_ => {
         dd.value = [1, 0];
+        expect(dd.value).toBe('1,Bar');
+        done();
+      });
+    });
+
+    it('should ignore duplicates in the array', done => {
+      div.innerHTML = `
+        <ui-drop-down multiple>
+          <ui-item value="1">Foo</ui-item>
+          <ui-item>Bar</ui-item>
+        </ui-drop-down>
+      `;
+    
+      let dd = div.querySelector('ui-drop-down');
+      dd.onReady(_ => {
+        dd.value = [1, 0, 1];
         expect(dd.value).toBe('1,Bar');
         done();
       });
