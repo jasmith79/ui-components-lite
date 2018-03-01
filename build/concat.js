@@ -2225,7 +2225,6 @@ const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_5__temp_util
 
             this._items.forEach(item => {
               item.isSelected = this._selected.includes(item)
-              item.attr('aria-selected', this._selected.includes(item));
             });
           } else {
             if (!this._selected.includes(selection)) this._selected.push(selection);
@@ -2234,6 +2233,7 @@ const ListBehavior = superclass => Object(__WEBPACK_IMPORTED_MODULE_5__temp_util
 
           this._items.forEach(item => {
             item.attr('aria-selected', this._selected.includes(item));
+            item.isSelected = this._selected.includes(item);
           });
         } else {
           selection.isSelected = true;

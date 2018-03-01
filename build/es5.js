@@ -2494,7 +2494,6 @@ var __run = function __run() {
 
                     this._items.forEach(function (item) {
                       item.isSelected = _this40._selected.includes(item);
-                      item.attr('aria-selected', _this40._selected.includes(item));
                     });
                   } else {
                     if (!this._selected.includes(selection)) this._selected.push(selection);
@@ -2503,6 +2502,7 @@ var __run = function __run() {
 
                   this._items.forEach(function (item) {
                     item.attr('aria-selected', _this40._selected.includes(item));
+                    item.isSelected = _this40._selected.includes(item);
                   });
                 } else {
                   selection.isSelected = true;
