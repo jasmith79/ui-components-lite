@@ -2931,9 +2931,11 @@ const Dialog = Object(__WEBPACK_IMPORTED_MODULE_4__temp_utils_dom_js__["b" /* de
           case 'is-open':
             if (now) {
               if (this.isModal) this._backdrop.show();
+              this.classList.add('is-opened');
               this.show();
               this.dispatchEvent(new CustomEvent('dialog-opened'));
             } else {
+              this.classList.remove('is-opened');
               this._backdrop.hide();
               this.hide();
               this.dispatchEvent(new CustomEvent('dialog-closed'));
@@ -5692,6 +5694,14 @@ template.innerHTML = `
               this.textContent = this.selected.textContent;
             } else {
               this.textContent = ''; // default
+            }
+            break;
+
+          case 'is-open':
+            if (now) {
+              this.classList.add('is-opened');
+            } else {
+              this.classList.remove('is-opened');
             }
             break;
         }

@@ -3025,9 +3025,11 @@ var __run = function __run() {
                 case 'is-open':
                   if (now) {
                     if (_this48.isModal) _this48._backdrop.show();
+                    _this48.classList.add('is-opened');
                     _this48.show();
                     _this48.dispatchEvent(new CustomEvent('dialog-opened'));
                   } else {
+                    _this48.classList.remove('is-opened');
                     _this48._backdrop.hide();
                     _this48.hide();
                     _this48.dispatchEvent(new CustomEvent('dialog-closed'));
@@ -5608,6 +5610,14 @@ var __run = function __run() {
                     _this79.textContent = _this79.selected.textContent;
                   } else {
                     _this79.textContent = ''; // default
+                  }
+                  break;
+
+                case 'is-open':
+                  if (now) {
+                    _this79.classList.add('is-opened');
+                  } else {
+                    _this79.classList.remove('is-opened');
                   }
                   break;
               }

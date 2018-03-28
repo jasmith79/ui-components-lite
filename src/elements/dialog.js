@@ -184,9 +184,11 @@ const Dialog = defineUIComponent({
           case 'is-open':
             if (now) {
               if (this.isModal) this._backdrop.show();
+              this.classList.add('is-opened');
               this.show();
               this.dispatchEvent(new CustomEvent('dialog-opened'));
             } else {
+              this.classList.remove('is-opened');
               this._backdrop.hide();
               this.hide();
               this.dispatchEvent(new CustomEvent('dialog-closed'));

@@ -268,6 +268,14 @@ export default defineUIComponent({
               this.textContent = ''; // default
             }
             break;
+
+          case 'is-open':
+            if (now) {
+              this.classList.add('is-opened');
+            } else {
+              this.classList.remove('is-opened');
+            }
+            break;
         }
       });
     }
