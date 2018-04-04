@@ -6,7 +6,7 @@
  * You should have received a copy of the license with this work but it may also be found at
  * https://opensource.org/licenses/MIT
  *
- * base class for ui-components-lite custom elements.
+ * Base class for ui-components-lite custom elements. Bare minimum API contract.
  */
 
 import './styler.js';
@@ -22,7 +22,12 @@ let flag = true;
 class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
   constructor () {
     super();
+    // Track the listeners so they can be detatched/reattached when element is added to/removed from
+    // the DOM, avoid memory leaks.
     this._listeners = [];
+
+    // Will be called before the WebComponentReady event fires on the element. If any of the
+    // functions return a Promise, the event will be delayed until the Promise(s) resolve(s).
     this._beforeReadyHandlers = [];
     this._pendingDOM = [];
     this._isReady = event2Promise({
@@ -31,12 +36,21 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
       callback: () => this
     });
 
+    // This is a hack to get around the (current) limitations of the ShadyCSS polyfill. In a
+    // perfect world (or at least in browsers with native WC support) this is unnecessary
+    // ceremony, each constructor can attach `style`s to the element's shadowRoot and calls to super()
+    // will sort it all out in order. However the CSS Scoping polyfill goes by tagName, meaning
+    // screw you if you want to inherit CSS styles from an ancestor element's shadowRoot. Or use
+    // mixins. Or generally do anything that isn't a trivial toy example in browsers with no
+    // native support.
     let tmpl = this._stamp();
     if (tmpl) {
       if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
       this.shadowRoot.appendChild(global.document.importNode(tmpl.content, true));
     }
 
+    // Set up attribute to property reflection. Setters will take care of the property to attribute
+    // reflection. Checking against the current value prevents the infinite loop.
     let rfs = this.constructor.observedAttributes;
     if (rfs.length) {
       this.on('attribute-change', ({ changed: { name, now } }) => {
@@ -47,12 +61,12 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     }
 
     // This is because the spec doesn't allow attribute changes in an element constructor.
-    // Use a Promise instead of setTimeout because microtask enqueues faster;
+    // Use a Promise instead of setTimeout because microtask enqueues faster.
     Promise.resolve(true).then(_ => this.init());
   }
 
   static get observedAttributes () {
-    // If extension elements have additional, be sure to call super.
+    // If extension elements add additional, be sure to call super.
     return ['style', 'class'];
   }
 
@@ -139,6 +153,8 @@ class UIBase extends mix(baseClass).with(DOMutils, DataBinder) {
     this._mutationObservers.forEach(([o, target, conf]) => o.observe(target, conf));
   }
 
+  // Removes all registered listeners/observers. If the element is GC'd, so are they, if the
+  // element is reattached, so are they.
   disconnectedCallback () {
     this._shadowElement = null;
     this._listeners.forEach(([evt, f]) => this.removeEventListener(evt, f));

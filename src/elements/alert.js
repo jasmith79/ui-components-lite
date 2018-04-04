@@ -6,7 +6,7 @@
  * You should have received a copy of the license with this work but it may also be found at
  * https://opensource.org/licenses/MIT
  *
- * alert component for ui-components-lite.
+ * alert component for ui-components-lite. Replacement for the native alert() function.
  */
 import Button from './button.js';
 import Dialog from './dialog.js';

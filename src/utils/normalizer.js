@@ -1,3 +1,14 @@
+/*
+ * normalizer.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * Utility file for ui-components-lite. Makes input elements act consistently cross-browser, wrt
+ * the change event.
+ */
 import { global } from './ui-component-base.js';
 import extractType from '../../../extracttype/extracttype.js';
 

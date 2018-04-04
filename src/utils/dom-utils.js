@@ -14,8 +14,9 @@ import processHTMLAttr from './attribute-analyzer.js';
 
 import extractType from '../../../extracttype/extracttype.js';
 
-const attrConf = { attributes: true };
+const attrConf = { attributes: true }; // Argument to MutationObserver.prototype.observe
 const isHTMLElement = arg => Boolean(extractType(arg).match(/HTML[a-zA-Z]*Element/));
+
 export default superclass => class DOMutils extends superclass {
   constructor () {
     super();
@@ -24,17 +25,25 @@ export default superclass => class DOMutils extends superclass {
     this._isHidden = false;
   }
 
+  /*
+   * isVisible :: Void -> Boolean
+   */
   get isVisible () {
     const style = DOM.global.getComputedStyle(this);
     return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
   }
 
-  // Observes changes to the given attribute on the given node.
+  /*
+   * watchAttribute :: HTMLElement, String, (* -> *) -> HTMLElement
+   *
+   * Observes changes to the given attribute on the given node.
+   */
   watchAttribute (n, a, callb) {
     const [node, attr, cb] = (() => {
       if (isHTMLElement(n)) return [n, a, callb];
       return [this, n, a];
     })();
+
     if ((node.constructor.observedAttributes || []).includes(attr)) {
       node.on('attribute-change', ({ changed: { now, name, was } }) => {
         if (name === attr) cb(now, name, was);
@@ -53,17 +62,29 @@ export default superclass => class DOMutils extends superclass {
     return this;
   }
 
+  /*
+   * selectAll :: CSSSelector -> [HTMLElement]
+   */
   selectAll (selector) {
     const nodeList = this.querySelectorAll(selector);
     return nodeList ? [...nodeList] : [];
   }
 
+  /*
+   * matches :: CSSSelector -> Boolean
+   */
   matches (selector) {
     if (super.matches) return super.matches(selector);
     if (super.msMatchesSelector) return super.msMatchesSelector(selector);
     throw new Error('HTMLElement does not implement the matches method.');
   }
 
+  // NOTE: the following two methods violate encapsulation. Be VERY careful about using, i.e. don't
+  // do it from the outside, any more than you'd use element.shadowRoot.querySelector.
+
+  /*
+   * selectInternalElement :: CSSSelector -> HTMLElement
+   */
   selectInternalElement (selector) {
     if (!this.shadowRoot) {
       console.warn(`Internal selector ${selector} called on ${this.identity} which has no shadowRoot.`);
@@ -72,6 +93,9 @@ export default superclass => class DOMutils extends superclass {
     return this.shadowRoot.querySelector(selector);
   }
 
+  /*
+   * selectInternalAll :: CSSSelector -> [HTMLElement]
+   */
   selectInternalAll (selector) {
     if (!this.shadowRoot) {
       console.warn(`Internal selector ${selector} called on ${this.identity} which has no shadowRoot.`);
@@ -79,7 +103,13 @@ export default superclass => class DOMutils extends superclass {
     }
     return [...this.shadowRoot.querySelectorAll(selector)];
   }
-
+  /*
+   * identity :: Void -> String
+   *
+   * Corresponds to the representation used by chrome devtools (and most others) when inspecting an
+   * element. This should generally be used more for error reporting than to try to identify
+   * specific elements: if you want the element to be uniquely selectable give it an id.
+   */
   get identity () {
     let id = this.id ? '#' + this.id : '';
     let tag = this.tagName.toLowerCase();
@@ -88,7 +118,7 @@ export default superclass => class DOMutils extends superclass {
   }
 
   /**
-   * on :: Event, (Event -> *) -> this
+   * on :: Event, (Event -> *) -> HTMLElement
    *
    * Registers an event listener. Listeners added via this method are
    * automatically removed and reattached on being removed from/added to the
@@ -115,7 +145,7 @@ export default superclass => class DOMutils extends superclass {
    * Removes a child node(s) or event listener. If no event name is provided, it removes that
    * listener function for all events for which it is bound to the element. If no arguments arguments
    * provided the method removes the element from its parent element. So this method
-   * responds to the following signatures and ignores all others:
+   * responds to the above signatures and ignores all others.
    */
   remove (...args) {
     const [evt, fn, children] = (arr => {
@@ -164,6 +194,9 @@ export default superclass => class DOMutils extends superclass {
     return this;
   }
 
+  /*
+   * hide :: Void -> HTMLElement
+   */
   hide () {
     if (!this._isHidden) {
       this._prevDisplay = this.style.display;
@@ -173,6 +206,9 @@ export default superclass => class DOMutils extends superclass {
     return this;
   }
 
+  /*
+   * show :: Void -> HTMLElement
+   */
   show () {
     if (this._isHidden) {
       this.style.display = this._prevDisplay;
@@ -181,6 +217,12 @@ export default superclass => class DOMutils extends superclass {
     return this;
   }
 
+  /*
+   * attr :: String -> *
+   * attr :: String, * -> HTMLElement
+   *
+   * Gets/Sets the supplied attribute from this.
+   */
   attr (name, value) {
     if (value === undefined) {
       return processHTMLAttr(this.getAttribute(name));
@@ -198,6 +240,12 @@ export default superclass => class DOMutils extends superclass {
     }
   }
 
+  /*
+   * appendFirst :: HTMLElement -> HTMLElement
+   * appendFirst :: HTMLElement, Boolean -> HTMLElement
+   *
+   * Appends node before the first child of the HTMLElement or it's shadowRoot.
+   */
   appendFirst(node, shadow) {
     const parent = shadow ? this.shadowRoot : this;
     if (!parent) {

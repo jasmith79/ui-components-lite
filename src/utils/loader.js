@@ -4,7 +4,10 @@
  * @copyright Jared Smith
  * @license MIT
  *
- * Loads all of the basic ui-components and associated libraries and polyfills.
+ * Loads all of the basic ui-components and associated libraries and polyfills. If you are simply
+ * using this as a standalone ui library, then this file is sufficient. If you are defining your
+ * own custom web components that extend these (including UIBase), then I recommend using this as a
+ * model for a custom loading file for your application.
  */
 
 ;(function(global) {
@@ -50,7 +53,8 @@
     var needsCustomEl = false;
     var needsFormData = false;
 
-    // Older browsers, gets it all
+    // Older browsers, gets it all. If you are using this file as a template for your own loader,
+    // you may want different tests.
     if (!('entries' in global.Object) ||
         !('WeakMap' in global) ||
         !('includes' in global.Array.prototype) ||
@@ -72,6 +76,8 @@
       return !('noModule' in check) && 'onbeforeload' in check;
     }());
 
+    // Again, you may want a different standard for transpilation here depending, but this is a
+    // decently good jumping off point.
     if (!needsTranspiled) {
       try {
         eval('class Foo { static get bar () { return 3; } };(bar=3) => bar;[...[1,2,3]]');

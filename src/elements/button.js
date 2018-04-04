@@ -9,7 +9,8 @@
  * button component for ui-components-lite.
  *
  * NOTE: it is not currently (and may never) be possible to extend built-in elements like Button.
- * If it does become possible this can be refactored to support extending HTMLButtonElement.
+ * If it does become possible this can be refactored to support extending HTMLButtonElement (i.e)
+ * if Apple changes it's mind about supporting this use-case.
  */
 
 import { TooltipMixin } from './tooltip.js';

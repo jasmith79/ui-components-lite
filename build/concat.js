@@ -89,7 +89,7 @@ var __run=function(){
  * You should have received a copy of the license with this work but it may also be found at
  * https://opensource.org/licenses/MIT
  *
- * base class for ui-components-lite custom elements.
+ * Base class for ui-components-lite custom elements. Bare minimum API contract.
  */
 
 
@@ -105,7 +105,12 @@ let flag = true;
 class UIBase extends Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_src_mixwith_js__["a" /* mix */])(__WEBPACK_IMPORTED_MODULE_5__dom_js__["a" /* baseClass */]).with(__WEBPACK_IMPORTED_MODULE_2__dom_utils_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_1__binder_js__["a" /* default */]) {
   constructor () {
     super();
+    // Track the listeners so they can be detatched/reattached when element is added to/removed from
+    // the DOM, avoid memory leaks.
     this._listeners = [];
+
+    // Will be called before the WebComponentReady event fires on the element. If any of the
+    // functions return a Promise, the event will be delayed until the Promise(s) resolve(s).
     this._beforeReadyHandlers = [];
     this._pendingDOM = [];
     this._isReady = Object(__WEBPACK_IMPORTED_MODULE_4__promise_from_event_js__["a" /* default */])({
@@ -114,12 +119,21 @@ class UIBase extends Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_sr
       callback: () => this
     });
 
+    // This is a hack to get around the (current) limitations of the ShadyCSS polyfill. In a
+    // perfect world (or at least in browsers with native WC support) this is unnecessary
+    // ceremony, each constructor can attach `style`s to the element's shadowRoot and calls to super()
+    // will sort it all out in order. However the CSS Scoping polyfill goes by tagName, meaning
+    // screw you if you want to inherit CSS styles from an ancestor element's shadowRoot. Or use
+    // mixins. Or generally do anything that isn't a trivial toy example in browsers with no
+    // native support.
     let tmpl = this._stamp();
     if (tmpl) {
       if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
       this.shadowRoot.appendChild(__WEBPACK_IMPORTED_MODULE_5__dom_js__["d" /* global */].document.importNode(tmpl.content, true));
     }
 
+    // Set up attribute to property reflection. Setters will take care of the property to attribute
+    // reflection. Checking against the current value prevents the infinite loop.
     let rfs = this.constructor.observedAttributes;
     if (rfs.length) {
       this.on('attribute-change', ({ changed: { name, now } }) => {
@@ -130,12 +144,12 @@ class UIBase extends Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_sr
     }
 
     // This is because the spec doesn't allow attribute changes in an element constructor.
-    // Use a Promise instead of setTimeout because microtask enqueues faster;
+    // Use a Promise instead of setTimeout because microtask enqueues faster.
     Promise.resolve(true).then(_ => this.init());
   }
 
   static get observedAttributes () {
-    // If extension elements have additional, be sure to call super.
+    // If extension elements add additional, be sure to call super.
     return ['style', 'class'];
   }
 
@@ -222,6 +236,8 @@ class UIBase extends Object(__WEBPACK_IMPORTED_MODULE_7__node_modules_mixwith_sr
     this._mutationObservers.forEach(([o, target, conf]) => o.observe(target, conf));
   }
 
+  // Removes all registered listeners/observers. If the element is GC'd, so are they, if the
+  // element is reattached, so are they.
   disconnectedCallback () {
     this._shadowElement = null;
     this._listeners.forEach(([evt, f]) => this.removeEventListener(evt, f));
@@ -393,7 +409,7 @@ class MixinBuilder {
  * You should have received a copy of the license with this work but it may also be found at
  * https://opensource.org/licenses/MIT
  *
- * utility file for ui-components-lite.
+ * Utility file for ui-components-lite.
  */
 
 
@@ -403,8 +419,9 @@ const document = global.document;
 const baseClass = global.HTMLElement;
 const registry = {};
 
-const toPropertyObj = propList => {
-  return propList.reduce((acc, prop) => {
+// Turns a list of attribute names and returns a hash of property names to property descriptors.
+const toPropertyObj = attributeList => {
+  return attributeList.reduce((acc, prop) => {
     const property = Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_jsstring_src_jsstring_js__["b" /* toCamelCase */])(prop);
     acc[property] = {
       get: function() {
@@ -423,13 +440,13 @@ const toPropertyObj = propList => {
   }, {});
 };
 
+// This is the meat.
 const defineUIComponent = ({
-  name,
-  definition,
+  name,                   // tagName
+  definition,             // class that extends HTMLElement
   reflectedAttributes=[],
   template,
-  registerElement=true,
-  isShadowHost,
+  registerElement=true,   // call customElements.define?
 }) => {
   if (!name) throw new Error('ui-components must have a name.');
   if (!definition) throw new Error('ui-components must have a defining class');
@@ -1053,7 +1070,8 @@ const FormControlBehavior = (() => {
  * button component for ui-components-lite.
  *
  * NOTE: it is not currently (and may never) be possible to extend built-in elements like Button.
- * If it does become possible this can be refactored to support extending HTMLButtonElement.
+ * If it does become possible this can be refactored to support extending HTMLButtonElement (i.e)
+ * if Apple changes it's mind about supporting this use-case.
  */
 
 
@@ -1132,7 +1150,8 @@ const Button = Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_
  * You should have received a copy of the license with this work but it may also be found at
  * https://opensource.org/licenses/MIT
  *
- * Mixin for custom elements that can receive keyboard focus.
+ * Mixin for custom elements that can receive keyboard focus. Also includes a special event
+ * emission when the user presses the enter key.
  */
 
 /* harmony default export */ __webpack_exports__["a"] = (superclass => class Focusable extends superclass {
@@ -1155,7 +1174,7 @@ const Button = Object(__WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_
     super.init();
     if (this.attr('tabindex') === null) this.attr('tabindex', '-1');
     this.on('keydown', e => {
-      if (e.keyCode === 13) {
+      if (e.keyCode === 13 || e.key === 'Enter') {
         const evt = new CustomEvent('enter-key');
         evt.keyCode = 13;
         this.dispatchEvent(evt);
@@ -2019,6 +2038,17 @@ const Checkbox = Object(__WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_bas
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__ui_component_base_js__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+/*
+ * normalizer.js
+ * @author jasmith79
+ * @copyright Jared Smith
+ * @license MIT
+ * You should have received a copy of the license with this work but it may also be found at
+ * https://opensource.org/licenses/MIT
+ *
+ * Utility file for ui-components-lite. Makes input elements act consistently cross-browser, wrt
+ * the change event.
+ */
 
 
 
@@ -2481,7 +2511,7 @@ const List = (() => {
  * You should have received a copy of the license with this work but it may also be found at
  * https://opensource.org/licenses/MIT
  *
- * alert component for ui-components-lite.
+ * alert component for ui-components-lite. Replacement for the native alert() function.
  */
 
 
@@ -2696,7 +2726,7 @@ const generateCSSClassName = () => __WEBPACK_IMPORTED_MODULE_2__node_modules_jss
  * You should have received a copy of the license with this work but it may also be found at
  * https://opensource.org/licenses/MIT
  *
- * vertical centering mixin for ui-components-lite.
+ * Vertical centering mixin for ui-components-lite.
  */
 
 
@@ -3027,8 +3057,6 @@ const parseURL = url => {
 const toQueryString = obj => obj && '?' + Object.entries(obj)
   .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(typeof v === 'string' ? v : JSON.stringify(v))}`)
   .join('&');
-
-window.parseURL = parseURL;
 
 
 
@@ -3641,7 +3669,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
  * You should have received a copy of the license with this work but it may also be found at
  * https://opensource.org/licenses/MIT
  *
- * data-binding mixin for ui-components-lite.
+ * Data-binding mixin for ui-components-lite. Meant for use with mixwith.js.
  */
 
 /* harmony default export */ __webpack_exports__["a"] = (superclass => class DataBinder extends superclass {
@@ -3743,8 +3771,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 
-const attrConf = { attributes: true };
+const attrConf = { attributes: true }; // Argument to MutationObserver.prototype.observe
 const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_modules_extracttype_extracttype_js__["a" /* default */])(arg).match(/HTML[a-zA-Z]*Element/));
+
 /* harmony default export */ __webpack_exports__["a"] = (superclass => class DOMutils extends superclass {
   constructor () {
     super();
@@ -3753,17 +3782,25 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
     this._isHidden = false;
   }
 
+  /*
+   * isVisible :: Void -> Boolean
+   */
   get isVisible () {
     const style = __WEBPACK_IMPORTED_MODULE_0__dom_js__["d" /* global */].getComputedStyle(this);
     return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
   }
 
-  // Observes changes to the given attribute on the given node.
+  /*
+   * watchAttribute :: HTMLElement, String, (* -> *) -> HTMLElement
+   *
+   * Observes changes to the given attribute on the given node.
+   */
   watchAttribute (n, a, callb) {
     const [node, attr, cb] = (() => {
       if (isHTMLElement(n)) return [n, a, callb];
       return [this, n, a];
     })();
+
     if ((node.constructor.observedAttributes || []).includes(attr)) {
       node.on('attribute-change', ({ changed: { now, name, was } }) => {
         if (name === attr) cb(now, name, was);
@@ -3782,17 +3819,29 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
     return this;
   }
 
+  /*
+   * selectAll :: CSSSelector -> [HTMLElement]
+   */
   selectAll (selector) {
     const nodeList = this.querySelectorAll(selector);
     return nodeList ? [...nodeList] : [];
   }
 
+  /*
+   * matches :: CSSSelector -> Boolean
+   */
   matches (selector) {
     if (super.matches) return super.matches(selector);
     if (super.msMatchesSelector) return super.msMatchesSelector(selector);
     throw new Error('HTMLElement does not implement the matches method.');
   }
 
+  // NOTE: the following two methods violate encapsulation. Be VERY careful about using, i.e. don't
+  // do it from the outside, any more than you'd use element.shadowRoot.querySelector.
+
+  /*
+   * selectInternalElement :: CSSSelector -> HTMLElement
+   */
   selectInternalElement (selector) {
     if (!this.shadowRoot) {
       console.warn(`Internal selector ${selector} called on ${this.identity} which has no shadowRoot.`);
@@ -3801,6 +3850,9 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
     return this.shadowRoot.querySelector(selector);
   }
 
+  /*
+   * selectInternalAll :: CSSSelector -> [HTMLElement]
+   */
   selectInternalAll (selector) {
     if (!this.shadowRoot) {
       console.warn(`Internal selector ${selector} called on ${this.identity} which has no shadowRoot.`);
@@ -3808,7 +3860,13 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
     }
     return [...this.shadowRoot.querySelectorAll(selector)];
   }
-
+  /*
+   * identity :: Void -> String
+   *
+   * Corresponds to the representation used by chrome devtools (and most others) when inspecting an
+   * element. This should generally be used more for error reporting than to try to identify
+   * specific elements: if you want the element to be uniquely selectable give it an id.
+   */
   get identity () {
     let id = this.id ? '#' + this.id : '';
     let tag = this.tagName.toLowerCase();
@@ -3817,7 +3875,7 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
   }
 
   /**
-   * on :: Event, (Event -> *) -> this
+   * on :: Event, (Event -> *) -> HTMLElement
    *
    * Registers an event listener. Listeners added via this method are
    * automatically removed and reattached on being removed from/added to the
@@ -3844,7 +3902,7 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
    * Removes a child node(s) or event listener. If no event name is provided, it removes that
    * listener function for all events for which it is bound to the element. If no arguments arguments
    * provided the method removes the element from its parent element. So this method
-   * responds to the following signatures and ignores all others:
+   * responds to the above signatures and ignores all others.
    */
   remove (...args) {
     const [evt, fn, children] = (arr => {
@@ -3893,6 +3951,9 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
     return this;
   }
 
+  /*
+   * hide :: Void -> HTMLElement
+   */
   hide () {
     if (!this._isHidden) {
       this._prevDisplay = this.style.display;
@@ -3902,6 +3963,9 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
     return this;
   }
 
+  /*
+   * show :: Void -> HTMLElement
+   */
   show () {
     if (this._isHidden) {
       this.style.display = this._prevDisplay;
@@ -3910,6 +3974,12 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
     return this;
   }
 
+  /*
+   * attr :: String -> *
+   * attr :: String, * -> HTMLElement
+   *
+   * Gets/Sets the supplied attribute from this.
+   */
   attr (name, value) {
     if (value === undefined) {
       return Object(__WEBPACK_IMPORTED_MODULE_1__attribute_analyzer_js__["a" /* default */])(this.getAttribute(name));
@@ -3927,6 +3997,12 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
     }
   }
 
+  /*
+   * appendFirst :: HTMLElement -> HTMLElement
+   * appendFirst :: HTMLElement, Boolean -> HTMLElement
+   *
+   * Appends node before the first child of the HTMLElement or it's shadowRoot.
+   */
   appendFirst(node, shadow) {
     const parent = shadow ? this.shadowRoot : this;
     if (!parent) {
@@ -3959,7 +4035,8 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
  * Utility function that returns a Promise that resolves as soon as the associated event fires.
  *
  * NOTE: the listener is automatically removed when the event fires, so no memory leak and
- * side effects will only happen once.
+ * side effects will only happen once. If you want to respond every time an event fires, well,
+ * they make addEventListener for that.
  */
 
 /* harmony default export */ __webpack_exports__["a"] = (({ eventName, element, callback, timeout }) => {
@@ -3969,9 +4046,9 @@ const isHTMLElement = arg => Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_mo
 
   return new Promise((res, rej) => {
     let timeoutHandle;
-    if (timeout) {
+    if (timeout != null) {
       timeoutHandle = setTimeout(() => {
-        rej(new Error(`The element did not fire the event before the ${timeout}ms timeout.`));
+        rej(new Error(`The element ${element.identity || element.id || ''} did not fire the event ${eventName} before the ${timeout}ms timeout.`));
       }, timeout);
     }
 

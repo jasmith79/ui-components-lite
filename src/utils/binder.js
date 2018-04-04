@@ -6,7 +6,7 @@
  * You should have received a copy of the license with this work but it may also be found at
  * https://opensource.org/licenses/MIT
  *
- * data-binding mixin for ui-components-lite.
+ * Data-binding mixin for ui-components-lite. Meant for use with mixwith.js.
  */
 
 export default superclass => class DataBinder extends superclass {

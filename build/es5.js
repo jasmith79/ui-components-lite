@@ -131,7 +131,7 @@ var __run = function __run() {
      * You should have received a copy of the license with this work but it may also be found at
      * https://opensource.org/licenses/MIT
      *
-     * base class for ui-components-lite custom elements.
+     * Base class for ui-components-lite custom elements. Bare minimum API contract.
      */
 
     var flag = true;
@@ -142,9 +142,14 @@ var __run = function __run() {
       function UIBase() {
         _classCallCheck(this, UIBase);
 
+        // Track the listeners so they can be detatched/reattached when element is added to/removed from
+        // the DOM, avoid memory leaks.
         var _this = _possibleConstructorReturn(this, (UIBase.__proto__ || Object.getPrototypeOf(UIBase)).call(this));
 
         _this._listeners = [];
+
+        // Will be called before the WebComponentReady event fires on the element. If any of the
+        // functions return a Promise, the event will be delayed until the Promise(s) resolve(s).
         _this._beforeReadyHandlers = [];
         _this._pendingDOM = [];
         _this._isReady = Object(__WEBPACK_IMPORTED_MODULE_4__promise_from_event_js__["a" /* default */])({
@@ -155,12 +160,21 @@ var __run = function __run() {
           }
         });
 
+        // This is a hack to get around the (current) limitations of the ShadyCSS polyfill. In a
+        // perfect world (or at least in browsers with native WC support) this is unnecessary
+        // ceremony, each constructor can attach `style`s to the element's shadowRoot and calls to super()
+        // will sort it all out in order. However the CSS Scoping polyfill goes by tagName, meaning
+        // screw you if you want to inherit CSS styles from an ancestor element's shadowRoot. Or use
+        // mixins. Or generally do anything that isn't a trivial toy example in browsers with no
+        // native support.
         var tmpl = _this._stamp();
         if (tmpl) {
           if (!_this.shadowRoot) _this.attachShadow({ mode: 'open' });
           _this.shadowRoot.appendChild(__WEBPACK_IMPORTED_MODULE_5__dom_js__["d" /* global */].document.importNode(tmpl.content, true));
         }
 
+        // Set up attribute to property reflection. Setters will take care of the property to attribute
+        // reflection. Checking against the current value prevents the infinite loop.
         var rfs = _this.constructor.observedAttributes;
         if (rfs.length) {
           _this.on('attribute-change', function (_ref) {
@@ -175,7 +189,7 @@ var __run = function __run() {
         }
 
         // This is because the spec doesn't allow attribute changes in an element constructor.
-        // Use a Promise instead of setTimeout because microtask enqueues faster;
+        // Use a Promise instead of setTimeout because microtask enqueues faster.
         Promise.resolve(true).then(function (_) {
           return _this.init();
         });
@@ -294,6 +308,10 @@ var __run = function __run() {
             return o.observe(target, conf);
           });
         }
+
+        // Removes all registered listeners/observers. If the element is GC'd, so are they, if the
+        // element is reattached, so are they.
+
       }, {
         key: 'disconnectedCallback',
         value: function disconnectedCallback() {
@@ -351,7 +369,7 @@ var __run = function __run() {
       }], [{
         key: 'observedAttributes',
         get: function get() {
-          // If extension elements have additional, be sure to call super.
+          // If extension elements add additional, be sure to call super.
           return ['style', 'class'];
         }
       }]);
@@ -529,7 +547,7 @@ var __run = function __run() {
      * You should have received a copy of the license with this work but it may also be found at
      * https://opensource.org/licenses/MIT
      *
-     * utility file for ui-components-lite.
+     * Utility file for ui-components-lite.
      */
 
     var global = new Function('return this')();
@@ -537,8 +555,9 @@ var __run = function __run() {
     var baseClass = global.HTMLElement;
     var registry = {};
 
-    var toPropertyObj = function toPropertyObj(propList) {
-      return propList.reduce(function (acc, prop) {
+    // Turns a list of attribute names and returns a hash of property names to property descriptors.
+    var toPropertyObj = function toPropertyObj(attributeList) {
+      return attributeList.reduce(function (acc, prop) {
         var property = Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_jsstring_src_jsstring_js__["b" /* toCamelCase */])(prop);
         acc[property] = {
           get: function get() {
@@ -557,6 +576,7 @@ var __run = function __run() {
       }, {});
     };
 
+    // This is the meat.
     var defineUIComponent = function defineUIComponent(_ref11) {
       var name = _ref11.name,
           definition = _ref11.definition,
@@ -564,8 +584,7 @@ var __run = function __run() {
           reflectedAttributes = _ref11$reflectedAttri === undefined ? [] : _ref11$reflectedAttri,
           template = _ref11.template,
           _ref11$registerElemen = _ref11.registerElement,
-          registerElement = _ref11$registerElemen === undefined ? true : _ref11$registerElemen,
-          isShadowHost = _ref11.isShadowHost;
+          registerElement = _ref11$registerElemen === undefined ? true : _ref11$registerElemen;
 
       if (!name) throw new Error('ui-components must have a name.');
       if (!definition) throw new Error('ui-components must have a defining class');
@@ -1220,7 +1239,8 @@ var __run = function __run() {
      * button component for ui-components-lite.
      *
      * NOTE: it is not currently (and may never) be possible to extend built-in elements like Button.
-     * If it does become possible this can be refactored to support extending HTMLButtonElement.
+     * If it does become possible this can be refactored to support extending HTMLButtonElement (i.e)
+     * if Apple changes it's mind about supporting this use-case.
      */
 
     var template = __WEBPACK_IMPORTED_MODULE_5__temp_utils_ui_component_base_js__["c" /* document */].createElement('template');
@@ -1271,7 +1291,8 @@ var __run = function __run() {
      * You should have received a copy of the license with this work but it may also be found at
      * https://opensource.org/licenses/MIT
      *
-     * Mixin for custom elements that can receive keyboard focus.
+     * Mixin for custom elements that can receive keyboard focus. Also includes a special event
+     * emission when the user presses the enter key.
      */
 
     /* harmony default export */
@@ -1306,7 +1327,7 @@ var __run = function __run() {
             _get(Focusable.prototype.__proto__ || Object.getPrototypeOf(Focusable.prototype), 'init', this).call(this);
             if (this.attr('tabindex') === null) this.attr('tabindex', '-1');
             this.on('keydown', function (e) {
-              if (e.keyCode === 13) {
+              if (e.keyCode === 13 || e.key === 'Enter') {
                 var evt = new CustomEvent('enter-key');
                 evt.keyCode = 13;
                 _this20.dispatchEvent(evt);
@@ -2179,6 +2200,17 @@ var __run = function __run() {
     /* harmony import */
     var __WEBPACK_IMPORTED_MODULE_0__ui_component_base_js__ = __webpack_require__(0);
     /* harmony import */var __WEBPACK_IMPORTED_MODULE_1__node_modules_extracttype_extracttype_js__ = __webpack_require__(3);
+    /*
+     * normalizer.js
+     * @author jasmith79
+     * @copyright Jared Smith
+     * @license MIT
+     * You should have received a copy of the license with this work but it may also be found at
+     * https://opensource.org/licenses/MIT
+     *
+     * Utility file for ui-components-lite. Makes input elements act consistently cross-browser, wrt
+     * the change event.
+     */
 
     var changeTriggers = ['keyup', 'paste', 'input'];
 
@@ -2639,7 +2671,7 @@ var __run = function __run() {
      * You should have received a copy of the license with this work but it may also be found at
      * https://opensource.org/licenses/MIT
      *
-     * alert component for ui-components-lite.
+     * alert component for ui-components-lite. Replacement for the native alert() function.
      */
 
     var reflectedAttributes = ['confirmable'];
@@ -2839,7 +2871,7 @@ var __run = function __run() {
      * You should have received a copy of the license with this work but it may also be found at
      * https://opensource.org/licenses/MIT
      *
-     * vertical centering mixin for ui-components-lite.
+     * Vertical centering mixin for ui-components-lite.
      */
 
     var centeredStyles = '\n    :host {\n      transform-style: preserve-3d;\n    }\n\n    .content-wrapper {\n      position: relative;\n      top: 49%;\n      transform: translateY(-51%);\n    }\n';
@@ -3163,8 +3195,6 @@ var __run = function __run() {
         return encodeURIComponent(k) + '=' + encodeURIComponent(typeof v === 'string' ? v : JSON.stringify(v));
       }).join('&');
     };
-
-    window.parseURL = parseURL;
 
     /***/
   },
@@ -3766,7 +3796,7 @@ var __run = function __run() {
      * You should have received a copy of the license with this work but it may also be found at
      * https://opensource.org/licenses/MIT
      *
-     * data-binding mixin for ui-components-lite.
+     * Data-binding mixin for ui-components-lite. Meant for use with mixwith.js.
      */
 
     /* harmony default export */
@@ -3877,10 +3907,11 @@ var __run = function __run() {
      * DOM manipulation mixin for ui-components-lite.
      */
 
-    var attrConf = { attributes: true };
+    var attrConf = { attributes: true }; // Argument to MutationObserver.prototype.observe
     var isHTMLElement = function isHTMLElement(arg) {
       return Boolean(Object(__WEBPACK_IMPORTED_MODULE_2__node_modules_extracttype_extracttype_js__["a" /* default */])(arg).match(/HTML[a-zA-Z]*Element/));
     };
+
     /* harmony default export */__webpack_exports__["a"] = function (superclass) {
       return function (_superclass8) {
         _inherits(DOMutils, _superclass8);
@@ -3896,11 +3927,20 @@ var __run = function __run() {
           return _this54;
         }
 
+        /*
+         * isVisible :: Void -> Boolean
+         */
+
+
         _createClass(DOMutils, [{
           key: 'watchAttribute',
 
 
-          // Observes changes to the given attribute on the given node.
+          /*
+           * watchAttribute :: HTMLElement, String, (* -> *) -> HTMLElement
+           *
+           * Observes changes to the given attribute on the given node.
+           */
           value: function watchAttribute(n, a, callb) {
             var _this55 = this;
 
@@ -3938,12 +3978,22 @@ var __run = function __run() {
 
             return this;
           }
+
+          /*
+           * selectAll :: CSSSelector -> [HTMLElement]
+           */
+
         }, {
           key: 'selectAll',
           value: function selectAll(selector) {
             var nodeList = this.querySelectorAll(selector);
             return nodeList ? [].concat(_toConsumableArray(nodeList)) : [];
           }
+
+          /*
+           * matches :: CSSSelector -> Boolean
+           */
+
         }, {
           key: 'matches',
           value: function matches(selector) {
@@ -3951,6 +4001,14 @@ var __run = function __run() {
             if (_get(DOMutils.prototype.__proto__ || Object.getPrototypeOf(DOMutils.prototype), 'msMatchesSelector', this)) return _get(DOMutils.prototype.__proto__ || Object.getPrototypeOf(DOMutils.prototype), 'msMatchesSelector', this).call(this, selector);
             throw new Error('HTMLElement does not implement the matches method.');
           }
+
+          // NOTE: the following two methods violate encapsulation. Be VERY careful about using, i.e. don't
+          // do it from the outside, any more than you'd use element.shadowRoot.querySelector.
+
+          /*
+           * selectInternalElement :: CSSSelector -> HTMLElement
+           */
+
         }, {
           key: 'selectInternalElement',
           value: function selectInternalElement(selector) {
@@ -3960,6 +4018,11 @@ var __run = function __run() {
             }
             return this.shadowRoot.querySelector(selector);
           }
+
+          /*
+           * selectInternalAll :: CSSSelector -> [HTMLElement]
+           */
+
         }, {
           key: 'selectInternalAll',
           value: function selectInternalAll(selector) {
@@ -3969,12 +4032,20 @@ var __run = function __run() {
             }
             return [].concat(_toConsumableArray(this.shadowRoot.querySelectorAll(selector)));
           }
+          /*
+           * identity :: Void -> String
+           *
+           * Corresponds to the representation used by chrome devtools (and most others) when inspecting an
+           * element. This should generally be used more for error reporting than to try to identify
+           * specific elements: if you want the element to be uniquely selectable give it an id.
+           */
+
         }, {
           key: 'on',
 
 
           /**
-           * on :: Event, (Event -> *) -> this
+           * on :: Event, (Event -> *) -> HTMLElement
            *
            * Registers an event listener. Listeners added via this method are
            * automatically removed and reattached on being removed from/added to the
@@ -4009,7 +4080,7 @@ var __run = function __run() {
            * Removes a child node(s) or event listener. If no event name is provided, it removes that
            * listener function for all events for which it is bound to the element. If no arguments arguments
            * provided the method removes the element from its parent element. So this method
-           * responds to the following signatures and ignores all others:
+           * responds to the above signatures and ignores all others.
            */
 
         }, {
@@ -4082,6 +4153,11 @@ var __run = function __run() {
 
             return this;
           }
+
+          /*
+           * hide :: Void -> HTMLElement
+           */
+
         }, {
           key: 'hide',
           value: function hide() {
@@ -4092,6 +4168,11 @@ var __run = function __run() {
             }
             return this;
           }
+
+          /*
+           * show :: Void -> HTMLElement
+           */
+
         }, {
           key: 'show',
           value: function show() {
@@ -4101,6 +4182,14 @@ var __run = function __run() {
             }
             return this;
           }
+
+          /*
+           * attr :: String -> *
+           * attr :: String, * -> HTMLElement
+           *
+           * Gets/Sets the supplied attribute from this.
+           */
+
         }, {
           key: 'attr',
           value: function attr(name, value) {
@@ -4119,6 +4208,14 @@ var __run = function __run() {
               return this;
             }
           }
+
+          /*
+           * appendFirst :: HTMLElement -> HTMLElement
+           * appendFirst :: HTMLElement, Boolean -> HTMLElement
+           *
+           * Appends node before the first child of the HTMLElement or it's shadowRoot.
+           */
+
         }, {
           key: 'appendFirst',
           value: function appendFirst(node, shadow) {
@@ -4173,7 +4270,8 @@ var __run = function __run() {
      * Utility function that returns a Promise that resolves as soon as the associated event fires.
      *
      * NOTE: the listener is automatically removed when the event fires, so no memory leak and
-     * side effects will only happen once.
+     * side effects will only happen once. If you want to respond every time an event fires, well,
+     * they make addEventListener for that.
      */
 
     /* harmony default export */
@@ -4189,9 +4287,9 @@ var __run = function __run() {
 
       return new Promise(function (res, rej) {
         var timeoutHandle = void 0;
-        if (timeout) {
+        if (timeout != null) {
           timeoutHandle = setTimeout(function () {
-            rej(new Error('The element did not fire the event before the ' + timeout + 'ms timeout.'));
+            rej(new Error('The element ' + (element.identity || element.id || '') + ' did not fire the event ' + eventName + ' before the ' + timeout + 'ms timeout.'));
           }, timeout);
         }
 

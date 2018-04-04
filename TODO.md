@@ -22,7 +22,8 @@ Fix default theme colors
 
 **PRIORITY**
 fix how tooltip works, kinda hacky right now
-fix minor snafu on hamburger: when hovering lines are uncentere
+
+
 
 
 

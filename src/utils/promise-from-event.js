@@ -9,7 +9,8 @@
  * Utility function that returns a Promise that resolves as soon as the associated event fires.
  *
  * NOTE: the listener is automatically removed when the event fires, so no memory leak and
- * side effects will only happen once.
+ * side effects will only happen once. If you want to respond every time an event fires, well,
+ * they make addEventListener for that.
  */
 
 export default ({ eventName, element, callback, timeout }) => {
@@ -19,9 +20,9 @@ export default ({ eventName, element, callback, timeout }) => {
 
   return new Promise((res, rej) => {
     let timeoutHandle;
-    if (timeout) {
+    if (timeout != null) {
       timeoutHandle = setTimeout(() => {
-        rej(new Error(`The element did not fire the event before the ${timeout}ms timeout.`));
+        rej(new Error(`The element ${element.identity || element.id || ''} did not fire the event ${eventName} before the ${timeout}ms timeout.`));
       }, timeout);
     }
 

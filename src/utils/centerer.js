@@ -6,7 +6,7 @@
  * You should have received a copy of the license with this work but it may also be found at
  * https://opensource.org/licenses/MIT
  *
- * vertical centering mixin for ui-components-lite.
+ * Vertical centering mixin for ui-components-lite.
  */
 
 import { document, defineUIComponent } from './dom.js';

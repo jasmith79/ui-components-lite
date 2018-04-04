@@ -70,8 +70,6 @@ const toQueryString = obj => obj && '?' + Object.entries(obj)
   .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(typeof v === 'string' ? v : JSON.stringify(v))}`)
   .join('&');
 
-window.parseURL = parseURL;
-
 export {
   parseURL,
   toQueryString,

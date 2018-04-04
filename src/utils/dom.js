@@ -6,7 +6,7 @@
  * You should have received a copy of the license with this work but it may also be found at
  * https://opensource.org/licenses/MIT
  *
- * utility file for ui-components-lite.
+ * Utility file for ui-components-lite.
  */
 
 import { toCamelCase, toSnakeCase } from '../../../jsstring/src/jsstring.js';
@@ -16,8 +16,9 @@ const document = global.document;
 const baseClass = global.HTMLElement;
 const registry = {};
 
-const toPropertyObj = propList => {
-  return propList.reduce((acc, prop) => {
+// Turns a list of attribute names and returns a hash of property names to property descriptors.
+const toPropertyObj = attributeList => {
+  return attributeList.reduce((acc, prop) => {
     const property = toCamelCase(prop);
     acc[property] = {
       get: function() {
@@ -36,13 +37,13 @@ const toPropertyObj = propList => {
   }, {});
 };
 
+// This is the meat.
 const defineUIComponent = ({
-  name,
-  definition,
+  name,                   // tagName
+  definition,             // class that extends HTMLElement
   reflectedAttributes=[],
   template,
-  registerElement=true,
-  isShadowHost,
+  registerElement=true,   // call customElements.define?
 }) => {
   if (!name) throw new Error('ui-components must have a name.');
   if (!definition) throw new Error('ui-components must have a defining class');
