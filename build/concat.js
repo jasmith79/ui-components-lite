@@ -5595,6 +5595,13 @@ template.innerHTML = `
     :host([is-open="true"]) ui-list {
       box-shadow: 3px 5px 10px -4px #999;
       padding-bottom: 1px;
+    }
+    
+    ui-list.overflowing-window {
+      transform: scale(1) translateY(-265px); 
+    }
+
+    ui-list.not-overflowing-window {
       transform: scale(1) translateY(0px);
     }
 
@@ -5626,6 +5633,7 @@ template.innerHTML = `
       left: 10px;
       font-size: 16px;
     }
+
   </style>
   <label><ui-text view-text="{{label}}"></ui-text></label>
   <ui-item id="dummy-item" class="default">
@@ -5775,10 +5783,24 @@ template.innerHTML = `
             break;
 
           case 'is-open':
+            let list = this.selectInternalElement('ui-list');
             if (now) {
+              let h = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["d" /* global */].getComputedStyle(list).height;
+              let { top } = this.getBoundingClientRect();
+              let windowHeight = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].documentElement.clientHeight;
+              let match = h.match(/\d+/);
+              if (match) h = +match[0];
+              let overflow = h > (windowHeight - top);
+              if (overflow) {
+                list.classList.add('overflowing-window');
+              } else {
+                list.classList.add('not-overflowing-window');
+              }
               this.classList.add('is-opened');
             } else {
               this.classList.remove('is-opened');
+              list.classList.remove('overflowing-window');
+              list.classList.remove('not-overflowing-window');
             }
             break;
         }
