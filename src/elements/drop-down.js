@@ -284,7 +284,7 @@ export default defineUIComponent({
               let { top } = this.getBoundingClientRect();
               let windowHeight = document.documentElement.clientHeight;
               let match = h.match(/\d+/);
-              if (match) h = +match[0] + 20; // add some padding in the calc
+              if (match) h = +match[0] + 35; // add some padding in the calc
               let overflow = h > (windowHeight - top);
               if (overflow) {
                 list.classList.add('overflowing-window');
