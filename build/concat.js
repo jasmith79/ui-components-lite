@@ -5789,7 +5789,7 @@ template.innerHTML = `
               let { top } = this.getBoundingClientRect();
               let windowHeight = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].documentElement.clientHeight;
               let match = h.match(/\d+/);
-              if (match) h = +match[0] + 20; // add some padding in the calc
+              if (match) h = +match[0] + 35; // add some padding in the calc
               let overflow = h > (windowHeight - top);
               if (overflow) {
                 list.classList.add('overflowing-window');
