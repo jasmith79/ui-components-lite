@@ -285,7 +285,7 @@ export default defineUIComponent({
               let windowHeight = document.documentElement.clientHeight;
               let match = h.match(/\d+/);
               if (match) h = +match[0] + 35; // add some padding in the calc
-              let overflow = h > (windowHeight - top);
+              let overflow = (h + 50) > (windowHeight - top);
               if (overflow) {
                 list.classList.add('overflowing-window');
                 list.style.transform = `translateY(-${Math.min(h, 265)}px)`;
