@@ -5722,7 +5722,7 @@ var __run = function __run() {
                     var windowHeight = __WEBPACK_IMPORTED_MODULE_3__temp_utils_ui_component_base_js__["c" /* document */].documentElement.clientHeight;
                     var match = h.match(/\d+/);
                     if (match) h = +match[0] + 35; // add some padding in the calc
-                    var overflow = h + 50 > windowHeight - top;
+                    var overflow = h + 100 > windowHeight - top;
                     if (overflow) {
                       list.classList.add('overflowing-window');
                       list.style.transform = 'translateY(-' + Math.min(h, 265) + 'px)';
